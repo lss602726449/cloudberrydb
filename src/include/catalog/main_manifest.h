@@ -30,6 +30,9 @@ CATALOG(main_manifest,9004,ManifestRelationId)
 
 typedef FormData_main_manifest *Form_main_manifest;
 
-extern void RemoveMainManifestByRelnode(RelFileNodeId relnode);
+DECLARE_INDEX(main_manifest_relnode_index, 7606, on main_manifest using btree(relnode int8_ops));
+#define MainManifestRelnodeIndexId  7606
+
+extern void RemoveMainManifestByRelid(Oid relid);
 
 #endif /* MAIN_MANIFEST.h */

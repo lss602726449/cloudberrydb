@@ -19,27 +19,46 @@
 #include "catalog/indexing.h"
 #include "catalog/main_manifest.h"
 #include "utils/rel.h"
+#include "utils/syscache.h"
 
 /*
  * RemoveMainManifestByRelnode
  *      Remove the main manifest record for the relnode.
  */
 void
-RemoveMainManifestByRelnode(RelFileNodeId relnode)
+RemoveMainManifestByRelid(Oid relid)
 {
     Relation    main_manifest;
     HeapTuple   tuple;
     SysScanDesc scanDescriptor = NULL;
     ScanKeyData scanKey[1];
+    HeapTuple	tp;
+    RelFileNodeId relnode;
+    
+    tp = SearchSysCache1(RELOID, ObjectIdGetDatum(relid));
 
+    if(HeapTupleIsValid(tp))
+    {
+        Form_pg_class reltup = (Form_pg_class) GETSTRUCT(tp);
+
+		relnode = reltup->relfilenode;
+		ReleaseSysCache(tp);
+    }
+    else
+        elog(ERROR, "cache lookup failed for relid %u", relid);
+
+    /*
+     * FIXME: relnode is uint64, but we treat it as int64. Although relnode 
+     * will not exceed the range of int64.
+     */
     main_manifest = table_open(ManifestRelationId, RowExclusiveLock);
     ScanKeyInit(&scanKey[0], Anum_main_manifest_relnode, BTEqualStrategyNumber,
-                F_OIDEQ, ObjectIdGetDatum(relnode));
+                F_INT8EQ, Int64GetDatum(relnode));
 
-    scanDescriptor = systable_beginscan(main_manifest, InvalidOid,
-                                        false, NULL, 1, scanKey);
+    scanDescriptor = systable_beginscan(main_manifest, MainManifestRelnodeIndexId,
+                                        true, NULL, 1, scanKey);
 
-    while (HeapTupleIsValid(tuple = systable_getnext(scanDescriptor)))
+    if(HeapTupleIsValid(tuple = systable_getnext(scanDescriptor)))
     {
         CatalogTupleDelete(main_manifest, &tuple->t_self);
     }

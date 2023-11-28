@@ -39,6 +39,8 @@ typedef struct ResultRelInfo *CatalogIndexState;
  * indexing.c prototypes
  */
 extern CatalogIndexState CatalogOpenIndexes(Relation heapRel);
+extern void CatalogIndexInsert(CatalogIndexState indstate, 
+							   HeapTuple heapTuple);
 extern void CatalogCloseIndexes(CatalogIndexState indstate);
 extern void CatalogTupleInsert(Relation heapRel, HeapTuple tup);
 extern void CatalogTupleInsertWithInfo(Relation heapRel, HeapTuple tup,

@@ -72,7 +72,7 @@ CatalogCloseIndexes(CatalogIndexState indstate)
  *
  * This is effectively a cut-down version of ExecInsertIndexTuples.
  */
-static void
+void
 CatalogIndexInsert(CatalogIndexState indstate, HeapTuple heapTuple)
 {
 	int			i;
