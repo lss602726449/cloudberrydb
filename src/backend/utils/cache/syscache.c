@@ -3,13 +3,9 @@
  * syscache.c
  *	  System cache management routines
  *
-<<<<<<< HEAD
  * Portions Copyright (c) 2007-2010, Greenplum inc
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
- * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
-=======
  * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -342,34 +338,20 @@ static const struct cachedesc cacheinfo[] = {
 		KEY(Anum_pg_event_trigger_oid),
 		8
 	},
-<<<<<<< HEAD
-	{ExtprotocolRelationId,		/* EXTPROTOCOLOID */
+	[EXTPROTOCOLOID] = {
+		ExtprotocolRelationId,
 		ExtprotocolOidIndexId,
-		1,
-		{
-			Anum_pg_extprotocol_oid,
-			0,
-			0,
-			0
-		},
+		KEY(Anum_pg_extprotocol_oid),
 		128
 	},
-	{ExtprotocolRelationId,		/* EXTPROTOCOLNAME */
+	[EXTPROTOCOLNAME] = {
+		ExtprotocolRelationId,
 		ExtprotocolPtcnameIndexId,
-		1,
-		{
-			Anum_pg_extprotocol_ptcname,
-			0,
-			0,
-			0
-		},
+		KEY(Anum_pg_extprotocol_ptcname),
 		128
 	},
-	{ForeignDataWrapperRelationId,	/* FOREIGNDATAWRAPPERNAME */
-=======
 	[FOREIGNDATAWRAPPERNAME] = {
 		ForeignDataWrapperRelationId,
->>>>>>> REL_16_9
 		ForeignDataWrapperNameIndexId,
 		KEY(Anum_pg_foreign_data_wrapper_fdwname),
 		2
@@ -392,34 +374,20 @@ static const struct cachedesc cacheinfo[] = {
 		KEY(Anum_pg_foreign_server_oid),
 		2
 	},
-<<<<<<< HEAD
-	{StorageServerRelationId,	/* STORAGESERVERNAME */
+	[STORAGESERVERNAME] = {
+		StorageServerRelationId,
 		StorageServerNameIndexId,
-		1,
-	 	{
-			Anum_gp_storage_server_srvname,
-			0,
-			0,
-			0
-	 	},
-	 	2
+		KEY(Anum_gp_storage_server_srvname),
+		2
 	},
-	{StorageServerRelationId,	/* STORAGESERVEROID */
+	[STORAGESERVEROID] = {
+		StorageServerRelationId,
 		StorageServerOidIndexId,
-		1,
-	 	{
-			Anum_gp_storage_server_oid,
-			0,
-			0,
-			0
-	 	},
-	 	2
+		KEY(Anum_gp_storage_server_oid),
+		2
 	},
-	{ForeignTableRelationId,	/* FOREIGNTABLEREL */
-=======
 	[FOREIGNTABLEREL] = {
 		ForeignTableRelationId,
->>>>>>> REL_16_9
 		ForeignTableRelidIndexId,
 		KEY(Anum_pg_foreign_table_ftrelid),
 		4

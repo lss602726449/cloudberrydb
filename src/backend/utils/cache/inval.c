@@ -306,24 +306,6 @@ AddInvalidationMessage(InvalidationMsgsGroup *group, int subgroup,
 			/* Create new storage array in TopTransactionContext */
 			int			reqsize = 32;	/* arbitrary */
 
-<<<<<<< HEAD
-		/*
-		 * Keep in mind: the max allowed alloc size is about 1GB, for
-		 * simplification we set the upper limit to half of that.
-		 */
-#define MAXCHUNKSIZE (MaxAllocSize / 2 / sizeof(SharedInvalidationMessage))
-		if (chunksize > MAXCHUNKSIZE)
-			chunksize >>= 1;
-
-		chunk = (InvalidationChunk *)
-			MemoryContextAlloc(CurTransactionContext,
-							   offsetof(InvalidationChunk, msgs) +
-							   chunksize * sizeof(SharedInvalidationMessage));
-		chunk->nitems = 0;
-		chunk->maxitems = chunksize;
-		chunk->next = *listHdr;
-		*listHdr = chunk;
-=======
 			ima->msgs = (SharedInvalidationMessage *)
 				MemoryContextAlloc(TopTransactionContext,
 								   reqsize * sizeof(SharedInvalidationMessage));
@@ -340,7 +322,6 @@ AddInvalidationMessage(InvalidationMsgsGroup *group, int subgroup,
 						 reqsize * sizeof(SharedInvalidationMessage));
 			ima->maxmsgs = reqsize;
 		}
->>>>>>> REL_16_9
 	}
 	/* Okay, add message to current group */
 	ima->msgs[nextindex] = *msg;
@@ -719,16 +700,9 @@ LocalExecuteInvalidationMessage(SharedInvalidationMessage *msg)
 		 */
 		RelFileLocatorBackend rlocator;
 
-<<<<<<< HEAD
-		memset(&rnode, 0, sizeof(RelFileNodeBackend));
-		rnode.node = msg->sm.rnode;
-		rnode.backend = (msg->sm.backend_hi << 16) | (int) msg->sm.backend_lo;
-		smgrclosenode(rnode);
-=======
 		rlocator.locator = msg->sm.rlocator;
 		rlocator.backend = (msg->sm.backend_hi << 16) | (int) msg->sm.backend_lo;
 		smgrcloserellocator(rlocator);
->>>>>>> REL_16_9
 	}
 	else if (msg->id == SHAREDINVALRELMAP_ID)
 	{
@@ -778,11 +752,7 @@ InvalidateSystemCachesExtended(bool debug_discard)
 	int			i;
 
 	InvalidateCatalogSnapshot();
-<<<<<<< HEAD
 	ResetCatalogCaches();
-=======
-	ResetCatalogCachesExt(debug_discard);
->>>>>>> REL_16_9
 	RelationCacheInvalidate(debug_discard); /* gets smgr and relmap too */
 
 	for (i = 0; i < syscache_callback_count; i++)
@@ -845,7 +815,6 @@ AcceptInvalidationMessages(void)
 	 * recursive reloads it's unlikely you'll learn more.
 	 *----------
 	 */
-<<<<<<< HEAD
 #if defined(CLOBBER_CACHE_ALWAYS)
 	{
 		static bool in_recursion = false;
@@ -858,9 +827,6 @@ AcceptInvalidationMessages(void)
 		}
 	}
 #elif defined(CLOBBER_CACHE_RECURSIVELY)
-=======
-#ifdef DISCARD_CACHES_ENABLED
->>>>>>> REL_16_9
 	{
 		static int	recursion_depth = 0;
 

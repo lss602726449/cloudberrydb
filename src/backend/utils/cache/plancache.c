@@ -1960,9 +1960,7 @@ ScanQueryForLocks(Query *parsetree, bool acquire)
 				break;
 
 			case RTE_SUBQUERY:
-<<<<<<< HEAD
 			case RTE_TABLEFUNCTION:
-=======
 				/* If this was a view, must lock/unlock the view */
 				if (OidIsValid(rte->relid))
 				{
@@ -1971,7 +1969,6 @@ ScanQueryForLocks(Query *parsetree, bool acquire)
 					else
 						UnlockRelationOid(rte->relid, rte->rellockmode);
 				}
->>>>>>> REL_16_9
 				/* Recurse into subquery-in-FROM */
 				ScanQueryForLocks(rte->subquery, acquire);
 				break;

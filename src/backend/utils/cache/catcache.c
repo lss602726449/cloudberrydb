@@ -1520,7 +1520,6 @@ SearchCatCacheMiss(CatCache *cache,
 	do
 	{
 		/*
-<<<<<<< HEAD
 		 * Good place to sanity check the tuple, before adding it to cache.
 		 * So if its fetched using index, lets cross verify tuple intended is the tuple
 		 * fetched. If not fail and contain the damage which maybe caused due to
@@ -1540,17 +1539,6 @@ SearchCatCacheMiss(CatCache *cache,
 		ResourceOwnerRememberCatCacheRef(CurrentResourceOwner, &ct->tuple);
 		break;					/* assume only one match */
 	}
-=======
-		 * Ok, need to make a lookup in the relation, copy the scankey and
-		 * fill out any per-call fields.  (We must re-do this when retrying,
-		 * because systable_beginscan scribbles on the scankey.)
-		 */
-		memcpy(cur_skey, cache->cc_skey, sizeof(ScanKeyData) * nkeys);
-		cur_skey[0].sk_argument = v1;
-		cur_skey[1].sk_argument = v2;
-		cur_skey[2].sk_argument = v3;
-		cur_skey[3].sk_argument = v4;
->>>>>>> REL_16_9
 
 		scandesc = systable_beginscan(relation,
 									  cache->cc_indexoid,

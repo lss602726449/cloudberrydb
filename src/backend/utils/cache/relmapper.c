@@ -74,32 +74,17 @@
 #define RELMAPPER_FILEMAGIC		0x592717	/* version ID value */
 
 /*
-<<<<<<< HEAD
- * In Postgres, MAX_MAPPINGS is 62, but GPDB has exceeded this number due to
- * additional GPDB specific shared relations. Increased to 126 to occupy
- * exactly 1 kilobyte.
- *
- * New math: 126 * 8 + 16 = 1024
- */
-#define MAX_MAPPINGS			126		/* 62 * 8 + 16 = 512 */
-
-typedef struct RelMapping
-{
-	Oid			    mapoid;			/* OID of a catalog */
-	Oid   			mapfilenode;	/* its filenode number */
-=======
  * There's no need for this constant to have any particular value, and we
  * can raise it as necessary if we end up with more mapped relations. For
  * now, we just pick a round number that is modestly larger than the expected
  * number of mappings.
  */
-#define MAX_MAPPINGS			64
+#define MAX_MAPPINGS			126
 
 typedef struct RelMapping
 {
 	Oid			mapoid;			/* OID of a catalog */
 	RelFileNumber mapfilenumber;	/* its rel file number */
->>>>>>> REL_16_9
 } RelMapping;
 
 typedef struct RelMapFile

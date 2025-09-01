@@ -275,24 +275,11 @@ static const dshash_parameters srtr_typmod_table_params = {
 /* hashtable for recognizing registered record types */
 static HTAB *RecordCacheHash = NULL;
 
-<<<<<<< HEAD
 /* arrays of info about registered record types, indexed by assigned typmod */
 static TupleDesc *RecordCacheArray = NULL;
 static uint64 *RecordIdentifierArray = NULL;
 static int32 RecordCacheArrayLen = 0;	/* allocated length of above arrays */
 int32 NextRecordTypmod = 0;	/* number of entries used */
-=======
-typedef struct RecordCacheArrayEntry
-{
-	uint64		id;
-	TupleDesc	tupdesc;
-} RecordCacheArrayEntry;
-
-/* array of info about registered record types, indexed by assigned typmod */
-static RecordCacheArrayEntry *RecordCacheArray = NULL;
-static int32 RecordCacheArrayLen = 0;	/* allocated length of above array */
-static int32 NextRecordTypmod = 0;	/* number of entries used */
->>>>>>> REL_16_9
 
 /*
  * Process-wide counter for generating unique tupledesc identifiers.
@@ -2014,11 +2001,7 @@ assign_record_type_typmod(TupleDesc tupDesc)
 	 * the allocations succeed before we create the new entry.
 	 */
 	recentry = (RecordCacheEntry *) hash_search(RecordCacheHash,
-<<<<<<< HEAD
-												(void *) &tupDesc,
-=======
 												&tupDesc,
->>>>>>> REL_16_9
 												HASH_FIND, &found);
 	if (found && recentry->tupdesc != NULL)
 	{
@@ -2049,11 +2032,7 @@ assign_record_type_typmod(TupleDesc tupDesc)
 		ensure_record_cache_typmod_slot_exists(entDesc->tdtypmod);
 	}
 
-<<<<<<< HEAD
 	RecordCacheArray[entDesc->tdtypmod] = entDesc;
-=======
-	RecordCacheArray[entDesc->tdtypmod].tupdesc = entDesc;
->>>>>>> REL_16_9
 
 	/* Assign a unique tupdesc identifier, too. */
 	RecordCacheArray[entDesc->tdtypmod].id = ++tupledesc_id_counter;
