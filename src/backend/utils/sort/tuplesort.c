@@ -112,22 +112,9 @@
 #include "utils/rel.h"
 #include "utils/tuplesort.h"
 
-<<<<<<< HEAD
 #include "utils/faultinjector.h"
 
 
-/* sort-type codes for sort__start probes */
-#define HEAP_SORT		0
-#define INDEX_SORT		1
-#define DATUM_SORT		2
-#define CLUSTER_SORT	3
-
-/* Sort parallel code from state for sort__start probes */
-#define PARALLEL_SORT(state)	((state)->shared == NULL ? 0 : \
-								 (state)->worker >= 0 ? 1 : 2)
-
-=======
->>>>>>> REL_16_9
 /*
  * Initial size of memtuples array.  We're trying to select this size so that
  * array doesn't exceed ALLOCSET_SEPARATE_THRESHOLD and so that the overhead of
@@ -846,436 +833,6 @@ tuplesort_begin_batch(Tuplesortstate *state)
 	MemoryContextSwitchTo(oldcontext);
 }
 
-<<<<<<< HEAD
-Tuplesortstate *
-tuplesort_begin_heap(TupleDesc tupDesc,
-					 int nkeys, AttrNumber *attNums,
-					 Oid *sortOperators, Oid *sortCollations,
-					 bool *nullsFirstFlags,
-					 int workMem, SortCoordinate coordinate, bool randomAccess)
-{
-	Tuplesortstate *state = tuplesort_begin_common(workMem, coordinate,
-												   randomAccess);
-	MemoryContext oldcontext;
-	int			i;
-
-	oldcontext = MemoryContextSwitchTo(state->maincontext);
-
-	AssertArg(nkeys > 0);
-
-#ifdef TRACE_SORT
-	if (trace_sort)
-		elog(LOG,
-			 "begin tuple sort: nkeys = %d, workMem = %d, randomAccess = %c",
-			 nkeys, workMem, randomAccess ? 't' : 'f');
-#endif
-
-	state->nKeys = nkeys;
-
-	TRACE_POSTGRESQL_SORT_START(HEAP_SORT,
-								false,	/* no unique check */
-								nkeys,
-								workMem,
-								randomAccess,
-								PARALLEL_SORT(state));
-
-	state->comparetup = comparetup_heap;
-	state->copytup = copytup_heap;
-	state->writetup = writetup_heap;
-	state->readtup = readtup_heap;
-
-	state->tupDesc = tupDesc;	/* assume we need not copy tupDesc */
-	state->abbrevNext = 10;
-
-	/* Prepare SortSupport data for each column */
-	state->sortKeys = (SortSupport) palloc0(nkeys * sizeof(SortSupportData));
-
-	for (i = 0; i < nkeys; i++)
-	{
-		SortSupport sortKey = state->sortKeys + i;
-
-		AssertArg(attNums[i] != 0);
-		AssertArg(sortOperators[i] != 0);
-
-		sortKey->ssup_cxt = CurrentMemoryContext;
-		sortKey->ssup_collation = sortCollations[i];
-		sortKey->ssup_nulls_first = nullsFirstFlags[i];
-		sortKey->ssup_attno = attNums[i];
-		/* Convey if abbreviation optimization is applicable in principle */
-		sortKey->abbreviate = (i == 0);
-
-		PrepareSortSupportFromOrderingOp(sortOperators[i], sortKey);
-	}
-
-	/*
-	 * The "onlyKey" optimization cannot be used with abbreviated keys, since
-	 * tie-breaker comparisons may be required.  Typically, the optimization
-	 * is only of value to pass-by-value types anyway, whereas abbreviated
-	 * keys are typically only of value to pass-by-reference types.
-	 */
-	if (nkeys == 1 && !state->sortKeys->abbrev_converter)
-		state->onlyKey = state->sortKeys;
-
-	MemoryContextSwitchTo(oldcontext);
-
-	return state;
-}
-
-Tuplesortstate *
-tuplesort_begin_cluster(TupleDesc tupDesc,
-						Relation indexRel,
-						int workMem,
-						SortCoordinate coordinate, bool randomAccess)
-{
-	Tuplesortstate *state = tuplesort_begin_common(workMem, coordinate,
-												   randomAccess);
-	AttrNumber	leading;
-	BTScanInsert indexScanKey;
-	MemoryContext oldcontext;
-	int			i;
-
-	Assert(IsIndexAccessMethod(indexRel->rd_rel->relam, BTREE_AM_OID));
-
-	oldcontext = MemoryContextSwitchTo(state->maincontext);
-
-#ifdef TRACE_SORT
-	if (trace_sort)
-		elog(LOG,
-			 "begin tuple sort: nkeys = %d, workMem = %d, randomAccess = %c",
-			 RelationGetNumberOfAttributes(indexRel),
-			 workMem, randomAccess ? 't' : 'f');
-#endif
-
-	state->nKeys = IndexRelationGetNumberOfKeyAttributes(indexRel);
-
-	TRACE_POSTGRESQL_SORT_START(CLUSTER_SORT,
-								false,	/* no unique check */
-								state->nKeys,
-								workMem,
-								randomAccess,
-								PARALLEL_SORT(state));
-
-	state->comparetup = comparetup_cluster;
-	state->copytup = copytup_cluster;
-	state->writetup = writetup_cluster;
-	state->readtup = readtup_cluster;
-	state->abbrevNext = 10;
-
-	state->indexInfo = BuildIndexInfo(indexRel);
-	leading = state->indexInfo->ii_IndexAttrNumbers[0];
-
-	state->tupDesc = tupDesc;	/* assume we need not copy tupDesc */
-
-	indexScanKey = _bt_mkscankey(indexRel, NULL);
-
-	if (state->indexInfo->ii_Expressions != NULL)
-	{
-		TupleTableSlot *slot;
-		ExprContext *econtext;
-
-		/*
-		 * We will need to use FormIndexDatum to evaluate the index
-		 * expressions.  To do that, we need an EState, as well as a
-		 * TupleTableSlot to put the table tuples into.  The econtext's
-		 * scantuple has to point to that slot, too.
-		 */
-		state->estate = CreateExecutorState();
-		slot = MakeSingleTupleTableSlot(tupDesc, &TTSOpsHeapTuple);
-		econtext = GetPerTupleExprContext(state->estate);
-		econtext->ecxt_scantuple = slot;
-	}
-
-	/* Prepare SortSupport data for each column */
-	state->sortKeys = (SortSupport) palloc0(state->nKeys *
-											sizeof(SortSupportData));
-
-	for (i = 0; i < state->nKeys; i++)
-	{
-		SortSupport sortKey = state->sortKeys + i;
-		ScanKey		scanKey = indexScanKey->scankeys + i;
-		int16		strategy;
-
-		sortKey->ssup_cxt = CurrentMemoryContext;
-		sortKey->ssup_collation = scanKey->sk_collation;
-		sortKey->ssup_nulls_first =
-			(scanKey->sk_flags & SK_BT_NULLS_FIRST) != 0;
-		sortKey->ssup_attno = scanKey->sk_attno;
-		/* Convey if abbreviation optimization is applicable in principle */
-		sortKey->abbreviate = (i == 0 && leading != 0);
-
-		AssertState(sortKey->ssup_attno != 0);
-
-		strategy = (scanKey->sk_flags & SK_BT_DESC) != 0 ?
-			BTGreaterStrategyNumber : BTLessStrategyNumber;
-
-		PrepareSortSupportFromIndexRel(indexRel, strategy, sortKey);
-	}
-
-	pfree(indexScanKey);
-
-	MemoryContextSwitchTo(oldcontext);
-
-	return state;
-}
-
-Tuplesortstate *
-tuplesort_begin_index_btree(Relation heapRel,
-							Relation indexRel,
-							bool enforceUnique,
-							int workMem,
-							SortCoordinate coordinate,
-							bool randomAccess)
-{
-	Tuplesortstate *state = tuplesort_begin_common(workMem, coordinate,
-												   randomAccess);
-	BTScanInsert indexScanKey;
-	MemoryContext oldcontext;
-	int			i;
-
-	oldcontext = MemoryContextSwitchTo(state->maincontext);
-
-#ifdef TRACE_SORT
-	if (trace_sort)
-		elog(LOG,
-			 "begin index sort: unique = %c, workMem = %d, randomAccess = %c",
-			 enforceUnique ? 't' : 'f',
-			 workMem, randomAccess ? 't' : 'f');
-#endif
-
-	state->nKeys = IndexRelationGetNumberOfKeyAttributes(indexRel);
-
-	TRACE_POSTGRESQL_SORT_START(INDEX_SORT,
-								enforceUnique,
-								state->nKeys,
-								workMem,
-								randomAccess,
-								PARALLEL_SORT(state));
-
-	state->comparetup = comparetup_index_btree;
-	state->copytup = copytup_index;
-	state->writetup = writetup_index;
-	state->readtup = readtup_index;
-	state->abbrevNext = 10;
-
-	state->heapRel = heapRel;
-	state->indexRel = indexRel;
-	state->enforceUnique = enforceUnique;
-
-	indexScanKey = _bt_mkscankey(indexRel, NULL);
-
-	/* Prepare SortSupport data for each column */
-	state->sortKeys = (SortSupport) palloc0(state->nKeys *
-											sizeof(SortSupportData));
-
-	for (i = 0; i < state->nKeys; i++)
-	{
-		SortSupport sortKey = state->sortKeys + i;
-		ScanKey		scanKey = indexScanKey->scankeys + i;
-		int16		strategy;
-
-		sortKey->ssup_cxt = CurrentMemoryContext;
-		sortKey->ssup_collation = scanKey->sk_collation;
-		sortKey->ssup_nulls_first =
-			(scanKey->sk_flags & SK_BT_NULLS_FIRST) != 0;
-		sortKey->ssup_attno = scanKey->sk_attno;
-		/* Convey if abbreviation optimization is applicable in principle */
-		sortKey->abbreviate = (i == 0);
-
-		AssertState(sortKey->ssup_attno != 0);
-
-		strategy = (scanKey->sk_flags & SK_BT_DESC) != 0 ?
-			BTGreaterStrategyNumber : BTLessStrategyNumber;
-
-		PrepareSortSupportFromIndexRel(indexRel, strategy, sortKey);
-	}
-
-	pfree(indexScanKey);
-
-	MemoryContextSwitchTo(oldcontext);
-
-	return state;
-}
-
-Tuplesortstate *
-tuplesort_begin_index_hash(Relation heapRel,
-						   Relation indexRel,
-						   uint32 high_mask,
-						   uint32 low_mask,
-						   uint32 max_buckets,
-						   int workMem,
-						   SortCoordinate coordinate,
-						   bool randomAccess)
-{
-	Tuplesortstate *state = tuplesort_begin_common(workMem, coordinate,
-												   randomAccess);
-	MemoryContext oldcontext;
-
-	oldcontext = MemoryContextSwitchTo(state->maincontext);
-
-#ifdef TRACE_SORT
-	if (trace_sort)
-		elog(LOG,
-			 "begin index sort: high_mask = 0x%x, low_mask = 0x%x, "
-			 "max_buckets = 0x%x, workMem = %d, randomAccess = %c",
-			 high_mask,
-			 low_mask,
-			 max_buckets,
-			 workMem, randomAccess ? 't' : 'f');
-#endif
-
-	state->nKeys = 1;			/* Only one sort column, the hash code */
-
-	state->comparetup = comparetup_index_hash;
-	state->copytup = copytup_index;
-	state->writetup = writetup_index;
-	state->readtup = readtup_index;
-
-	state->heapRel = heapRel;
-	state->indexRel = indexRel;
-
-	state->high_mask = high_mask;
-	state->low_mask = low_mask;
-	state->max_buckets = max_buckets;
-
-	MemoryContextSwitchTo(oldcontext);
-
-	return state;
-}
-
-Tuplesortstate *
-tuplesort_begin_index_gist(Relation heapRel,
-						   Relation indexRel,
-						   int workMem,
-						   SortCoordinate coordinate,
-						   bool randomAccess)
-{
-	Tuplesortstate *state = tuplesort_begin_common(workMem, coordinate,
-												   randomAccess);
-	MemoryContext oldcontext;
-	int			i;
-
-	oldcontext = MemoryContextSwitchTo(state->sortcontext);
-
-#ifdef TRACE_SORT
-	if (trace_sort)
-		elog(LOG,
-			 "begin index sort: workMem = %d, randomAccess = %c",
-			 workMem, randomAccess ? 't' : 'f');
-#endif
-
-	state->nKeys = IndexRelationGetNumberOfKeyAttributes(indexRel);
-
-	state->comparetup = comparetup_index_btree;
-	state->copytup = copytup_index;
-	state->writetup = writetup_index;
-	state->readtup = readtup_index;
-
-	state->heapRel = heapRel;
-	state->indexRel = indexRel;
-
-	/* Prepare SortSupport data for each column */
-	state->sortKeys = (SortSupport) palloc0(state->nKeys *
-											sizeof(SortSupportData));
-
-	for (i = 0; i < state->nKeys; i++)
-	{
-		SortSupport sortKey = state->sortKeys + i;
-
-		sortKey->ssup_cxt = CurrentMemoryContext;
-		sortKey->ssup_collation = indexRel->rd_indcollation[i];
-		sortKey->ssup_nulls_first = false;
-		sortKey->ssup_attno = i + 1;
-		/* Convey if abbreviation optimization is applicable in principle */
-		sortKey->abbreviate = (i == 0);
-
-		AssertState(sortKey->ssup_attno != 0);
-
-		/* Look for a sort support function */
-		PrepareSortSupportFromGistIndexRel(indexRel, sortKey);
-	}
-
-	MemoryContextSwitchTo(oldcontext);
-
-	return state;
-}
-
-Tuplesortstate *
-tuplesort_begin_datum(Oid datumType, Oid sortOperator, Oid sortCollation,
-					  bool nullsFirstFlag, int workMem,
-					  SortCoordinate coordinate, bool randomAccess)
-{
-	Tuplesortstate *state = tuplesort_begin_common(workMem, coordinate,
-												   randomAccess);
-	MemoryContext oldcontext;
-	int16		typlen;
-	bool		typbyval;
-
-	oldcontext = MemoryContextSwitchTo(state->maincontext);
-
-#ifdef TRACE_SORT
-	if (trace_sort)
-		elog(LOG,
-			 "begin datum sort: workMem = %d, randomAccess = %c",
-			 workMem, randomAccess ? 't' : 'f');
-#endif
-
-	state->nKeys = 1;			/* always a one-column sort */
-
-	TRACE_POSTGRESQL_SORT_START(DATUM_SORT,
-								false,	/* no unique check */
-								1,
-								workMem,
-								randomAccess,
-								PARALLEL_SORT(state));
-
-	state->comparetup = comparetup_datum;
-	state->copytup = copytup_datum;
-	state->writetup = writetup_datum;
-	state->readtup = readtup_datum;
-	state->abbrevNext = 10;
-
-	state->datumType = datumType;
-
-	/* lookup necessary attributes of the datum type */
-	get_typlenbyval(datumType, &typlen, &typbyval);
-	state->datumTypeLen = typlen;
-	state->tuples = !typbyval;
-
-	/* Prepare SortSupport data */
-	state->sortKeys = (SortSupport) palloc0(sizeof(SortSupportData));
-
-	state->sortKeys->ssup_cxt = CurrentMemoryContext;
-	state->sortKeys->ssup_collation = sortCollation;
-	state->sortKeys->ssup_nulls_first = nullsFirstFlag;
-
-	/*
-	 * Abbreviation is possible here only for by-reference types.  In theory,
-	 * a pass-by-value datatype could have an abbreviated form that is cheaper
-	 * to compare.  In a tuple sort, we could support that, because we can
-	 * always extract the original datum from the tuple as needed.  Here, we
-	 * can't, because a datum sort only stores a single copy of the datum; the
-	 * "tuple" field of each SortTuple is NULL.
-	 */
-	state->sortKeys->abbreviate = !typbyval;
-
-	PrepareSortSupportFromOrderingOp(sortOperator, state->sortKeys);
-
-	/*
-	 * The "onlyKey" optimization cannot be used with abbreviated keys, since
-	 * tie-breaker comparisons may be required.  Typically, the optimization
-	 * is only of value to pass-by-value types anyway, whereas abbreviated
-	 * keys are typically only of value to pass-by-reference types.
-	 */
-	if (!state->sortKeys->abbrev_converter)
-		state->onlyKey = state->sortKeys;
-
-	MemoryContextSwitchTo(oldcontext);
-
-	return state;
-}
-
-=======
->>>>>>> REL_16_9
 /*
  * tuplesort_set_bound
  *
@@ -2682,46 +2239,8 @@ mergeruns(Tuplesortstate *state)
 		/* Select an output tape */
 		selectnewtape(state);
 
-<<<<<<< HEAD
-			if (QueryFinishPending)
-			{
-				/* pretend we are done */
-				state->status = TSS_SORTEDONTAPE;
-				return;
-			}
-
-			for (tapenum = 0; tapenum < state->tapeRange; tapenum++)
-			{
-				if (state->tp_dummy[tapenum] == 0)
-				{
-					allDummy = false;
-					break;
-				}
-			}
-
-			if (allDummy)
-			{
-				state->tp_dummy[state->tapeRange]++;
-				for (tapenum = 0; tapenum < state->tapeRange; tapenum++)
-					state->tp_dummy[tapenum]--;
-			}
-			else
-				mergeonerun(state);
-		}
-
-		/* Step D6: decrease level */
-		if (--state->Level == 0)
-			break;
-		/* rewind output tape T to use as new input */
-		LogicalTapeRewindForRead(state->tapeset, state->tp_tapenum[state->tapeRange],
-								 state->read_buffer_size);
-		/* rewind used-up input tape P, and prepare it for write pass */
-		LogicalTapeRewindForWrite(state->tapeset, state->tp_tapenum[state->tapeRange - 1]);
-		state->tp_runs[state->tapeRange - 1] = 0;
-=======
 		/* Merge one run from each input tape. */
 		mergeonerun(state);
->>>>>>> REL_16_9
 
 		/*
 		 * If the input tapes are empty, and we output only one output run,
@@ -2921,7 +2440,7 @@ dumptuples(Tuplesortstate *state, bool alltuples)
 	memtupwrite = state->memtupcount;
 	for (i = 0; i < memtupwrite; i++)
 	{
-<<<<<<< HEAD
+		SortTuple  *stup;
 #ifdef FAULT_INJECTOR
 		/*
 		 * We're injecting an interrupt here. We have to hold interrupts while we're
@@ -2940,11 +2459,7 @@ dumptuples(Tuplesortstate *state, bool alltuples)
 		{
 			break;
 		}
-		WRITETUP(state, state->tp_tapenum[state->destTape],
-				 &state->memtuples[i]);
-		state->memtupcount--;
-=======
-		SortTuple  *stup = &state->memtuples[i];
+		stup = &state->memtuples[i];
 
 		WRITETUP(state, state->destTape, stup);
 
@@ -2954,7 +2469,6 @@ dumptuples(Tuplesortstate *state, bool alltuples)
 		 */
 		if (stup->tuple != NULL)
 			FREEMEM(state, GetMemoryChunkSpace(stup->tuple));
->>>>>>> REL_16_9
 	}
 
 	state->memtupcount = 0;
@@ -3739,8 +3253,6 @@ free_sort_tuple(Tuplesortstate *state, SortTuple *stup)
 		pfree(stup->tuple);
 		stup->tuple = NULL;
 	}
-<<<<<<< HEAD
-=======
 }
 
 int
@@ -3782,5 +3294,4 @@ ssup_datum_int32_cmp(Datum x, Datum y, SortSupport ssup)
 		return 1;
 	else
 		return 0;
->>>>>>> REL_16_9
 }

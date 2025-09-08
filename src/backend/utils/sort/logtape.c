@@ -338,7 +338,6 @@ ltsReadFillBuffer(LogicalTape *lt)
 	return (lt->nbytes > 0);
 }
 
-<<<<<<< HEAD
 static inline void
 swap_nodes(long *heap, unsigned long a, unsigned long b)
 {
@@ -349,8 +348,6 @@ swap_nodes(long *heap, unsigned long a, unsigned long b)
 	heap[b] = swap;
 }
 
-=======
->>>>>>> REL_16_9
 static inline unsigned long
 left_offset(unsigned long i)
 {
@@ -743,7 +740,6 @@ ltsCreateTape(LogicalTapeSet *lts)
 /*
  * Close a logical tape.
  *
-<<<<<<< HEAD
  * Each tape is initialized in write state.  Serial callers pass ntapes,
  * NULL argument for shared, and -1 for worker.  Parallel worker callers
  * pass ntapes, a shared file handle, NULL shared argument,  and their own
@@ -814,11 +810,9 @@ LogicalTapeSetCreate(int ntapes, bool preallocate, TapeShare *shared,
 
 /*
  * Close a logical tape set and release all resources.
-=======
  * Note: This doesn't return any blocks to the free list!  You must read
  * the tape to the end first, to reuse the space.  In current use, though,
  * we only close tapes after fully reading them.
->>>>>>> REL_16_9
  */
 void
 LogicalTapeClose(LogicalTape *lt)
@@ -1272,7 +1266,6 @@ LogicalTapeTell(LogicalTape *lt, long *blocknum, int *offset)
 long
 LogicalTapeSetBlocks(LogicalTapeSet *lts)
 {
-<<<<<<< HEAD
 #if 0
 #ifdef USE_ASSERT_CHECKING
 	for (int i = 0; i < lts->nTapes; i++)
@@ -1283,7 +1276,5 @@ LogicalTapeSetBlocks(LogicalTapeSet *lts)
 	}
 #endif
 #endif
-=======
->>>>>>> REL_16_9
 	return lts->nBlocksWritten - lts->nHoleBlocks;
 }
