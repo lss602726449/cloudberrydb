@@ -3,13 +3,9 @@
  * relcache.c
  *	  POSTGRES relation descriptor cache code
  *
-<<<<<<< HEAD
  * Portions Copyright (c) 2005-2009, Greenplum inc.
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
- * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
-=======
  * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -1230,41 +1226,6 @@ retry:
 	/*
 	 * initialize access method information
 	 */
-<<<<<<< HEAD
-	switch (relation->rd_rel->relkind)
-	{
-		case RELKIND_INDEX:
-		case RELKIND_PARTITIONED_INDEX:
-			Assert(relation->rd_rel->relam != InvalidOid);
-			RelationInitIndexAccessInfo(relation);
-			break;
-		case RELKIND_RELATION:
-		case RELKIND_TOASTVALUE:
-		case RELKIND_MATVIEW:
-		case RELKIND_DIRECTORY_TABLE:
-			Assert(relation->rd_rel->relam != InvalidOid);
-			RelationInitTableAccessMethod(relation);
-			break;
-		case RELKIND_SEQUENCE:
-			Assert(relation->rd_rel->relam == InvalidOid);
-			RelationInitTableAccessMethod(relation);
-			break;
-		case RELKIND_VIEW:
-		case RELKIND_COMPOSITE_TYPE:
-		case RELKIND_FOREIGN_TABLE:
-			Assert(relation->rd_rel->relam == InvalidOid);
-			break;
-		case RELKIND_PARTITIONED_TABLE:
-			/* gp partition tables may set access method for its children */
-			break;
-		case RELKIND_AOSEGMENTS:
-		case RELKIND_AOVISIMAP:
-		case RELKIND_AOBLOCKDIR:
-			Assert(relation->rd_rel->relam != InvalidOid);
-			RelationInitTableAccessMethod(relation);
-			break;
-	}
-=======
 	if (relation->rd_rel->relkind == RELKIND_INDEX ||
 		relation->rd_rel->relkind == RELKIND_PARTITIONED_INDEX)
 		RelationInitIndexAccessInfo(relation);
@@ -1273,7 +1234,6 @@ retry:
 		RelationInitTableAccessMethod(relation);
 	else
 		Assert(relation->rd_rel->relam == InvalidOid);
->>>>>>> REL_16_9
 
 	/*
 	 * If it's an append-only table, get information from pg_appendonly.
@@ -1402,11 +1362,7 @@ retry:
 static void
 RelationInitPhysicalAddr(Relation relation)
 {
-<<<<<<< HEAD
-	Oid		oldnode = relation->rd_node.relNode;
-=======
 	RelFileNumber oldnumber = relation->rd_locator.relNumber;
->>>>>>> REL_16_9
 
 	/* these relations kinds never have storage */
 	if (!RELKIND_HAS_STORAGE(relation->rd_rel->relkind))
@@ -2838,9 +2794,6 @@ RelationClearRelation(Relation relation, bool rebuild)
 			elog(ERROR, "relation %u deleted while still in use", save_relid);
 		}
 
-<<<<<<< HEAD
-		keep_tupdesc = equalTupleDescs(relation->rd_att, newrel->rd_att, true);
-=======
 		/*
 		 * If we were to, again, have cases of the relkind of a relcache entry
 		 * changing, we would need to ensure that pgstats does not get
@@ -2848,8 +2801,7 @@ RelationClearRelation(Relation relation, bool rebuild)
 		 */
 		Assert(relation->rd_rel->relkind == newrel->rd_rel->relkind);
 
-		keep_tupdesc = equalTupleDescs(relation->rd_att, newrel->rd_att);
->>>>>>> REL_16_9
+		keep_tupdesc = equalTupleDescs(relation->rd_att, newrel->rd_att, true);
 		keep_rules = equalRuleLocks(relation->rd_rules, newrel->rd_rules);
 		keep_gp_policy = GpPolicyEqual(relation->rd_cdbpolicy, newrel->rd_cdbpolicy);
 		keep_policies = equalRSDesc(relation->rd_rsdesc, newrel->rd_rsdesc);
@@ -3087,11 +3039,7 @@ RelationCacheInvalidateEntry(Oid relationId)
  *
  *	 Apart from debug_discard_caches, this is currently used only to recover
  *	 from SI message buffer overflow, so we do not touch relations having
-<<<<<<< HEAD
- *	 new-in-transaction relfilenodes; they cannot be targets of cross-backend
-=======
  *	 new-in-transaction relfilenumbers; they cannot be targets of cross-backend
->>>>>>> REL_16_9
  *	 SI updates (and our own updates now go through a separate linked list
  *	 that isn't limited by the SI message buffer size).
  *
@@ -3839,7 +3787,6 @@ RelationBuildLocalRelation(const char *relname,
 
 	/*
 	 * Insert relation physical and logical identifiers (OIDs) into the right
-<<<<<<< HEAD
 	 * places.  For a mapped relation, we set relfilenode to zero and rely on
 	 * RelationInitPhysicalAddr to consult the map.
 	 *
@@ -3848,10 +3795,6 @@ RelationBuildLocalRelation(const char *relname,
 	 *
 	 * In binary upgrade mode, however, use the OID also as the relfilenode.
 	 * pg_upgrade gets confused if they don't match.
-=======
-	 * places.  For a mapped relation, we set relfilenumber to zero and rely
-	 * on RelationInitPhysicalAddr to consult the map.
->>>>>>> REL_16_9
 	 */
 	rel->rd_rel->relisshared = shared_relation;
 
@@ -3907,20 +3850,7 @@ RelationBuildLocalRelation(const char *relname,
 	 */
 	MemoryContextSwitchTo(oldcxt);
 
-<<<<<<< HEAD
-	if (relkind == RELKIND_RELATION ||
-		relkind == RELKIND_DIRECTORY_TABLE ||
-		relkind == RELKIND_SEQUENCE ||
-		relkind == RELKIND_TOASTVALUE ||
-		relkind == RELKIND_MATVIEW)
-=======
 	if (RELKIND_HAS_TABLE_AM(relkind) || relkind == RELKIND_SEQUENCE)
->>>>>>> REL_16_9
-		RelationInitTableAccessMethod(rel);
-
-	if (relkind == RELKIND_AOSEGMENTS ||
-		relkind == RELKIND_AOVISIMAP ||
-		relkind == RELKIND_AOBLOCKDIR)
 		RelationInitTableAccessMethod(rel);
 
 	/*
@@ -3969,11 +3899,7 @@ RelationBuildLocalRelation(const char *relname,
 void
 RelationSetNewRelfilenumber(Relation relation, char persistence)
 {
-<<<<<<< HEAD
-	Oid newrelfilenode;
-=======
 	RelFileNumber newrelfilenumber;
->>>>>>> REL_16_9
 	Relation	pg_class;
 	ItemPointerData otid;
 	HeapTuple	tuple;
@@ -4082,37 +4008,6 @@ RelationSetNewRelfilenumber(Relation relation, char persistence)
 		/* handle these directly, at least for now */
 		SMgrRelation srel;
 
-<<<<<<< HEAD
-				srel = RelationCreateStorage(newrnode, persistence,
-											 0 /* default storage implementation */,
-											 relation);
-				smgrclose(srel);
-			}
-			break;
-
-		case RELKIND_RELATION:
-		case RELKIND_TOASTVALUE:
-		case RELKIND_MATVIEW:
-		case RELKIND_DIRECTORY_TABLE:
-			table_relation_set_new_filenode(relation, &newrnode,
-											persistence,
-											&freezeXid, &minmulti);
-			break;
-
-		case RELKIND_AOSEGMENTS:
-		case RELKIND_AOVISIMAP:
-		case RELKIND_AOBLOCKDIR:
-			table_relation_set_new_filenode(relation, &newrnode,
-											persistence,
-											&freezeXid, &minmulti);
-			break;
-
-		default:
-			/* we shouldn't be called for anything else */
-			elog(ERROR, "relation \"%s\" does not have storage",
-				 RelationGetRelationName(relation));
-			break;
-=======
 		srel = RelationCreateStorage(newrlocator, persistence, true);
 		smgrclose(srel);
 	}
@@ -4121,7 +4016,6 @@ RelationSetNewRelfilenumber(Relation relation, char persistence)
 		/* we shouldn't be called for anything else */
 		elog(ERROR, "relation \"%s\" does not have storage",
 			 RelationGetRelationName(relation));
->>>>>>> REL_16_9
 	}
 
 	/*
@@ -4597,26 +4491,7 @@ RelationCacheInitializePhase3(void)
 
 		/* Reload tableam data if needed */
 		if (relation->rd_tableam == NULL &&
-<<<<<<< HEAD
-			(relation->rd_rel->relkind == RELKIND_RELATION ||
-			 relation->rd_rel->relkind == RELKIND_SEQUENCE ||
-			 relation->rd_rel->relkind == RELKIND_TOASTVALUE ||
-			 relation->rd_rel->relkind == RELKIND_MATVIEW ||
-			 relation->rd_rel->relkind == RELKIND_DIRECTORY_TABLE))
-		{
-			RelationInitTableAccessMethod(relation);
-			Assert(relation->rd_tableam != NULL);
-
-			restart = true;
-		}
-
-		if (relation->rd_tableam == NULL &&
-			(relation->rd_rel->relkind == RELKIND_AOSEGMENTS ||
-			 relation->rd_rel->relkind == RELKIND_AOBLOCKDIR ||
-			 relation->rd_rel->relkind == RELKIND_AOVISIMAP))
-=======
 			(RELKIND_HAS_TABLE_AM(relation->rd_rel->relkind) || relation->rd_rel->relkind == RELKIND_SEQUENCE))
->>>>>>> REL_16_9
 		{
 			RelationInitTableAccessMethod(relation);
 			Assert(relation->rd_tableam != NULL);
@@ -6644,20 +6519,7 @@ load_relcache_init_file(bool shared)
 				nailed_rels++;
 
 			/* Load table AM data */
-<<<<<<< HEAD
-			if (rel->rd_rel->relkind == RELKIND_RELATION ||
-				rel->rd_rel->relkind == RELKIND_DIRECTORY_TABLE ||
-				rel->rd_rel->relkind == RELKIND_SEQUENCE ||
-				rel->rd_rel->relkind == RELKIND_TOASTVALUE ||
-				rel->rd_rel->relkind == RELKIND_MATVIEW)
-=======
 			if (RELKIND_HAS_TABLE_AM(rel->rd_rel->relkind) || rel->rd_rel->relkind == RELKIND_SEQUENCE)
->>>>>>> REL_16_9
-				RelationInitTableAccessMethod(rel);
-
-			if (rel->rd_rel->relkind == RELKIND_AOSEGMENTS ||
-				rel->rd_rel->relkind == RELKIND_AOVISIMAP ||
-				rel->rd_rel->relkind == RELKIND_AOBLOCKDIR)
 				RelationInitTableAccessMethod(rel);
 
 			Assert(rel->rd_index == NULL);
@@ -6728,12 +6590,8 @@ load_relcache_init_file(bool shared)
 		rel->rd_firstRelfilelocatorSubid = InvalidSubTransactionId;
 		rel->rd_droppedSubid = InvalidSubTransactionId;
 		rel->rd_amcache = NULL;
-<<<<<<< HEAD
-		MemSet(&rel->pgstat_info, 0, sizeof(rel->pgstat_info));
-        rel->rd_cdbpolicy = NULL;
-=======
 		rel->pgstat_info = NULL;
->>>>>>> REL_16_9
+        rel->rd_cdbpolicy = NULL;
 
 		/*
 		 * Recompute lock and physical addressing info.  This is needed in

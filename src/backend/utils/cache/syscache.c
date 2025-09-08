@@ -392,34 +392,20 @@ static const struct cachedesc cacheinfo[] = {
 		KEY(Anum_pg_foreign_table_ftrelid),
 		4
 	},
-<<<<<<< HEAD
-	{GpPolicyRelationId,	/* GPPOLICYID */
+	[GPPOLICYID] = {
+		GpPolicyRelationId,
 		GpPolicyLocalOidIndexId,
-		1,
-		{
-			Anum_gp_distribution_policy_localoid,
-			0,
-			0,
-			0
-		},
+		KEY(Anum_gp_distribution_policy_localoid),
 		1024
 	},
-	{AppendOnlyRelationId,	/* AORELID */
+	[AORELID] = {
+		AppendOnlyRelationId,
 		AppendOnlyRelidIndexId,
-		1,
-		{
-			Anum_pg_appendonly_relid,
-			0,
-			0,
-			0
-		},
+		KEY(Anum_pg_appendonly_relid),
 		1024
 	},
-	{IndexRelationId,			/* INDEXRELID */
-=======
 	[INDEXRELID] = {
 		IndexRelationId,
->>>>>>> REL_16_9
 		IndexRelidIndexId,
 		KEY(Anum_pg_index_indexrelid),
 		64
@@ -495,34 +481,20 @@ static const struct cachedesc cacheinfo[] = {
 		KEY(Anum_pg_partitioned_table_partrelid),
 		32
 	},
-<<<<<<< HEAD
-	{ProfileRelationId,		/* PROFILEID */
+	[PROFILEID] = {
+		ProfileRelationId,
 		ProfileOidIndexId,
-		1,
-		{
-			Anum_pg_profile_oid,
-			0,
-			0,
-			0
-		},
+		KEY(Anum_pg_profile_oid),
 		8
 	},
-	{ProfileRelationId,		/* PROFILENAME */
+	[PROFILENAME] = {
+		ProfileRelationId,
 		ProfilePrfnameIndexId,
-		1,
-		{
-			Anum_pg_profile_prfname,
-			0,
-			0,
-			0
-		},
+		KEY(Anum_pg_profile_prfname),
 		8
 	},
-	{ProcedureRelationId,		/* PROCNAMEARGSNSP */
-=======
 	[PROCNAMEARGSNSP] = {
 		ProcedureRelationId,
->>>>>>> REL_16_9
 		ProcedureNameArgsNspIndexId,
 		KEY(Anum_pg_proc_proname,
 			Anum_pg_proc_proargtypes,
@@ -610,34 +582,20 @@ static const struct cachedesc cacheinfo[] = {
 		KEY(Anum_pg_replication_origin_roname),
 		16
 	},
-<<<<<<< HEAD
-	{ResGroupRelationId,		/* RESGROUPOID */
+	[RESGROUPOID] = {
+		ResGroupRelationId,
 		ResGroupOidIndexId,
-		1,
-		{
-			Anum_pg_resgroup_oid,
-			0,
-			0,
-			0
-		},
+		KEY(Anum_pg_resgroup_oid),
 		128
 	},
-	{ResGroupRelationId,		/* RESGROUPNAME */
-		ResGroupRsgnameIndexId,
-		1,
-		{
-			Anum_pg_resgroup_rsgname,
-			0,
-			0,
-			0
-		},
-		128
+	[RESGROUPNAME] = {
+			ResGroupRelationId,
+			ResGroupRsgnameIndexId,
+			KEY(Anum_pg_resgroup_rsgname),
+			128
 	},
-	{RewriteRelationId,			/* RULERELNAME */
-=======
 	[RULERELNAME] = {
 		RewriteRelationId,
->>>>>>> REL_16_9
 		RewriteRelRulenameIndexId,
 		KEY(Anum_pg_rewrite_ev_class,
 			Anum_pg_rewrite_rulename),
@@ -703,45 +661,29 @@ static const struct cachedesc cacheinfo[] = {
 		KEY(Anum_pg_tablespace_oid),
 		4
 	},
-<<<<<<< HEAD
-	{TagRelationId,				/* TAGNAME */
+	[TAGNAME] = {
+		TagRelationId,
 		TagNameIndexId,
-		1,
-		{
-			Anum_pg_tag_tagname,
-			0,
-			0,
-			0,
-		},
+		KEY(Anum_pg_tag_tagname),
 		16
 	},
-	{TagRelationId,				/* TAGOID */
-		TagOidIndexId,
-		1,
-		{
-			Anum_pg_tag_oid,
-			0,
-			0,
-			0,
-		},
-		16
+	[TAGOID] = {
+			TagRelationId,
+			TagOidIndexId,
+			KEY(Anum_pg_tag_oid),
+			16
 	},
-	{TagDescriptionRelationId,	/* TAGDESCRIPTION */
-		TagDescriptionIndexId,
-		4,
-		{
-			Anum_pg_tag_description_tddatabaseid,
-			Anum_pg_tag_description_tdclassid,
-			Anum_pg_tag_description_tdobjid,
-			Anum_pg_tag_description_tagid,
-		},
-		16
+	[TAGDESCRIPTION] = {
+			TagDescriptionRelationId,
+			TagDescriptionIndexId,
+			KEY(Anum_pg_tag_description_tddatabaseid,
+				Anum_pg_tag_description_tdclassid,
+				Anum_pg_tag_description_tdobjid,
+				Anum_pg_tag_description_tagid),
+			16
 	},
-	{TransformRelationId,		/* TRFOID */
-=======
 	[TRFOID] = {
 		TransformRelationId,
->>>>>>> REL_16_9
 		TransformOidIndexId,
 		KEY(Anum_pg_transform_oid),
 		16
@@ -826,67 +768,40 @@ static const struct cachedesc cacheinfo[] = {
 		KEY(Anum_pg_type_oid),
 		64
 	},
-<<<<<<< HEAD
-	{DirectoryTableRelationId,			/* DIRECTORYTABLEREL */
+	[DIRECTORYTABLEREL] = {
+		DirectoryTableRelationId,
 		DirectoryTableRelidIndexId,
-		1,
-	 	{
-			Anum_pg_directory_table_dtrelid,
-			0,
-			0,
-			0
-		},
+		KEY(Anum_pg_directory_table_dtrelid),
 		4
 	},
-	{StorageUserMappingRelationId,		/* STORAGEUSERMAPPINGOID */
-	 	StorageUserMappingOidIndexId,
-	 	1,
-	 	{
-		 	Anum_gp_storage_user_mapping_oid,
-		 	0,
-		 	0,
-		 	0
-	 	},
-	 	2
+	[STORAGEUSERMAPPINGOID] = {
+		StorageUserMappingRelationId,
+		StorageUserMappingOidIndexId,
+		KEY(Anum_gp_storage_user_mapping_oid),
+		2
 	},
-	{StorageUserMappingRelationId,		/* STORAGEUSERMAPPINGUSERSERVER */
-	 	StorageUserMappingServerIndexId,
-	 	2,
-	 	{
-		 	Anum_gp_storage_user_mapping_umuser,
-		 	Anum_gp_storage_user_mapping_umserver,
-		 	0,
-		 	0
-	 	},
-	 	2
+	[STORAGEUSERMAPPINGUSERSERVER] = {
+		StorageUserMappingRelationId,
+		StorageUserMappingServerIndexId,
+		KEY(Anum_gp_storage_user_mapping_umuser,
+		Anum_gp_storage_user_mapping_umserver),
+		2
 	},
-	{GpMatviewAuxId,		/* MVAUXOID */
+	[MVAUXOID] = {
+		GpMatviewAuxId,
 		GpMatviewAuxMvoidIndexId,
-		1,
-		{
-			Anum_gp_matview_aux_mvoid,
-			0,
-			0,
-			0
-		},
+		KEY(Anum_gp_matview_aux_mvoid),
 		32
 	},
-	{GpMatviewTablesId,		/* MVTABLESMVRELOID */
+	[MVTABLESMVRELOID] = {
+		GpMatviewTablesId,
 		GpMatviewTablesMvRelIndexId,
-		2,
-		{
-			Anum_gp_matview_tables_mvoid,
-			Anum_gp_matview_tables_relid,
-			0,
-			0
-		},
+		KEY(Anum_gp_matview_tables_mvoid,
+			Anum_gp_matview_tables_relid),
 		128
 	},
-	{UserMappingRelationId,		/* USERMAPPINGOID */
-=======
 	[USERMAPPINGOID] = {
 		UserMappingRelationId,
->>>>>>> REL_16_9
 		UserMappingOidIndexId,
 		KEY(Anum_pg_user_mapping_oid),
 		2
