@@ -9,13 +9,9 @@
  * context's MemoryContextMethods struct.
  *
  *
-<<<<<<< HEAD
  * Portions Copyright (c) 2007-2008, Greenplum inc
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
- * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
-=======
  * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -431,13 +427,9 @@ MemoryContextResetChildren(MemoryContext context)
 void
 MemoryContextDeleteImpl(MemoryContext context, const char* sfile, const char *func, int sline)
 {
-<<<<<<< HEAD
 	MemoryContext parent;
 
-	AssertArg(MemoryContextIsValid(context));
-=======
 	Assert(MemoryContextIsValid(context));
->>>>>>> REL_16_9
 	/* We had better not be deleting TopMemoryContext ... */
 	Assert(context != TopMemoryContext);
 	/* And not CurrentMemoryContext, either */
@@ -1107,7 +1099,6 @@ MemoryContextCheck(MemoryContext context)
 #endif
 
 /*
-<<<<<<< HEAD
  * MemoryContextContains
  *		Detect whether an allocated chunk of memory belongs to a given
  *		context or not.
@@ -1188,8 +1179,6 @@ MemoryContextContainsGenericAllocation(MemoryContext context, void *pointer)
 }
 
 /*--------------------
-=======
->>>>>>> REL_16_9
  * MemoryContextCreate
  *		Context-type-independent part of context creation.
  *

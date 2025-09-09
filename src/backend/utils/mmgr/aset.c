@@ -7,13 +7,9 @@
  * type.
  *
  *
-<<<<<<< HEAD
  * Portions Copyright (c) 2007-2008, Greenplum inc
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
- * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
-=======
  * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * IDENTIFICATION
@@ -55,7 +51,8 @@
 #include "port/pg_bitutils.h"
 #include "utils/memdebug.h"
 #include "utils/memutils.h"
-<<<<<<< HEAD
+#include "utils/memutils_memorychunk.h"
+#include "utils/memutils_internal.h"
 #include "utils/gp_alloc.h"
 
 #include "miscadmin.h"
@@ -66,10 +63,6 @@
 #if defined(CDB_PALLOC_TAGS) && !defined(CDB_PALLOC_CALLER_ID)
 #error "If CDB_PALLOC_TAGS is defined, CDB_PALLOC_CALLER_ID must be defined too"
 #endif
-=======
-#include "utils/memutils_memorychunk.h"
-#include "utils/memutils_internal.h"
->>>>>>> REL_16_9
 
 /*--------------------
  * Chunk freelist k holds chunks of size 1 << (k + ALLOC_MINBITS),
@@ -271,7 +264,6 @@ typedef struct AllocBlockData
 }			AllocBlockData;
 
 /*
-<<<<<<< HEAD
  * AllocChunk
  *		The prefix of each piece of memory in an AllocBlock
  *
@@ -323,8 +315,6 @@ typedef struct AllocChunkData
 #define ALLOCCHUNK_PRIVATE_LEN	offsetof(AllocChunkData, aset)
 
 /*
-=======
->>>>>>> REL_16_9
  * AllocPointerIsValid
  *		True iff pointer is valid allocation pointer.
  */
@@ -394,22 +384,6 @@ static AllocSetFreeList context_freelists[2] =
 	}
 };
 
-<<<<<<< HEAD
-/*
- * These functions implement the MemoryContext API for AllocSet contexts.
- */
-static void *AllocSetAlloc(MemoryContext context, Size size);
-static void AllocSetFree(MemoryContext context, void *pointer);
-static void *AllocSetRealloc(MemoryContext context, void *pointer, Size size);
-static void AllocSetReset(MemoryContext context);
-static void AllocSetDelete(MemoryContext context, MemoryContext parent);
-static Size AllocSetGetChunkSpace(MemoryContext context, void *pointer);
-static bool AllocSetIsEmpty(MemoryContext context);
-static void AllocSetStats(MemoryContext context,
-						  MemoryStatsPrintFunc printfunc, void *passthru,
-						  MemoryContextCounters *totals,
-						  bool print_to_stderr);
-
 static void AllocSetDeclareAccountingRoot(MemoryContext context);
 static Size AllocSetGetCurrentUsage(MemoryContext context);
 static Size AllocSetGetPeakUsage(MemoryContext context);
@@ -442,8 +416,6 @@ static const MemoryContextMethods AllocSetMethods = {
 #endif
 };
 
-=======
->>>>>>> REL_16_9
 
 /* ----------
  * AllocSetFreeIndex -
@@ -749,17 +721,15 @@ AllocSetReset(MemoryContext context)
 	AllocSetCheck(context);
 #endif
 
-<<<<<<< HEAD
 	/*
 	 * Make sure all children have been deleted,
 	 * or the accounting data is incorrect.
 	 */
 	Assert(context->firstchild == NULL);
 	MEMORY_ACCOUNT_DEC_ALLOCATED(set, set->localAllocated);
-=======
+
 	/* Remember keeper block size for Assert below */
 	keepersize = set->keeper->endptr - ((char *) set);
->>>>>>> REL_16_9
 
 	/* Clear chunk freelists */
 	MemSetAligned(set->freelist, 0, sizeof(set->freelist));
@@ -814,13 +784,8 @@ AllocSetReset(MemoryContext context)
  *
  * Unlike AllocSetReset, this *must* free all resources of the set.
  */
-<<<<<<< HEAD
-static void
-AllocSetDelete(MemoryContext context, MemoryContext parent)
-=======
 void
-AllocSetDelete(MemoryContext context)
->>>>>>> REL_16_9
+AllocSetDelete(MemoryContext context, MemoryContext parent)
 {
 	AllocSet	set = (AllocSet) context;
 	AllocBlock	block = set->blocks;
@@ -833,7 +798,6 @@ AllocSetDelete(MemoryContext context)
 	AllocSetCheck(context);
 #endif
 
-<<<<<<< HEAD
 	/* Make sure all children have been deleted */
 	Assert(context->firstchild == NULL);
 	MEMORY_ACCOUNT_DEC_ALLOCATED(set, set->localAllocated);
@@ -846,10 +810,9 @@ AllocSetDelete(MemoryContext context)
 			Max(set->peakAllocated,
 				parentset->accountingParent->peakAllocated);
 	}
-=======
+
 	/* Remember keeper block size for Assert below */
 	keepersize = set->keeper->endptr - ((char *) set);
->>>>>>> REL_16_9
 
 	/*
 	 * If the context is a candidate for a freelist, put it into that freelist
@@ -940,8 +903,6 @@ AllocSetAlloc(MemoryContext context, Size size)
 	Size		chunk_size;
 	Size		blksize;
 
-<<<<<<< HEAD
-	AssertArg(AllocSetIsValid(set));
 #ifdef USE_ASSERT_CHECKING
 	if (IsUnderPostmaster && context != ErrorContext && mainthread() != 0 && !pthread_equal(main_tid, pthread_self()))
 	{
@@ -952,9 +913,7 @@ AllocSetAlloc(MemoryContext context, Size size)
 #endif
 	}
 #endif
-=======
 	Assert(AllocSetIsValid(set));
->>>>>>> REL_16_9
 
 	/*
 	 * If requested size exceeds maximum for chunks, allocate an entire block
@@ -1021,13 +980,9 @@ AllocSetAlloc(MemoryContext context, Size size)
 		/* Disallow access to the chunk header. */
 		VALGRIND_MAKE_MEM_NOACCESS(chunk, ALLOC_CHUNKHDRSZ);
 
-<<<<<<< HEAD
 		MEMORY_ACCOUNT_INC_ALLOCATED(set, chunk->size);
 
-		return AllocChunkGetPointer(chunk);
-=======
 		return MemoryChunkGetPointer(chunk);
->>>>>>> REL_16_9
 	}
 
 	/*
@@ -1076,13 +1031,9 @@ AllocSetAlloc(MemoryContext context, Size size)
 		/* Disallow access to the chunk header. */
 		VALGRIND_MAKE_MEM_NOACCESS(chunk, ALLOC_CHUNKHDRSZ);
 
-<<<<<<< HEAD
 		MEMORY_ACCOUNT_INC_ALLOCATED(set, chunk->size);
 
-		return AllocChunkGetPointer(chunk);
-=======
 		return MemoryChunkGetPointer(chunk);
->>>>>>> REL_16_9
 	}
 
 	/*
@@ -1248,13 +1199,9 @@ AllocSetAlloc(MemoryContext context, Size size)
 	/* Disallow access to the chunk header. */
 	VALGRIND_MAKE_MEM_NOACCESS(chunk, ALLOC_CHUNKHDRSZ);
 
-<<<<<<< HEAD
 	MEMORY_ACCOUNT_INC_ALLOCATED(set, chunk->size);
 
-	return AllocChunkGetPointer(chunk);
-=======
 	return MemoryChunkGetPointer(chunk);
->>>>>>> REL_16_9
 }
 
 /*
@@ -1413,23 +1360,14 @@ AllocSetContains(MemoryContext context, void *pointer)
 void *
 AllocSetRealloc(void *pointer, Size size)
 {
-<<<<<<< HEAD
-	AllocSet	set = (AllocSet) context;
-	AllocChunk	chunk = AllocPointerGetChunk(pointer);
-	Size		oldchksize;
-=======
 	AllocBlock	block;
 	AllocSet	set;
 	MemoryChunk *chunk = PointerGetMemoryChunk(pointer);
 	Size		oldchksize;
 	int			fidx;
->>>>>>> REL_16_9
 
 	/* Allow access to the chunk header. */
 	VALGRIND_MAKE_MEM_DEFINED(chunk, ALLOC_CHUNKHDRSZ);
-
-<<<<<<< HEAD
-	oldchksize = chunk->size;
 
 #ifdef USE_ASSERT_CHECKING
 	if (IsUnderPostmaster  && context != ErrorContext && mainthread() != 0 && !pthread_equal(main_tid, pthread_self()))
@@ -1442,18 +1380,7 @@ AllocSetRealloc(void *pointer, Size size)
 	}
 #endif
 
-#ifdef MEMORY_CONTEXT_CHECKING
-	/* Test for someone scribbling on unused space in chunk */
-	if (chunk->requested_size < oldchksize)
-		if (!sentinel_ok(pointer, chunk->requested_size))
-			elog(WARNING, "detected write past chunk end in %s %p",
-				 set->header.name, chunk);
-#endif
-
-	if (oldchksize > set->allocChunkLimit)
-=======
 	if (MemoryChunkIsExternal(chunk))
->>>>>>> REL_16_9
 	{
 		/*
 		 * The chunk must have been allocated as a single-chunk block.  Use
@@ -1464,20 +1391,7 @@ AllocSetRealloc(void *pointer, Size size)
 		Size		blksize;
 		Size		oldblksize;
 
-<<<<<<< HEAD
-		/*
-		 * Try to verify that we have a sane block pointer: it should
-		 * reference the correct aset, and freeptr and endptr should point
-		 * just past the chunk.
-		 */
-		if (block->aset != set ||
-			block->freeptr != block->endptr ||
-			block->freeptr != ((char *) block) +
-			(oldchksize + ALLOC_BLOCKHDRSZ + ALLOC_CHUNKHDRSZ))
-			elog(ERROR, "could not find block containing chunk %p", chunk);
-=======
 		block = ExternalChunkGetBlock(chunk);
->>>>>>> REL_16_9
 
 		/*
 		 * Try to verify that we have a sane block pointer: the block header
@@ -1619,11 +1533,7 @@ AllocSetRealloc(void *pointer, Size size)
 	 * allocated area already is >= the new size.  (In particular, we will
 	 * fall out here if the requested size is a decrease.)
 	 */
-<<<<<<< HEAD
-	else if (oldchksize >= size)
-=======
 	if (oldchksize >= size)
->>>>>>> REL_16_9
 	{
 #ifdef MEMORY_CONTEXT_CHECKING
 		Size		oldrequest = chunk->requested_size;

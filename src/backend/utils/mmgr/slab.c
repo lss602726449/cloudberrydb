@@ -71,10 +71,8 @@
 #include "lib/ilist.h"
 #include "utils/memdebug.h"
 #include "utils/memutils.h"
-<<<<<<< HEAD
 #include "utils/gp_alloc.h"
 #include "lib/ilist.h"
-=======
 #include "utils/memutils_memorychunk.h"
 #include "utils/memutils_internal.h"
 
@@ -100,7 +98,6 @@
 
 /* The maximum number of completely empty blocks to keep around for reuse. */
 #define SLAB_MAXIMUM_EMPTY_BLOCKS 10
->>>>>>> REL_16_9
 
 /*
  * SlabContext is a specialized implementation of MemoryContext.
@@ -188,53 +185,20 @@ typedef struct SlabBlock
  *		fullChunkSize starting from the 0th chunk position.  This will return
  *		non-zero if it's not.
  */
-<<<<<<< HEAD
-static void *SlabAlloc(MemoryContext context, Size size);
-static void SlabFree(MemoryContext context, void *pointer);
-static void *SlabRealloc(MemoryContext context, void *pointer, Size size);
-static void SlabReset(MemoryContext context);
-static void SlabDelete(MemoryContext context, MemoryContext parent);
-static Size SlabGetChunkSpace(MemoryContext context, void *pointer);
-static bool SlabIsEmpty(MemoryContext context);
-static void SlabStats(MemoryContext context,
-					  MemoryStatsPrintFunc printfunc, void *passthru,
-					  MemoryContextCounters *totals,
-					  bool print_to_stderr);
+
 #ifdef MEMORY_CONTEXT_CHECKING
 static void SlabCheck(MemoryContext context);
-=======
 #define SlabChunkMod(slab, block, chunk)	\
 	(((char *) (chunk) - (char *) SlabBlockGetChunk(slab, block, 0)) % \
 	(slab)->fullChunkSize)
 
->>>>>>> REL_16_9
 #endif
 
 /*
  * SlabIsValid
  *		True iff set is a valid slab allocation set.
  */
-<<<<<<< HEAD
-static const MemoryContextMethods SlabMethods = {
-	SlabAlloc,
-	SlabFree,
-	SlabRealloc,
-	SlabReset,
-	SlabDelete,
-	SlabGetChunkSpace,
-	SlabIsEmpty,
-	SlabStats,
-	NULL,
-	NULL,
-	NULL,
-	NULL
-#ifdef MEMORY_CONTEXT_CHECKING
-	,SlabCheck
-#endif
-};
-=======
 #define SlabIsValid(set) (PointerIsValid(set) && IsA(set, SlabContext))
->>>>>>> REL_16_9
 
 /*
  * SlabBlockIsValid
@@ -388,9 +352,6 @@ SlabContextCreate(MemoryContext parent,
 	fullChunkSize = Slab_CHUNKHDRSZ + MAXALIGN(chunkSize);
 #endif
 
-<<<<<<< HEAD
-	slab = (SlabContext *) gp_malloc(headerSize);
-=======
 	/* compute the number of chunks that will fit on each block */
 	chunksPerBlock = (blockSize - Slab_BLOCKHDRSZ) / fullChunkSize;
 
@@ -401,8 +362,7 @@ SlabContextCreate(MemoryContext parent,
 
 
 
-	slab = (SlabContext *) malloc(Slab_CONTEXT_HDRSZ(chunksPerBlock));
->>>>>>> REL_16_9
+	slab = (SlabContext *) gp_malloc(Slab_CONTEXT_HDRSZ(chunksPerBlock));
 	if (slab == NULL)
 	{
 		MemoryContextStats(TopMemoryContext);
@@ -508,12 +468,7 @@ SlabReset(MemoryContext context)
 #ifdef CLOBBER_FREED_MEMORY
 			wipe_mem(block, slab->blockSize);
 #endif
-<<<<<<< HEAD
 			gp_free(block);
-			slab->nblocks--;
-=======
-			free(block);
->>>>>>> REL_16_9
 			context->mem_allocated -= slab->blockSize;
 		}
 	}
@@ -527,13 +482,8 @@ SlabReset(MemoryContext context)
  * SlabDelete
  *		Free all memory which is allocated in the given context.
  */
-<<<<<<< HEAD
-static void
-SlabDelete(MemoryContext context, MemoryContext parent)
-=======
 void
-SlabDelete(MemoryContext context)
->>>>>>> REL_16_9
+SlabDelete(MemoryContext context, MemoryContext parent)
 {
 	/* Reset to release all the SlabBlocks */
 	SlabReset(context);
@@ -573,12 +523,10 @@ SlabAlloc(MemoryContext context, Size size)
 	 */
 	if (unlikely(slab->curBlocklistIndex == 0))
 	{
-<<<<<<< HEAD
-		block = (SlabBlock *) gp_malloc(slab->blockSize);
-=======
 		dlist_head *blocklist;
 		int			blocklist_idx;
->>>>>>> REL_16_9
+\
+		block = (SlabBlock *) gp_malloc(slab->blockSize);\
 
 		/* to save allocating a new one, first check the empty blocks list */
 		if (dclist_count(&slab->emptyblocks) > 0)
@@ -779,17 +727,8 @@ SlabFree(void *pointer)
 	/* Handle when a block becomes completely empty */
 	if (unlikely(block->nfree == slab->chunksPerBlock))
 	{
-<<<<<<< HEAD
-		gp_free(block);
-		slab->nblocks--;
-		context->mem_allocated -= slab->blockSize;
-	}
-	else
-		dlist_push_head(&slab->freelist[block->nfree], &block->node);
-=======
 		/* remove the block */
 		dlist_delete_from(&slab->blocklist[newBlocklistIdx], &block->node);
->>>>>>> REL_16_9
 
 		/*
 		 * To avoid thrashing malloc/free, we keep a list of empty blocks that

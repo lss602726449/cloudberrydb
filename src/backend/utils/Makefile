@@ -39,7 +39,6 @@ $(SUBDIRS:%=%-recursive): fmgr-stamp errcodes.h
 # fmgr-stamp records the last time we ran Gen_fmgrtab.pl.  We don't rely on
 # the timestamps of the individual output files, because the Perl script
 # won't update them if they didn't change (to avoid unnecessary recompiles).
-<<<<<<< HEAD
 catalog_data_extra_path =
 ifeq ($(enable_catalog_ext),yes)
 catalog_data_extra_path = $(top_srcdir)/src/backend/catalog-extension/
@@ -48,10 +47,6 @@ endif
 fmgr-stamp: Gen_fmgrtab.pl $(catalogdir)/Catalog.pm $(top_srcdir)/src/include/catalog/pg_proc.dat $(top_srcdir)/src/include/access/transam.h $(top_builddir)/src/Makefile.global
 	$(PERL) -I $(catalogdir) $< --include-path=$(top_srcdir)/src/include/ \
 		--extra-path=$(catalog_data_extra_path) $(top_srcdir)/src/include/catalog/pg_proc.dat
-=======
-fmgr-stamp: Gen_fmgrtab.pl $(catalogdir)/Catalog.pm $(top_srcdir)/src/include/catalog/pg_proc.dat
-	$(PERL) -I $(catalogdir) $< --include-path=$(top_srcdir)/src/include/ $(top_srcdir)/src/include/catalog/pg_proc.dat
->>>>>>> REL_16_9
 	touch $@
 
 errcodes.h: $(top_srcdir)/src/backend/utils/errcodes.txt generate-errcodes.pl

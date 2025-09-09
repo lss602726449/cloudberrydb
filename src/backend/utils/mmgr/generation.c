@@ -36,11 +36,8 @@
 #include "postgres.h"
 
 #include "lib/ilist.h"
-<<<<<<< HEAD
-#include "utils/gp_alloc.h"
-=======
 #include "port/pg_bitutils.h"
->>>>>>> REL_16_9
+#include "utils/gp_alloc.h"
 #include "utils/memdebug.h"
 #include "utils/memutils.h"
 #include "utils/memutils_memorychunk.h"
@@ -112,26 +109,12 @@ struct GenerationBlock
  * GenerationBlockIsValid
  *		True iff block is valid block of generation set.
  */
-<<<<<<< HEAD
-static void *GenerationAlloc(MemoryContext context, Size size);
-static void GenerationFree(MemoryContext context, void *pointer);
-static void *GenerationRealloc(MemoryContext context, void *pointer, Size size);
-static void GenerationReset(MemoryContext context);
-static void GenerationDelete(MemoryContext context, MemoryContext parent);
-static Size GenerationGetChunkSpace(MemoryContext context, void *pointer);
-static bool GenerationIsEmpty(MemoryContext context);
-static void GenerationStats(MemoryContext context,
-							MemoryStatsPrintFunc printfunc, void *passthru,
-							MemoryContextCounters *totals,
-							bool print_to_stderr);
-
 #ifdef MEMORY_CONTEXT_CHECKING
 static void GenerationCheck(MemoryContext context);
 #endif
-=======
+
 #define GenerationBlockIsValid(block) \
 	(PointerIsValid(block) && GenerationIsValid((block)->context))
->>>>>>> REL_16_9
 
 /*
  * We always store external chunks on a dedicated block.  This makes fetching
@@ -217,12 +200,7 @@ GenerationContextCreate(MemoryContext parent,
 	 * Allocate the initial block.  Unlike other generation.c blocks, it
 	 * starts with the context header and its block header follows that.
 	 */
-<<<<<<< HEAD
-
-	set = (GenerationContext *) gp_malloc(MAXALIGN(sizeof(GenerationContext)));
-=======
-	set = (GenerationContext *) malloc(allocSize);
->>>>>>> REL_16_9
+	set = (GenerationContext *) gp_malloc(allocSize);
 	if (set == NULL)
 	{
 		MemoryContextStats(TopMemoryContext);
@@ -320,22 +298,10 @@ GenerationReset(MemoryContext context)
 	{
 		GenerationBlock *block = dlist_container(GenerationBlock, node, miter.cur);
 
-<<<<<<< HEAD
-		dlist_delete(miter.cur);
-
-		context->mem_allocated -= block->blksize;
-
-#ifdef CLOBBER_FREED_MEMORY
-		wipe_mem(block, block->blksize);
-#endif
-
-		gp_free(block);
-=======
 		if (block == set->keeper)
 			GenerationBlockMarkEmpty(block);
 		else
 			GenerationBlockFree(set, block);
->>>>>>> REL_16_9
 	}
 
 	/* set it so new allocations to make use of the keeper block */
@@ -353,23 +319,13 @@ GenerationReset(MemoryContext context)
  * GenerationDelete
  *		Free all memory which is allocated in the given context.
  */
-<<<<<<< HEAD
-static void
-GenerationDelete(MemoryContext context, MemoryContext parent)
-=======
 void
-GenerationDelete(MemoryContext context)
->>>>>>> REL_16_9
+GenerationDelete(MemoryContext context, MemoryContext parent)
 {
 	/* Reset to release all releasable GenerationBlocks */
 	GenerationReset(context);
-<<<<<<< HEAD
 	/* And free the context header */
 	gp_free(context);
-=======
-	/* And free the context header and keeper block */
-	free(context);
->>>>>>> REL_16_9
 }
 
 /*
@@ -476,15 +432,11 @@ GenerationAlloc(MemoryContext context, Size size)
 		Size		blksize;
 		GenerationBlock *freeblock = set->freeblock;
 
-<<<<<<< HEAD
-		block = (GenerationBlock *) gp_malloc(blksize);
-=======
 		if (freeblock != NULL &&
 			GenerationBlockIsEmpty(freeblock) &&
 			GenerationBlockFreeBytes(freeblock) >= required_size)
 		{
 			block = freeblock;
->>>>>>> REL_16_9
 
 			/*
 			 * Zero out the freeblock as we'll set this to the current block
@@ -772,17 +724,8 @@ GenerationFree(void *pointer)
 	 */
 	dlist_delete(&block->node);
 
-<<<<<<< HEAD
-	/* Also make sure the block is not marked as the current block. */
-	if (set->block == block)
-		set->block = NULL;
-
-	context->mem_allocated -= block->blksize;
-	gp_free(block);
-=======
 	set->header.mem_allocated -= block->blksize;
-	free(block);
->>>>>>> REL_16_9
+	gp_free(block);
 }
 
 /*

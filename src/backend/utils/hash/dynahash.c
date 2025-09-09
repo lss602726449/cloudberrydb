@@ -1084,12 +1084,8 @@ hash_search_with_hash_value(HTAB *hashp,
 			}
 			return NULL;
 
-<<<<<<< HEAD
 		case HASH_ENTER_NULL:
 			/* FALL THRU */
-
-=======
->>>>>>> REL_16_9
 		case HASH_ENTER:
 		case HASH_ENTER_NULL:
 			/* Return existing element if found, else create one */

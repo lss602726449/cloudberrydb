@@ -14,13 +14,10 @@ include $(top_builddir)/src/Makefile.global
 
 OBJS = \
 	assert.o \
-<<<<<<< HEAD
-	elog.o
-OBJS += debugutils.o
-=======
 	csvlog.o \
 	elog.o \
 	jsonlog.o
->>>>>>> REL_16_9
+
+OBJS += debugutils.o
 
 include $(top_srcdir)/src/backend/common.mk

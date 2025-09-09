@@ -17,11 +17,8 @@ OBJS = \
 	fmgr.o \
 	funcapi.o
 
-<<<<<<< HEAD
 OBJS += deprecated.o
 
 override CPPFLAGS += -DDLSUFFIX=\"$(DLSUFFIX)\"
 
-=======
->>>>>>> REL_16_9
 include $(top_srcdir)/src/backend/common.mk
