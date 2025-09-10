@@ -86,7 +86,8 @@ typedef enum vartag_external
 	VARTAG_INDIRECT = 1,
 	VARTAG_EXPANDED_RO = 2,
 	VARTAG_EXPANDED_RW = 3,
-	VARTAG_ONDISK = 18
+	VARTAG_ONDISK = 20,
+	VARTAG_CUSTOM = 21 /* external toast custom defined tag */
 } vartag_external;
 
 /* this test relies on the specific tag values above */
@@ -135,6 +136,7 @@ typedef struct
 {
 	uint8		va_header;		/* Always 0x80 or 0x01 */
 	uint8		va_tag;			/* Type of datum */
+	uint8		va_padding[2];	/*** GPDB only:  Alignment padding ***/
 	char		va_data[FLEXIBLE_ARRAY_MEMBER]; /* Type-specific data */
 } varattrib_1b_e;
 
@@ -205,6 +207,7 @@ typedef struct
 #define SET_VARTAG_1B_E(PTR,tag) \
 	(((varattrib_1b_e *) (PTR))->va_header = 0x80, \
 	 ((varattrib_1b_e *) (PTR))->va_tag = (tag))
+#define VARSIZE_TO_SHORT(PTR)   ((char)(VARSIZE(PTR)-VARHDRSZ+VARHDRSZ_SHORT) | 0x80)
 
 #else							/* !WORDS_BIGENDIAN */
 
@@ -238,6 +241,7 @@ typedef struct
 #define SET_VARTAG_1B_E(PTR,tag) \
 	(((varattrib_1b_e *) (PTR))->va_header = 0x01, \
 	 ((varattrib_1b_e *) (PTR))->va_tag = (tag))
+#define VARSIZE_TO_SHORT(PTR)	((char)((VARSIZE(PTR)-VARHDRSZ+VARHDRSZ_SHORT) << 1) | 0x01)
 
 #endif							/* WORDS_BIGENDIAN */
 
@@ -280,6 +284,8 @@ typedef struct
 
 #define VARSIZE_SHORT(PTR)					VARSIZE_1B(PTR)
 #define VARDATA_SHORT(PTR)					VARDATA_1B(PTR)
+/* Use short var-attrib */
+#define VARSIZE_TO_SHORT_D(D)   			VARSIZE_TO_SHORT(DatumGetPointer(D))
 
 #define VARTAG_EXTERNAL(PTR)				VARTAG_1B_E(PTR)
 #define VARSIZE_EXTERNAL(PTR)				(VARHDRSZ_EXTERNAL + VARTAG_SIZE(VARTAG_EXTERNAL(PTR)))

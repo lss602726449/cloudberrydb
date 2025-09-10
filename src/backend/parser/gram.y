@@ -355,7 +355,6 @@ static void check_expressions_in_partition_key(PartitionSpec *spec, core_yyscan_
 
 %type <str>			opt_single_name
 %type <list>		opt_qualified_name
-%type <boolean>		opt_concurrently
 %type <dbehavior>	opt_drop_behavior
 
 %type <node>	alter_column_default opclass_item opclass_drop alter_using
@@ -445,7 +444,7 @@ static void check_expressions_in_partition_key(PartitionSpec *spec, core_yyscan_
 %type <str>		OptWithLocation
 
 %type <list>	func_name handler_name qual_Op qual_all_Op subquery_Op
-				opt_inline_handler opt_validator validator_clause
+				opt_class opt_inline_handler opt_validator validator_clause
 				opt_collate
 
 %type <range>	qualified_name insert_target OptConstrFromTable
@@ -908,7 +907,7 @@ static void check_expressions_in_partition_key(PartitionSpec *spec, core_yyscan_
 
 	ERRORS EVERY EXCHANGE EXPAND
 
-	FAILED_LOGIN_ATTEMPTS FIELDS FILL FORMAT
+	FAILED_LOGIN_ATTEMPTS FIELDS FILL
 
 	FULLSCAN
 
@@ -995,8 +994,7 @@ static void check_expressions_in_partition_key(PartitionSpec *spec, core_yyscan_
 
 /* SQL/JSON related keywords */
 %nonassoc	UNIQUE JSON
-%nonassoc	KEYS OBJECT_P SCALAR VALUE_P
-%nonassoc	WITH WITHOUT
+%nonassoc	KEYS SCALAR
 
 /*
  * To support target_el without AS, it used to be necessary to assign IDENT an
@@ -4046,15 +4044,6 @@ alter_table_cmd:
 					n->newowner = $3;
 					$$ = (Node *) n;
 				}
-			/* ALTER TABLE <name> SET ACCESS METHOD <amname> */
-			| SET ACCESS METHOD name
-				{
-					AlterTableCmd *n = makeNode(AlterTableCmd);
-
-					n->subtype = AT_SetAccessMethod;
-					n->name = $4;
-					$$ = (Node *) n;
-				}
 			/* ALTER TABLE <name> SET ACCESS METHOD <amname> WITH (<reloptions>) */
 			| SET ACCESS METHOD name OptWith
 				{
@@ -4067,9 +4056,9 @@ alter_table_cmd:
 					 * clause such as 'appendonly' or 'appendoptimized', it has
 					 * to match with the AM name.
 					 */
-					if (witham) 
+					if (witham)
 					{
-						if (strlen(witham) != strlen(n->name) || 
+						if (strlen(witham) != strlen(n->name) ||
 							strcmp(n->name, witham) != 0)
 							ereport(ERROR,
 									(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
@@ -11706,6 +11695,10 @@ index_including_params:	index_elem						{ $$ = list_make1($1); }
 		;
 
 opt_collate: COLLATE any_name						{ $$ = $2; }
+			| /*EMPTY*/								{ $$ = NIL; }
+		;
+
+opt_class:	any_name								{ $$ = $1; }
 			| /*EMPTY*/								{ $$ = NIL; }
 		;
 
@@ -21066,6 +21059,7 @@ unreserved_keyword:
 			| ALSO
 			| ALTER
 			| ALWAYS
+			| ASENSITIVE
 			| ASSERTION
 			| ASSIGNMENT
 			| AT
@@ -21341,6 +21335,7 @@ unreserved_keyword:
 			| ROWS
 			| RULE
 			| SAVEPOINT
+			| SCALAR
 			| SCHEDULE
 			| SCHEMA
 			| SCHEMAS

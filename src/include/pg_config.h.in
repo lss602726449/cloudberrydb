@@ -58,7 +58,6 @@
    (--enable-thread-safety) */
 #undef ENABLE_THREAD_SAFETY
 
-<<<<<<< HEAD
 /* Define to 1 to build with fault injector. (--enable-faultinjector) */
 #undef FAULT_INJECTOR
 
@@ -79,12 +78,6 @@
    reference if 'false' (always true in GPDB) */
 #undef FLOAT8PASSBYVAL
 
-/* Define to 1 if gettimeofday() takes only 1 argument. */
-#undef GETTIMEOFDAY_1ARG
-
-#ifdef GETTIMEOFDAY_1ARG
-# define gettimeofday(a,b) gettimeofday(a)
-#endif
 
 /* Define to 1 to build ORCA in debug (GPOS_DEBUG=1) */
 #undef GPOS_DEBUG
@@ -101,8 +94,6 @@
 /* Cloudberry version as a number */
 #undef GP_VERSION_NUM
 
-=======
->>>>>>> REL_16_9
 /* Define to 1 if you have the `append_history' function. */
 #undef HAVE_APPEND_HISTORY
 
@@ -180,17 +171,6 @@
 /* Define to 1 if you have the declaration of `preadv', and to 0 if you don't.
    */
 #undef HAVE_DECL_PREADV
-<<<<<<< HEAD
-
-/* Define to 1 if you have the declaration of `pwritev', and to 0 if you
-   don't. */
-#undef HAVE_DECL_PWRITEV
-
-/* Define to 1 if you have the declaration of `RTLD_GLOBAL', and to 0 if you
-   don't. */
-#undef HAVE_DECL_RTLD_GLOBAL
-=======
->>>>>>> REL_16_9
 
 /* Define to 1 if you have the declaration of `pwritev', and to 0 if you
    don't. */
@@ -230,18 +210,10 @@
 /* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
 #undef HAVE_FSEEKO
 
-<<<<<<< HEAD
-/* Define to 1 if your compiler understands __func__. */
-#undef HAVE_FUNCNAME__FUNC
-
-/* Define to 1 if your compiler understands __FUNCTION__. */
-#undef HAVE_FUNCNAME__FUNCTION
-
 /* Define to 1 if you have __sync_lock_test_and_set(int *) and friends. */
 #undef HAVE_GCC_INT_ATOMICS
 
-=======
->>>>>>> REL_16_9
+
 /* Define to 1 if you have __atomic_compare_exchange_n(int *, int *, int). */
 #undef HAVE_GCC__ATOMIC_INT32_CAS
 
@@ -310,13 +282,11 @@
 /* Define to 1 if you have the `inet_aton' function. */
 #undef HAVE_INET_ATON
 
-<<<<<<< HEAD
 /* Define to 1 if you have the `inet_ntop' function. */
 #undef HAVE_INET_NTOP
-=======
+
 /* Define to 1 if you have the `inet_pton' function. */
 #undef HAVE_INET_PTON
->>>>>>> REL_16_9
 
 /* Define to 1 if the system has the type `int64'. */
 #undef HAVE_INT64
@@ -432,18 +402,9 @@
 /* Define to 1 if you have the `mkdtemp' function. */
 #undef HAVE_MKDTEMP
 
-<<<<<<< HEAD
-/* Define to 1 if you have the <netinet/tcp.h> header file. */
-#undef HAVE_NETINET_TCP_H
-
-/* Define to 1 if you have the <net/if.h> header file. */
-#undef HAVE_NET_IF_H
-
 /* Define to 1 if you have the <numa.h> header file. */
 #undef HAVE_NUMA_H
 
-=======
->>>>>>> REL_16_9
 /* Define to 1 if you have the `OPENSSL_init_ssl' function. */
 #undef HAVE_OPENSSL_INIT_SSL
 
@@ -462,18 +423,6 @@
 /* Define to 1 if you have the `ppoll' function. */
 #undef HAVE_PPOLL
 
-<<<<<<< HEAD
-/* Define to 1 if you have the `pread' function. */
-#undef HAVE_PREAD
-
-/* Define to 1 if you have the `pstat' function. */
-#undef HAVE_PSTAT
-
-/* Define to 1 if the PS_STRINGS thing exists. */
-#undef HAVE_PS_STRINGS
-
-=======
->>>>>>> REL_16_9
 /* Define if you have POSIX threads libraries and header files. */
 #undef HAVE_PTHREAD
 
@@ -486,15 +435,6 @@
 /* Have PTHREAD_PRIO_INHERIT. */
 #undef HAVE_PTHREAD_PRIO_INHERIT
 
-<<<<<<< HEAD
-/* Define to 1 if you have the `pwrite' function. */
-#undef HAVE_PWRITE
-
-/* Define to 1 if you have the `random' function. */
-#undef HAVE_RANDOM
-
-=======
->>>>>>> REL_16_9
 /* Define to 1 if you have the <readline.h> header file. */
 #undef HAVE_READLINE_H
 
@@ -609,31 +549,8 @@
 /* Define to 1 if you have the <sys/procctl.h> header file. */
 #undef HAVE_SYS_PROCCTL_H
 
-<<<<<<< HEAD
-/* Define to 1 if you have the <sys/pstat.h> header file. */
-#undef HAVE_SYS_PSTAT_H
-
-/* Define to 1 if you have the <sys/resource.h> header file. */
-#undef HAVE_SYS_RESOURCE_H
-
-/* Define to 1 if you have the <sys/select.h> header file. */
-#undef HAVE_SYS_SELECT_H
-
-/* Define to 1 if you have the <sys/sem.h> header file. */
-#undef HAVE_SYS_SEM_H
-
-/* Define to 1 if you have the <sys/shm.h> header file. */
-#undef HAVE_SYS_SHM_H
-
 /* Define to 1 if you have the <sys/signalfd.h> header file. */
 #undef HAVE_SYS_SIGNALFD_H
-
-/* Define to 1 if you have the <sys/sockio.h> header file. */
-#undef HAVE_SYS_SOCKIO_H
-=======
-/* Define to 1 if you have the <sys/signalfd.h> header file. */
-#undef HAVE_SYS_SIGNALFD_H
->>>>>>> REL_16_9
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
@@ -696,24 +613,8 @@
 /* Define to 1 if you have the `wcstombs_l' function. */
 #undef HAVE_WCSTOMBS_L
 
-<<<<<<< HEAD
-/* Define to 1 if you have the <wctype.h> header file. */
-#undef HAVE_WCTYPE_H
-
-/* Define to 1 if you have the <winldap.h> header file. */
-#undef HAVE_WINLDAP_H
-
-
 /* Define to 1 if you have the <winsock2.h> header file. */
 #undef HAVE_WINSOCK2_H
-
-/* Define to 1 if you have the `writev' function. */
-#undef HAVE_WRITEV
-=======
-/* Define to 1 if you have the `X509_get_signature_info' function. */
-#undef HAVE_X509_GET_SIGNATURE_INFO
->>>>>>> REL_16_9
-
 
 /* Define to 1 if you have the `X509_get_signature_nid' function. */
 #undef HAVE_X509_GET_SIGNATURE_NID
@@ -721,15 +622,12 @@
 /* Define to 1 if the assembler supports X86_64's POPCNTQ instruction. */
 #undef HAVE_X86_64_POPCNTQ
 
-<<<<<<< HEAD
 /* Define to 1 if you have the <yaml.h> header file. */
 #undef HAVE_YAML_H
 
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
 
-=======
->>>>>>> REL_16_9
 /* Define to 1 if your compiler understands __builtin_bswap16. */
 #undef HAVE__BUILTIN_BSWAP16
 
@@ -775,18 +673,9 @@
 /* Define to 1 if your compiler understands _Static_assert. */
 #undef HAVE__STATIC_ASSERT
 
-<<<<<<< HEAD
-/* Define to 1 if you have the `__strtoll' function. */
-#undef HAVE___STRTOLL
-
-/* Define to 1 if you have the `__strtoull' function. */
-#undef HAVE___STRTOULL
-
 /* Define to 1 if you have the `etcdlib' library (-letcdlib). */
 #undef HAVE_LIBETCDLIB
 
-=======
->>>>>>> REL_16_9
 /* Define to the appropriate printf length modifier for 64-bit ints. */
 #undef INT64_MODIFIER
 
@@ -1011,11 +900,7 @@
 /* Define to select Win32-style shared memory. */
 #undef USE_WIN32_SHARED_MEMORY
 
-<<<<<<< HEAD
-/* Define to build with zstd support. (--with-zstd) */
-=======
 /* Define to 1 to build with ZSTD support. (--with-zstd) */
->>>>>>> REL_16_9
 #undef USE_ZSTD
 
 /* Define to 1 if `wcstombs_l' requires <xlocale.h>. */

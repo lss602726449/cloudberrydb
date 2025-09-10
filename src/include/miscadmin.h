@@ -428,13 +428,10 @@ typedef enum BackendType
 	B_BG_WORKER,
 	B_BG_WRITER,
 	B_CHECKPOINTER,
-<<<<<<< HEAD
 	B_LOGIN_MONITOR,
 	B_LOGIN_MONITOR_WORKER,
-=======
 	B_LOGGER,
 	B_STANDALONE_BACKEND,
->>>>>>> REL_16_9
 	B_STARTUP,
 	B_WAL_RECEIVER,
 	B_WAL_SENDER,
@@ -458,16 +455,12 @@ extern char *GetUserNameFromId(Oid roleid, bool noerr);
 extern Oid	GetUserId(void);
 extern Oid	GetOuterUserId(void);
 extern Oid	GetSessionUserId(void);
-<<<<<<< HEAD
 extern void	SetSessionUserId(Oid, bool);
-extern Oid	GetAuthenticatedUserId(void);
 extern bool IsAuthenticatedUserSuperUser(void);
-=======
 extern bool GetSessionUserIsSuperuser(void);
 extern Oid	GetAuthenticatedUserId(void);
 extern bool GetAuthenticatedUserIsSuperuser(void);
 extern void SetAuthenticatedUserId(Oid userid, bool is_superuser);
->>>>>>> REL_16_9
 extern void GetUserIdAndSecContext(Oid *userid, int *sec_context);
 extern void SetUserIdAndSecContext(Oid userid, int sec_context);
 extern bool InLocalUserIdChange(void);
@@ -480,14 +473,11 @@ extern void InitializeSessionUserIdStandalone(void);
 extern void SetSessionAuthorization(Oid userid, bool is_superuser);
 extern Oid	GetCurrentRoleId(void);
 extern void SetCurrentRoleId(Oid roleid, bool is_superuser);
-<<<<<<< HEAD
 extern Oid GetCurrentWarehouseId(void);
 extern void SetCurrentWarehouseId(Oid warehouseid);
-=======
 extern void InitializeSystemUser(const char *authn_id,
 								 const char *auth_method);
 extern const char *GetSystemUser(void);
->>>>>>> REL_16_9
 
 /* in utils/misc/superuser.c */
 extern bool superuser(void);	/* current user is superuser */
@@ -593,18 +583,11 @@ extern void BaseInit(void);
 /* in utils/init/miscinit.c */
 extern PGDLLIMPORT bool IgnoreSystemIndexes;
 extern PGDLLIMPORT bool process_shared_preload_libraries_in_progress;
-<<<<<<< HEAD
-extern bool process_shared_preload_libraries_done;
-extern char *session_preload_libraries_string;
-extern char *shared_preload_libraries_string;
-extern char *local_preload_libraries_string;
-=======
 extern PGDLLIMPORT bool process_shared_preload_libraries_done;
 extern PGDLLIMPORT bool process_shmem_requests_in_progress;
 extern PGDLLIMPORT char *session_preload_libraries_string;
 extern PGDLLIMPORT char *shared_preload_libraries_string;
 extern PGDLLIMPORT char *local_preload_libraries_string;
->>>>>>> REL_16_9
 
 extern void CreateDataDirLockFile(bool amPostmaster);
 extern void CreateSocketLockFile(const char *socketfile, bool amPostmaster,
@@ -628,10 +611,7 @@ extern void RestoreClientConnectionInfo(char *conninfo);
 
 /* in executor/nodeHash.c */
 extern size_t get_hash_memory_limit(void);
-<<<<<<< HEAD
 extern int	get_hash_mem(void);
-=======
->>>>>>> REL_16_9
 
 /*
  * In GPDB, some utility commands may execute nested in another utilities,
