@@ -7,13 +7,9 @@
  *
  * src/backend/utils/misc/ps_status.c
  *
-<<<<<<< HEAD
  * Portions Copyright (c) 2005-2009, Greenplum inc
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
- * Copyright (c) 2000-2021, PostgreSQL Global Development Group
-=======
  * Copyright (c) 2000-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
  * various details abducted from various places
  *--------------------------------------------------------------------
  */
@@ -34,11 +30,7 @@
 #include "cdb/cdbvars.h"        /* Gp_role, GpIdentity.segindex, currentSliceId */
 
 extern char **environ;
-<<<<<<< HEAD
 extern int PostPortNumber; /* GPDB: Helps identify child processes */
-bool		update_process_title = true;
-=======
->>>>>>> REL_16_9
 
 /* GUC variable */
 bool		update_process_title = DEFAULT_UPDATE_PROCESS_TITLE;
@@ -359,11 +351,6 @@ init_ps_display(const char *fixed_part)
 }
 
 #ifndef PS_USE_NONE
-<<<<<<< HEAD
-	char	   *cp = ps_buffer + ps_buffer_fixed_size;
-	char	   *ep = ps_buffer + ps_buffer_size;
-
-=======
 /*
  * update_ps_display_precheck
  *		Helper function to determine if updating the process title is
@@ -372,7 +359,6 @@ init_ps_display(const char *fixed_part)
 static bool
 update_ps_display_precheck(void)
 {
->>>>>>> REL_16_9
 	/* update_process_title=off disables updates */
 	if (!update_process_title)
 		return false;
@@ -387,7 +373,6 @@ update_ps_display_precheck(void)
 		return false;
 #endif
 
-<<<<<<< HEAD
 	Assert(cp >= ps_buffer);
 
 	/* Add client session's global id. */
@@ -427,7 +412,7 @@ update_ps_display_precheck(void)
 			ps_buffer_size - real_act_prefix_size);
 
 	ps_buffer_cur_len = strlen(ps_buffer);
-=======
+
 	return true;
 }
 #endif							/* not PS_USE_NONE */
@@ -547,7 +532,6 @@ set_ps_display_with_len(const char *activity, size_t len)
 		ps_buffer_cur_len = ps_buffer_fixed_size + len;
 	}
 	Assert(strlen(ps_buffer) == ps_buffer_cur_len);
->>>>>>> REL_16_9
 
 	/* Transmit new setting to kernel, if necessary */
 	flush_ps_display();

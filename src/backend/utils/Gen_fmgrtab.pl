@@ -25,15 +25,9 @@ my $include_path;
 my $extra_path;
 
 GetOptions(
-<<<<<<< HEAD
 	'output:s'       => \$output_path,
 	'include-path:s' => \$include_path,
 	'extra-path:s'   => \$extra_path) || usage();
-=======
-	'output:s' => \$output_path,
-	'include-path:s' => \$include_path) || usage();
->>>>>>> REL_16_9
-
 # Make sure paths end with a slash.
 if ($output_path ne '' && substr($output_path, -1) ne '/')
 {

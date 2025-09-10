@@ -61,7 +61,6 @@
 					# comma-separated list of addresses;
 					# defaults to '*', '*' = all
 					# (change requires restart)
-<<<<<<< HEAD
 
 #port = 5432				# sets the database listener port for 
       					# a Cloudberry instance. The master and 
@@ -74,11 +73,7 @@
 # THE PORT NUMBER IN THIS FILE.
 
 #max_connections = 200			# (change requires restart)
-=======
-#port = 5432				# (change requires restart)
-#max_connections = 100			# (change requires restart)
 #reserved_connections = 0		# (change requires restart)
->>>>>>> REL_16_9
 #superuser_reserved_connections = 3	# (change requires restart)
 #unix_socket_directories = '/tmp'	# comma-separated list of directories
 					# (change requires restart)
@@ -153,14 +148,9 @@ max_prepared_transactions = 250		# can be 0 or more
 					# (change requires restart)
 # Caution: it is not advisable to set max_prepared_transactions nonzero unless
 # you actively intend to use prepared transactions.
-<<<<<<< HEAD
 
 #work_mem = 32MB				# min 64kB
-#hash_mem_multiplier = 1.0		# 1-1000.0 multiplier on hash table work_mem
-=======
-#work_mem = 4MB				# min 64kB
 #hash_mem_multiplier = 2.0		# 1-1000.0 multiplier on hash table work_mem
->>>>>>> REL_16_9
 #maintenance_work_mem = 64MB		# min 1MB
 #autovacuum_work_mem = -1		# min 1MB, or -1 to use maintenance_work_mem
 #logical_decoding_work_mem = 64MB	# min 64kB
@@ -239,12 +229,8 @@ max_prepared_transactions = 250		# can be 0 or more
 #full_page_writes = on			# recover from partial page writes
 #wal_log_hints = off			# also do full page writes of non-critical updates
 					# (change requires restart)
-<<<<<<< HEAD
 #wal_compression = on			# enable compression of full-page writes
-=======
-#wal_compression = off			# enables compression of full-page writes;
 					# off, pglz, lz4, zstd, or on
->>>>>>> REL_16_9
 #wal_init_zero = on			# zero-fill new WAL files
 #wal_recycle = on			# recycle WAL files
 #wal_buffers = -1			# min 32kB, -1 sets based on shared_buffers
@@ -356,12 +342,8 @@ max_prepared_transactions = 250		# can be 0 or more
 
 #primary_conninfo = ''			# connection string to sending server
 #primary_slot_name = ''			# replication slot on sending server
-<<<<<<< HEAD
 #promote_trigger_file = ''		# file name whose presence ends recovery
 #hot_standby = off			# "on" allows queries during recovery
-=======
-#hot_standby = on			# "off" disallows queries during recovery
->>>>>>> REL_16_9
 					# (change requires restart)
 #max_standby_archive_delay = 30s	# max delay before canceling queries
 					# when reading WAL from archive;
@@ -493,26 +475,6 @@ optimizer_analyze_root_partition = on # stats collection on root partitions
 
 # - Where to Log -
 
-<<<<<<< HEAD
-=======
-#log_destination = 'stderr'		# Valid values are combinations of
-					# stderr, csvlog, jsonlog, syslog, and
-					# eventlog, depending on platform.
-					# csvlog and jsonlog require
-					# logging_collector to be on.
-
-# This is used when logging to stderr:
-#logging_collector = off		# Enable capturing of stderr, jsonlog,
-					# and csvlog into log files. Required
-					# to be on for csvlogs and jsonlogs.
-					# (change requires restart)
-
-# These are only used if logging_collector is on:
-#log_directory = 'log'			# directory where log files are written,
-					# can be absolute or relative to PGDATA
-#log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'	# log file name pattern,
-					# can include strftime() escapes
->>>>>>> REL_16_9
 #log_file_mode = 0600			# creation mode for log files,
 					# begin with 0 to use octal notation
 #log_rotation_age = 1d			# Automatic rotation of logfiles will
@@ -674,16 +636,12 @@ optimizer_analyze_root_partition = on # stats collection on root partitions
 # STATISTICS
 #------------------------------------------------------------------------------
 
-<<<<<<< HEAD
 # - ANALYZE Statistics on Database Contents -
 
 #default_statistics_target = 100	# range 1 - 10000 (target # of
 					# histogram bins)
 
-# - Query and Index Statistics Collector -
-=======
 # - Cumulative Query and Index Statistics -
->>>>>>> REL_16_9
 
 #track_activities = on
 #track_activity_query_size = 1024	# (change requires restart)
