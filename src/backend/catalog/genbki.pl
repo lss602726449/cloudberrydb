@@ -30,16 +30,10 @@ my $extra_path;
 my $num_errors = 0;
 
 GetOptions(
-<<<<<<< HEAD
 	'output:s'       => \$output_path,
 	'set-version:s'  => \$major_version,
 	'include-path:s' => \$include_path,
 	'extra-path:s'   => \$extra_path) || usage();
-=======
-	'output:s' => \$output_path,
-	'set-version:s' => \$major_version,
-	'include-path:s' => \$include_path) || usage();
->>>>>>> REL_16_9
 
 # Sanity check arguments.
 die "No input files.\n" unless @ARGV;
@@ -911,7 +905,6 @@ sub gen_pg_attribute
 		{
 			$attnum = 0;
 			my @SYS_ATTRS = (
-<<<<<<< HEAD
 				{ name => 'ctid',     type => 'tid' },
 				{ name => 'xmin',     type => 'xid' },
 				{ name => 'cmin',     type => 'cid' },
@@ -920,14 +913,6 @@ sub gen_pg_attribute
 				{ name => 'tableoid', type => 'oid' },
 				{ name => 'gp_segment_id', type => 'int4' },
 				{ name => 'gp_foreign_server', type => 'oid' });
-=======
-				{ name => 'ctid', type => 'tid' },
-				{ name => 'xmin', type => 'xid' },
-				{ name => 'cmin', type => 'cid' },
-				{ name => 'xmax', type => 'xid' },
-				{ name => 'cmax', type => 'cid' },
-				{ name => 'tableoid', type => 'oid' });
->>>>>>> REL_16_9
 			foreach my $attr (@SYS_ATTRS)
 			{
 				$attnum--;

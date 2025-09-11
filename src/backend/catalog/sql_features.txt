@@ -192,18 +192,12 @@ F052	Intervals and datetime arithmetic			YES
 F053	OVERLAPS predicate			YES	
 F054	TIMESTAMP in DATE type precedence list			NO	
 F081	UNION and EXCEPT in views			YES	
-F111	Isolation levels other than SERIALIZABLE			YES	
-<<<<<<< HEAD
-F111	Isolation levels other than SERIALIZABLE	01	READ UNCOMMITTED isolation level	NO	
-F111	Isolation levels other than SERIALIZABLE	02	READ COMMITTED isolation level	YES	
-F111	Isolation levels other than SERIALIZABLE	03	REPEATABLE READ isolation level	NO	
-=======
-F112	Isolation level READ UNCOMMITTED			YES	
+F111	Isolation levels other than SERIALIZABLE			YES
+F112	Isolation level READ UNCOMMITTED			NO
 F113	Isolation level READ COMMITTED			YES	
-F114	Isolation level REPEATABLE READ			YES	
+F114	Isolation level REPEATABLE READ			NO
 F120	Get diagnostics statement			NO	
->>>>>>> REL_16_9
-F121	Basic diagnostics management			NO	
+F121	Basic diagnostics management			NO
 F122	Enhanced diagnostics management			NO	
 F123	All diagnostics			NO	
 F124	SET TRANSACTION statement: DIAGNOSTICS SIZE clause			NO	
@@ -271,26 +265,16 @@ F405	NATURAL JOIN			YES
 F406	FULL OUTER JOIN			YES	
 F407	CROSS JOIN			YES	
 F411	Time zone specification			YES	differences regarding literal interpretation
-F421	National character			YES	
-<<<<<<< HEAD
-F431	Read-only scrollable cursors			YES	forward scroll only
-F431	Read-only scrollable cursors	01	FETCH with explicit NEXT	YES	
-F431	Read-only scrollable cursors	02	FETCH FIRST	NO	
-F431	Read-only scrollable cursors	03	FETCH LAST	YES	
-F431	Read-only scrollable cursors	04	FETCH PRIOR	NO	
-F431	Read-only scrollable cursors	05	FETCH ABSOLUTE	NO	
-F431	Read-only scrollable cursors	06	FETCH RELATIVE	NO	
-=======
+F421	National character			YES
 F431	Read-only scrollable cursors			YES	
 F432	FETCH with explicit NEXT			YES	
-F433	FETCH FIRST			YES	
+F433	FETCH FIRST			NO
 F434	FETCH LAST			YES	
-F435	FETCH PRIOR			YES	
-F436	FETCH ABSOLUTE			YES	
-F437	FETCH RELATIVE			YES	
+F435	FETCH PRIOR			NO
+F436	FETCH ABSOLUTE			NO
+F437	FETCH RELATIVE			NO
 F438	Scrollable cursors			YES	
->>>>>>> REL_16_9
-F441	Extended set function support			YES	
+F441	Extended set function support			YES
 F442	Mixed column references in set functions			YES	
 F451	Character set definition			NO	
 F461	Named character sets			NO	
@@ -464,37 +448,20 @@ T176	Sequence generator support			NO	supported except for NEXT VALUE FOR
 T177	Sequence generator support: simple restart option			YES	
 T178	Identity columns: simple restart option			YES	
 T180	System-versioned tables			NO	
-T181	Application-time period tables			NO	
-<<<<<<< HEAD
-T191	Referential action RESTRICT			NO	
-T201	Comparable data types for referential constraints			NO	
-T211	Basic trigger capability			NO	
-T211	Basic trigger capability	01	Triggers activated on UPDATE, INSERT, or DELETE of one base table	NO	
-T211	Basic trigger capability	02	BEFORE triggers	NO	
-T211	Basic trigger capability	03	AFTER triggers	NO	
-T211	Basic trigger capability	04	FOR EACH ROW triggers	NO	
-T211	Basic trigger capability	05	Ability to specify a search condition that must be true before the trigger is invoked	NO	
-T211	Basic trigger capability	06	Support for run-time rules for the interaction of triggers and constraints	NO	
-T211	Basic trigger capability	07	TRIGGER privilege	YES	
-T211	Basic trigger capability	08	Multiple triggers for the same event are executed in the order in which they were created in the catalog	NO	intentionally omitted
-T212	Enhanced trigger capability			NO	
-T213	INSTEAD OF triggers			NO	
-T231	Sensitive cursors			YES	
-=======
-T191	Referential action RESTRICT			YES	
+T181	Application-time period tables			NO
+T191	Referential action RESTRICT			NO
 T200	Trigger DDL			NO	similar but not fully compatible
-T201	Comparable data types for referential constraints			YES	
+T201	Comparable data types for referential constraints			NO
 T211	Basic trigger capability			NO	
-T212	Enhanced trigger capability			YES	
-T213	INSTEAD OF triggers			YES	
-T214	BEFORE triggers			YES	
-T215	AFTER triggers			YES	
-T216	Ability to require true search condition before trigger is invoked			YES	
+T212	Enhanced trigger capability			NO
+T213	INSTEAD OF triggers			NO
+T214	BEFORE triggers			NO
+T215	AFTER triggers			NO
+T216	Ability to require true search condition before trigger is invoked			NO
 T217	TRIGGER privilege			YES	
 T218	Multiple triggers for the same event executed in the order created			NO	intentionally omitted
-T231	Sensitive cursors			NO	
->>>>>>> REL_16_9
-T241	START TRANSACTION statement			YES	
+T231	Sensitive cursors			YES
+T241	START TRANSACTION statement			YES
 T251	SET TRANSACTION statement: LOCAL option			NO	
 T261	Chained transactions			YES	
 T262	Multiple server transactions			NO	

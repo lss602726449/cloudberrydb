@@ -1,13 +1,9 @@
 /*
  * PostgreSQL System Views
  *
-<<<<<<< HEAD
  * Portions Copyright (c) 2006-2010, Greenplum inc.
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
- * Copyright (c) 1996-2021, PostgreSQL Global Development Group
-=======
  * Copyright (c) 1996-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
  *
  * src/backend/catalog/system_views.sql
  *
@@ -865,26 +861,8 @@ CREATE VIEW pg_statio_all_tables AS
     FROM pg_class C LEFT JOIN
             pg_class T ON C.reltoastrelid = T.oid
             LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
-<<<<<<< HEAD
     WHERE C.relkind IN ('r', 't', 'm', 'o', 'b', 'M')
     GROUP BY C.oid, N.nspname, C.relname, T.oid, X.indexrelid;
-=======
-            LEFT JOIN LATERAL (
-              SELECT sum(pg_stat_get_blocks_fetched(indexrelid) -
-                         pg_stat_get_blocks_hit(indexrelid))::bigint
-                     AS idx_blks_read,
-                     sum(pg_stat_get_blocks_hit(indexrelid))::bigint
-                     AS idx_blks_hit
-              FROM pg_index WHERE indrelid = C.oid ) I ON true
-            LEFT JOIN LATERAL (
-              SELECT sum(pg_stat_get_blocks_fetched(indexrelid) -
-                         pg_stat_get_blocks_hit(indexrelid))::bigint
-                     AS idx_blks_read,
-                     sum(pg_stat_get_blocks_hit(indexrelid))::bigint
-                     AS idx_blks_hit
-              FROM pg_index WHERE indrelid = T.oid ) X ON true
-    WHERE C.relkind IN ('r', 't', 'm');
->>>>>>> REL_16_9
 
 CREATE VIEW pg_statio_sys_tables AS
     SELECT * FROM pg_statio_all_tables
@@ -1874,7 +1852,16 @@ GRANT SELECT (oid, subdbid, subskiplsn, subname, subowner, subenabled,
               subslotname, subsynccommit, subpublications, suborigin)
     ON pg_subscription TO public;
 
-<<<<<<< HEAD
+CREATE VIEW pg_stat_subscription_stats AS
+SELECT
+    ss.subid,
+    s.subname,
+    ss.apply_error_count,
+    ss.sync_error_count,
+    ss.stats_reset
+FROM pg_subscription as s,
+     pg_stat_get_subscription_stats(s.oid) as ss;
+
 -- Dispatch and Aggregate the backends information of subtransactions overflowed
 CREATE VIEW gp_suboverflowed_backend(segid, pids) AS
   SELECT -1, gp_get_suboverflowed_backends()
@@ -1970,14 +1957,3 @@ CREATE VIEW relation_tag_descriptions AS
          pg_namespace AS ns
     WHERE td.tagid = t.oid AND td.tdobjid = c.oid
           AND td.tddatabaseid = d.oid AND ns.oid = c.relnamespace;
-=======
-CREATE VIEW pg_stat_subscription_stats AS
-    SELECT
-        ss.subid,
-        s.subname,
-        ss.apply_error_count,
-        ss.sync_error_count,
-        ss.stats_reset
-    FROM pg_subscription as s,
-         pg_stat_get_subscription_stats(s.oid) as ss;
->>>>>>> REL_16_9
