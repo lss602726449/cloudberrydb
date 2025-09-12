@@ -164,8 +164,8 @@ storage/lmgr/lwlocknames.h: storage/lmgr/generate-lwlocknames.pl storage/lmgr/lw
 	$(MAKE) -C storage/lmgr lwlocknames.h lwlocknames.c
 
 # run this unconditionally to avoid needing to know its dependencies here:
-#submake-catalog-headers:
-#	$(MAKE) -C catalog distprep generated-header-symlinks
+submake-catalog-headers:
+	$(MAKE) -C catalog distprep generated-header-symlinks
 
 # run this unconditionally to avoid needing to know its dependencies here:
 #submake-nodes-headers:

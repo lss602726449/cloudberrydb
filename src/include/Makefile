@@ -55,13 +55,8 @@ install: all installdirs
 	  $(INSTALL_DATA) $(srcdir)/$$dir/*.h '$(DESTDIR)$(includedir_server)'/$$dir || exit; \
 	done
 ifeq ($(vpath_build),yes)
-<<<<<<< HEAD
-	for file in catalog/schemapg.h catalog/system_fk_info.h catalog/pg_*_d.h catalog/gp_*_d.h parser/gram.h storage/lwlocknames.h utils/probes.h; do \
-	  cp $$file '$(DESTDIR)$(includedir_server)'/$$file || exit; \
-=======
-	for file in catalog/schemapg.h catalog/system_fk_info.h catalog/pg_*_d.h storage/lwlocknames.h utils/probes.h; do \
+	for file in catalog/schemapg.h catalog/system_fk_info.h catalog/pg_*_d.h catalog/gp_*_d.h storage/lwlocknames.h utils/probes.h; do \
 	  $(INSTALL_DATA) $$file '$(DESTDIR)$(includedir_server)'/$$file || exit; \
->>>>>>> REL_16_9
 	done
 endif
 
@@ -83,12 +78,8 @@ clean:
 	rm -f utils/fmgroids.h utils/fmgrprotos.h utils/errcodes.h utils/header-stamp
 	rm -f storage/lwlocknames.h utils/probes.h
 	rm -f catalog/schemapg.h catalog/system_fk_info.h
-<<<<<<< HEAD
 	rm -f catalog/pg_*_d.h catalog/gp_*_d.h catalog/header-stamp
-=======
-	rm -f catalog/pg_*_d.h catalog/header-stamp
 	rm -f nodes/nodetags.h nodes/header-stamp
->>>>>>> REL_16_9
 
 distclean maintainer-clean: clean
 	rm -f pg_config.h pg_config_ext.h pg_config_os.h stamp-h stamp-ext-h

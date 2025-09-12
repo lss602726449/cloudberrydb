@@ -9,13 +9,9 @@
  *	  polluting the namespace with lots of stuff...
  *
  *
-<<<<<<< HEAD
  * Portions Copyright (c) 2006-2011, Greenplum inc
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
- * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
-=======
  * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/c.h
@@ -891,7 +887,6 @@ typedef NameData *Name;
 
 #define Assert(condition)	((void)true)
 #define AssertMacro(condition)	((void)true)
-<<<<<<< HEAD
 #define AssertArg(condition)	((void)true)
 #define AssertState(condition)	((void)true)
 #define AssertPointerAlignment(ptr, bndr)	((void)true)
@@ -899,8 +894,6 @@ typedef NameData *Name;
 #define AssertEquivalent(cond1, cond2)	((void)true)
 #define Trap(condition, errorType)	((void)true)
 #define TrapMacro(condition, errorType) (true)
-=======
->>>>>>> REL_16_9
 
 #elif defined(FRONTEND)
 
