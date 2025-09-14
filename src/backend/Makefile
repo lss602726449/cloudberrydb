@@ -168,12 +168,12 @@ submake-catalog-headers:
 	$(MAKE) -C catalog distprep generated-header-symlinks
 
 # run this unconditionally to avoid needing to know its dependencies here:
-#submake-nodes-headers:
-#	$(MAKE) -C nodes distprep generated-header-symlinks
+submake-nodes-headers:
+	$(MAKE) -C nodes distprep generated-header-symlinks
 
 # run this unconditionally to avoid needing to know its dependencies here:
-#submake-utils-headers:
-#	$(MAKE) -C utils distprep generated-header-symlinks
+submake-utils-headers:
+	$(MAKE) -C utils distprep generated-header-symlinks
 
 .PHONY: submake-catalog-headers submake-nodes-headers submake-utils-headers
 
