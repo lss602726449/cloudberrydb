@@ -5582,8 +5582,6 @@ get_explain_guc_options(int *num, bool verbose, bool settings)
 		struct config_generic *conf = dlist_container(struct config_generic,
 													  nondef_link, iter.cur);
 		bool		modified;
-<<<<<<< HEAD
-		struct config_generic *conf = guc_variables[i];
 		bool		explain = false;
 		bool		gp_guc_explain = false;
 
@@ -5614,8 +5612,6 @@ get_explain_guc_options(int *num, bool verbose, bool settings)
 					break;
 			}
 		}
-=======
->>>>>>> REL_16_9
 
 		/* return only parameters marked for inclusion in explain */
 		if ((conf->flags & GUC_EXPLAIN) && settings)
@@ -5665,22 +5661,9 @@ get_explain_guc_options(int *num, bool verbose, bool settings)
 					{
 						struct config_string *lconf = (struct config_string *) conf;
 
-<<<<<<< HEAD
 						modified = (strcmp(lconf->boot_val, *(lconf->variable)) != 0);
 					}
 					break;
-=======
-					if (lconf->boot_val == NULL &&
-						*lconf->variable == NULL)
-						modified = false;
-					else if (lconf->boot_val == NULL ||
-							 *lconf->variable == NULL)
-						modified = true;
-					else
-						modified = (strcmp(lconf->boot_val, *(lconf->variable)) != 0);
-				}
-				break;
->>>>>>> REL_16_9
 
 				case PGC_ENUM:
 					{

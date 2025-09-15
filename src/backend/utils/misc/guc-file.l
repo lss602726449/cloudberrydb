@@ -172,7 +172,6 @@ ProcessConfigFile(GucContext context)
 }
 
 /*
-<<<<<<< HEAD
  * This function handles both actual config file (re)loads and execution of
  * show_all_file_settings() (i.e., the pg_file_settings view).  In the latter
  * case we don't apply any of the settings, but we make all the usual validity
@@ -561,8 +560,6 @@ AbsoluteConfigLocation(const char *location, const char *calling_file)
 }
 
 /*
-=======
->>>>>>> REL_16_9
  * Read and parse a single configuration file.  This function recurses
  * to handle "include" directives.
  *
