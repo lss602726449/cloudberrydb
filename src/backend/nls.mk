@@ -1,9 +1,5 @@
 # src/backend/nls.mk
 CATALOG_NAME     = postgres
-<<<<<<< HEAD
-AVAIL_LANGUAGES  = de es fr it ja ko ru sv uk zh_CN
-=======
->>>>>>> REL_16_9
 GETTEXT_FILES    = + gettext-files
 GETTEXT_TRIGGERS = $(BACKEND_COMMON_GETTEXT_TRIGGERS) \
     GUC_check_errmsg \
