@@ -72,15 +72,9 @@ usage(unsigned short int pager)
 	 */
 	initPQExpBuffer(&buf);
 
-<<<<<<< HEAD
-	fprintf(output, _("psql is the PostgreSQL interactive terminal (Cloudberry version).\n\n"));
-	fprintf(output, _("Usage:\n"));
-	fprintf(output, _("  psql [OPTION]... [DBNAME [USERNAME]]\n\n"));
-=======
-	HELP0("psql is the PostgreSQL interactive terminal.\n\n");
+	HELP0("psql is the PostgreSQL interactive terminal (Cloudberry version).\n\n");
 	HELP0("Usage:\n");
 	HELP0("  psql [OPTION]... [DBNAME [USERNAME]]\n\n");
->>>>>>> REL_16_9
 
 	HELP0("General options:\n");
 	/* Display default database */
@@ -103,32 +97,18 @@ usage(unsigned short int pager)
 	HELP0("      --help=commands      list backslash commands, then exit\n");
 	HELP0("      --help=variables     list special variables, then exit\n");
 
-<<<<<<< HEAD
-	fprintf(output, _("\nInput and output options:\n"));
-	fprintf(output, _("  -a, --echo-all           echo all input from script\n"));
-	fprintf(output, _("  -b, --echo-errors        echo failed commands\n"));
-	fprintf(output, _("  -e, --echo-queries       echo commands sent to server\n"));
-	fprintf(output, _("  -E, --echo-hidden        display queries that internal commands generate\n"));
-	fprintf(output, _("  -L, --log-file=FILENAME  send session log to file\n"));
-	fprintf(output, _("      --ignore-log-file    do not log psql:filename prefix in log file\n"));
-	fprintf(output, _("  -n, --no-readline        disable enhanced command line editing (readline)\n"));
-	fprintf(output, _("  -o, --output=FILENAME    send query results to file (or |pipe)\n"));
-	fprintf(output, _("  -q, --quiet              run quietly (no messages, only query output)\n"));
-	fprintf(output, _("  -s, --single-step        single-step mode (confirm each query)\n"));
-	fprintf(output, _("  -S, --single-line        single-line mode (end of line terminates SQL command)\n"));
-=======
 	HELP0("\nInput and output options:\n");
 	HELP0("  -a, --echo-all           echo all input from script\n");
 	HELP0("  -b, --echo-errors        echo failed commands\n");
 	HELP0("  -e, --echo-queries       echo commands sent to server\n");
 	HELP0("  -E, --echo-hidden        display queries that internal commands generate\n");
 	HELP0("  -L, --log-file=FILENAME  send session log to file\n");
+	HELP0("      --ignore-log-file    do not log psql:filename prefix in log file\");
 	HELP0("  -n, --no-readline        disable enhanced command line editing (readline)\n");
 	HELP0("  -o, --output=FILENAME    send query results to file (or |pipe)\n");
 	HELP0("  -q, --quiet              run quietly (no messages, only query output)\n");
 	HELP0("  -s, --single-step        single-step mode (confirm each query)\n");
 	HELP0("  -S, --single-line        single-line mode (end of line terminates SQL command)\n");
->>>>>>> REL_16_9
 
 	HELP0("\nOutput format options:\n");
 	HELP0("  -A, --no-align           unaligned table output mode\n");
@@ -209,11 +189,7 @@ slashUsage(unsigned short int pager)
 	 * To avoid counting the output lines manually, build the output in "buf"
 	 * and then count them.
 	 */
-<<<<<<< HEAD
-	output = PageOutput(136, pager ? &(pset.popt.topt) : NULL);
-=======
 	initPQExpBuffer(&buf);
->>>>>>> REL_16_9
 
 	HELP0("General\n");
 	HELP0("  \\bind [PARAM]...       set query parameters\n");
@@ -267,64 +243,6 @@ slashUsage(unsigned short int pager)
 	HELP0("  \\endif                 end conditional block\n");
 	HELP0("\n");
 
-<<<<<<< HEAD
-	fprintf(output, _("Informational\n"));
-	fprintf(output, _("  (options: S = show system objects, + = additional detail)\n"));
-	fprintf(output, _("  \\d[S+]                 list tables, views, and sequences\n"));
-	fprintf(output, _("  \\d[S+]  NAME           describe table, view, sequence, or index\n"));
-	fprintf(output, _("  \\da[S]  [PATTERN]      list aggregates\n"));
-	fprintf(output, _("  \\dA[+]  [PATTERN]      list access methods\n"));
-	fprintf(output, _("  \\dAc[+] [AMPTRN [TYPEPTRN]]  list operator classes\n"));
-	fprintf(output, _("  \\dAf[+] [AMPTRN [TYPEPTRN]]  list operator families\n"));
-	fprintf(output, _("  \\dAo[+] [AMPTRN [OPFPTRN]]   list operators of operator families\n"));
-	fprintf(output, _("  \\dAp[+] [AMPTRN [OPFPTRN]]   list support functions of operator families\n"));
-	fprintf(output, _("  \\db[+]  [PATTERN]      list tablespaces\n"));
-	fprintf(output, _("  \\dc[S+] [PATTERN]      list conversions\n"));
-	fprintf(output, _("  \\dC[+]  [PATTERN]      list casts\n"));
-	fprintf(output, _("  \\dd[S]  [PATTERN]      show object descriptions not displayed elsewhere\n"));
-	fprintf(output, _("  \\dD[S+] [PATTERN]      list domains\n"));
-	fprintf(output, _("  \\ddp    [PATTERN]      list default privileges\n"));
-	fprintf(output, _("  \\dE[S+] [PATTERN]      list foreign tables\n"));
-	fprintf(output, _("  \\des[+] [PATTERN]      list foreign servers\n"));
-	fprintf(output, _("  \\det[+] [PATTERN]      list foreign tables\n"));
-	fprintf(output, _("  \\deu[+] [PATTERN]      list user mappings\n"));
-	fprintf(output, _("  \\dew[+] [PATTERN]      list foreign-data wrappers\n"));
-	fprintf(output, _("  \\df[anptw][S+] [FUNCPTRN [TYPEPTRN ...]]\n"
-					  "                         list [only agg/normal/procedure/trigger/window] functions\n"));
-	fprintf(output, _("  \\dF[+]  [PATTERN]      list text search configurations\n"));
-	fprintf(output, _("  \\dFd[+] [PATTERN]      list text search dictionaries\n"));
-	fprintf(output, _("  \\dFp[+] [PATTERN]      list text search parsers\n"));
-	fprintf(output, _("  \\dFt[+] [PATTERN]      list text search templates\n"));
-	fprintf(output, _("  \\dg[S+] [PATTERN]      list roles\n"));
-	fprintf(output, _("  \\di[S+] [PATTERN]      list indexes\n"));
-	fprintf(output, _("  \\dl                    list large objects, same as \\lo_list\n"));
-	fprintf(output, _("  \\dL[S+] [PATTERN]      list procedural languages\n"));
-	fprintf(output, _("  \\dm[S+] [PATTERN]      list materialized views\n"));
-	fprintf(output, _("  \\dn[S+] [PATTERN]      list schemas\n"));
-	fprintf(output, _("  \\do[S+] [OPPTRN [TYPEPTRN [TYPEPTRN]]]\n"
-					  "                         list operators\n"));
-	fprintf(output, _("  \\dO[S+] [PATTERN]      list collations\n"));
-	fprintf(output, _("  \\dp     [PATTERN]      list table, view, and sequence access privileges\n"));
-	fprintf(output, _("  \\dP[itn+] [PATTERN]    list [only index/table] partitioned relations [n=nested]\n"));
-	fprintf(output, _("  \\drds [ROLEPTRN [DBPTRN]] list per-database role settings\n"));
-	fprintf(output, _("  \\dRp[+] [PATTERN]      list replication publications\n"));
-	fprintf(output, _("  \\dRs[+] [PATTERN]      list replication subscriptions\n"));
-	fprintf(output, _("  \\ds[S+] [PATTERN]      list sequences\n"));
-	fprintf(output, _("  \\dt[S+] [PATTERN]      list tables\n"));
-	fprintf(output, _("  \\dT[S+] [PATTERN]      list data types\n"));
-	fprintf(output, _("  \\du[S+] [PATTERN]      list roles\n"));
-	fprintf(output, _("  \\dv[S+] [PATTERN]      list views\n"));
-	/* In GPDB and CBDB, we use \dE for both external and foreign tables. */
-	fprintf(output, _("  \\dE[S+] [PATTERN]      list foreign and external tables\n"));
-	fprintf(output, _("  \\dx[+]  [PATTERN]      list extensions\n"));
-	fprintf(output, _("  \\dX     [PATTERN]      list extended statistics\n"));
-	fprintf(output, _("  \\dy[+]  [PATTERN]      list event triggers\n"));
-	fprintf(output, _("  \\l[+]   [PATTERN]      list databases\n"));
-	fprintf(output, _("  \\sf[+]  FUNCNAME       show a function's definition\n"));
-	fprintf(output, _("  \\sv[+]  VIEWNAME       show a view's definition\n"));
-	fprintf(output, _("  \\z      [PATTERN]      same as \\dp\n"));
-	fprintf(output, "\n");
-=======
 	HELP0("Informational\n");
 	HELP0("  (options: S = show system objects, + = additional detail)\n");
 	HELP0("  \\d[S+]                 list tables, views, and sequences\n");
@@ -373,6 +291,7 @@ slashUsage(unsigned short int pager)
 	HELP0("  \\dT[S+] [PATTERN]      list data types\n");
 	HELP0("  \\du[S+] [PATTERN]      list roles\n");
 	HELP0("  \\dv[S+] [PATTERN]      list views\n");
+	HELP0("  \\dE[S+] [PATTERN]      list foreign and external tables\n");
 	HELP0("  \\dx[+]  [PATTERN]      list extensions\n");
 	HELP0("  \\dX     [PATTERN]      list extended statistics\n");
 	HELP0("  \\dy[+]  [PATTERN]      list event triggers\n");
@@ -381,7 +300,6 @@ slashUsage(unsigned short int pager)
 	HELP0("  \\sv[+]  VIEWNAME       show a view's definition\n");
 	HELP0("  \\z[S]   [PATTERN]      same as \\dp\n");
 	HELP0("\n");
->>>>>>> REL_16_9
 
 	HELP0("Large Objects\n");
 	HELP0("  \\lo_export LOBOID FILE write large object to file\n");
@@ -473,11 +391,7 @@ helpVariables(unsigned short int pager)
 	 * To avoid counting the output lines manually, build the output in "buf"
 	 * and then count them.
 	 */
-<<<<<<< HEAD
-	output = PageOutput(160, pager ? &(pset.popt.topt) : NULL);
-=======
 	initPQExpBuffer(&buf);
->>>>>>> REL_16_9
 
 	HELP0("List of specially treated variables\n\n");
 
@@ -844,21 +758,15 @@ helpSQL(const char *topic, unsigned short int pager)
 void
 print_copyright(void)
 {
-<<<<<<< HEAD
 	puts(
 		 "Apache Cloudberry (Incubating)\n"
 		 "Copyright 2024-2025 The Apache Software Foundation\n\n"
 		 "Greenplum Database version of PostgreSQL Database Management System\n"
-		 "Portions Copyright (c) 1996-2020, PostgreSQL Global Development Group\n\n"
+		 "Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group\n\n"
 		 "Portions Copyright (c) 2014-Present VMware, Inc. or its affiliates.\n\n"
 		 "Portions Copyright (c) 2011-2014 EMC\n\n"
 		 "This software is based on Postgres95, formerly known as Postgres, which\n"
 		 "contains the following notice:\n\n"
-=======
-	puts("PostgreSQL Database Management System\n"
-		 "(formerly known as Postgres, then as Postgres95)\n\n"
-		 "Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group\n\n"
->>>>>>> REL_16_9
 		 "Portions Copyright (c) 1994, The Regents of the University of California\n\n"
 		 "Permission to use, copy, modify, and distribute this software and its\n"
 		 "documentation for any purpose, without fee, and without a written agreement\n"

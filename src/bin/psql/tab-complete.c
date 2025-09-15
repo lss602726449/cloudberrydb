@@ -1,13 +1,9 @@
 /*
  * psql - the PostgreSQL interactive terminal
  *
-<<<<<<< HEAD
  * Portions Copyright (c) 2005-2010, Greenplum inc
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
- * Copyright (c) 2000-2021, PostgreSQL Global Development Group
-=======
  * Copyright (c) 2000-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
  *
  * src/bin/psql/tab-complete.c
  */
@@ -42,6 +38,8 @@
 
 #include "input.h"
 #include "tab-complete.h"
+
+#define USE_READLINE
 
 /* If we don't have this, we might as well forget about the whole thing: */
 #ifdef USE_READLINE
@@ -390,15 +388,12 @@ do { \
 	matches = rl_completion_matches(text, complete_from_schema_query); \
 } while (0)
 
-<<<<<<< HEAD
-=======
 #define COMPLETE_WITH_ATTR_PLUS(relation, ...) \
 do { \
 	static const char *const list[] = { __VA_ARGS__, NULL }; \
 	COMPLETE_WITH_ATTR_LIST(relation, list); \
 } while (0)
 
->>>>>>> REL_16_9
 /*
  * libedit will typically include the literal's leading single quote in
  * "text", while readline will not.  Adapt our offered strings to fit.
@@ -407,37 +402,6 @@ do { \
  */
 #define COMPLETE_WITH_ENUM_VALUE(type) \
 do { \
-<<<<<<< HEAD
-	char   *_completion_schema; \
-	char   *_completion_type; \
-	bool	use_quotes; \
-\
-	_completion_schema = strtokx(type, " \t\n\r", ".", "\"", 0, \
-								 false, false, pset.encoding); \
-	(void) strtokx(NULL, " \t\n\r", ".", "\"", 0, \
-				   false, false, pset.encoding); \
-	_completion_type = strtokx(NULL, " \t\n\r", ".", "\"", 0, \
-							   false, false, pset.encoding); \
-	use_quotes = (text[0] == '\'' || \
-				  start == 0 || rl_line_buffer[start - 1] != '\''); \
-	if (_completion_type == NULL) \
-	{ \
-		if (use_quotes) \
-			completion_charp = Query_for_list_of_enum_values_quoted; \
-		else \
-			completion_charp = Query_for_list_of_enum_values_unquoted; \
-		completion_info_charp = type; \
-	} \
-	else \
-	{ \
-		if (use_quotes) \
-			completion_charp = Query_for_list_of_enum_values_with_schema_quoted; \
-		else \
-			completion_charp = Query_for_list_of_enum_values_with_schema_unquoted; \
-		completion_info_charp = _completion_type; \
-		completion_info_charp2 = _completion_schema; \
-	} \
-=======
 	set_completion_reference(type); \
 	if (text[0] == '\'' || \
 		start == 0 || rl_line_buffer[start - 1] != '\'') \
@@ -464,7 +428,6 @@ do { \
 		completion_charp = Query_for_list_of_timezone_names_unquoted; \
 	completion_charpp = list;							  \
 	completion_verbatim = true; \
->>>>>>> REL_16_9
 	matches = rl_completion_matches(text, complete_from_query); \
 } while (0)
 
@@ -956,12 +919,8 @@ static const SchemaQuery Query_for_list_of_clusterables = {
 	.catname = "pg_catalog.pg_class c",
 	.selcondition =
 	"c.relkind IN (" CppAsString2(RELKIND_RELATION) ", "
-<<<<<<< HEAD
 	CppAsString2(RELKIND_MATVIEW) ", " CppAsString2(RELKIND_DIRECTORY_TABLE) ")",
-=======
 	CppAsString2(RELKIND_PARTITIONED_TABLE) ", "
-	CppAsString2(RELKIND_MATVIEW) ")",
->>>>>>> REL_16_9
 	.viscondition = "pg_catalog.pg_table_is_visible(c.oid)",
 	.namespace = "c.relnamespace",
 	.result = "c.relname",
@@ -1038,84 +997,6 @@ static const SchemaQuery Query_for_trigger_of_table = {
  * that way is always the wrong thing.  Make a SchemaQuery instead.
  */
 
-<<<<<<< HEAD
-#define Query_for_list_of_attributes \
-"SELECT pg_catalog.quote_ident(attname) "\
-"  FROM pg_catalog.pg_attribute a, pg_catalog.pg_class c "\
-" WHERE c.oid = a.attrelid "\
-"   AND a.attnum > 0 "\
-"   AND NOT a.attisdropped "\
-"   AND substring(pg_catalog.quote_ident(attname),1,%d)='%s' "\
-"   AND (pg_catalog.quote_ident(relname)='%s' "\
-"        OR '\"' || relname || '\"'='%s') "\
-"   AND pg_catalog.pg_table_is_visible(c.oid)"
-
-#define Query_for_list_of_attribute_numbers \
-"SELECT attnum "\
-"  FROM pg_catalog.pg_attribute a, pg_catalog.pg_class c "\
-" WHERE c.oid = a.attrelid "\
-"   AND a.attnum > 0 "\
-"   AND NOT a.attisdropped "\
-"   AND substring(attnum::pg_catalog.text,1,%d)='%s' "\
-"   AND (pg_catalog.quote_ident(relname)='%s' "\
-"        OR '\"' || relname || '\"'='%s') "\
-"   AND pg_catalog.pg_table_is_visible(c.oid)"
-
-#define Query_for_list_of_attributes_with_schema \
-"SELECT pg_catalog.quote_ident(attname) "\
-"  FROM pg_catalog.pg_attribute a, pg_catalog.pg_class c, pg_catalog.pg_namespace n "\
-" WHERE c.oid = a.attrelid "\
-"   AND n.oid = c.relnamespace "\
-"   AND a.attnum > 0 "\
-"   AND NOT a.attisdropped "\
-"   AND substring(pg_catalog.quote_ident(attname),1,%d)='%s' "\
-"   AND (pg_catalog.quote_ident(relname)='%s' "\
-"        OR '\"' || relname || '\"' ='%s') "\
-"   AND (pg_catalog.quote_ident(nspname)='%s' "\
-"        OR '\"' || nspname || '\"' ='%s') "
-
-#define Query_for_list_of_enum_values_quoted \
-"SELECT pg_catalog.quote_literal(enumlabel) "\
-"  FROM pg_catalog.pg_enum e, pg_catalog.pg_type t "\
-" WHERE t.oid = e.enumtypid "\
-"   AND substring(pg_catalog.quote_literal(enumlabel),1,%d)='%s' "\
-"   AND (pg_catalog.quote_ident(typname)='%s' "\
-"        OR '\"' || typname || '\"'='%s') "\
-"   AND pg_catalog.pg_type_is_visible(t.oid)"
-
-#define Query_for_list_of_enum_values_unquoted \
-"SELECT enumlabel "\
-"  FROM pg_catalog.pg_enum e, pg_catalog.pg_type t "\
-" WHERE t.oid = e.enumtypid "\
-"   AND substring(enumlabel,1,%d)='%s' "\
-"   AND (pg_catalog.quote_ident(typname)='%s' "\
-"        OR '\"' || typname || '\"'='%s') "\
-"   AND pg_catalog.pg_type_is_visible(t.oid)"
-
-#define Query_for_list_of_enum_values_with_schema_quoted \
-"SELECT pg_catalog.quote_literal(enumlabel) "\
-"  FROM pg_catalog.pg_enum e, pg_catalog.pg_type t, pg_catalog.pg_namespace n "\
-" WHERE t.oid = e.enumtypid "\
-"   AND n.oid = t.typnamespace "\
-"   AND substring(pg_catalog.quote_literal(enumlabel),1,%d)='%s' "\
-"   AND (pg_catalog.quote_ident(typname)='%s' "\
-"        OR '\"' || typname || '\"'='%s') "\
-"   AND (pg_catalog.quote_ident(nspname)='%s' "\
-"        OR '\"' || nspname || '\"' ='%s') "
-
-#define Query_for_list_of_enum_values_with_schema_unquoted \
-"SELECT enumlabel "\
-"  FROM pg_catalog.pg_enum e, pg_catalog.pg_type t, pg_catalog.pg_namespace n "\
-" WHERE t.oid = e.enumtypid "\
-"   AND n.oid = t.typnamespace "\
-"   AND substring(enumlabel,1,%d)='%s' "\
-"   AND (pg_catalog.quote_ident(typname)='%s' "\
-"        OR '\"' || typname || '\"'='%s') "\
-"   AND (pg_catalog.quote_ident(nspname)='%s' "\
-"        OR '\"' || nspname || '\"' ='%s') "
-
-=======
->>>>>>> REL_16_9
 #define Query_for_list_of_template_databases \
 "SELECT d.datname "\
 "  FROM pg_catalog.pg_database d "\
@@ -1181,84 +1062,8 @@ static const SchemaQuery Query_for_trigger_of_table = {
 #define Query_for_all_table_constraints \
 "SELECT conname "\
 "  FROM pg_catalog.pg_constraint c "\
-<<<<<<< HEAD
-" WHERE c.conrelid <> 0 "
-
-/* the silly-looking length condition is just to eat up the current word */
-#define Query_for_constraint_of_type \
-"SELECT pg_catalog.quote_ident(conname) "\
-"  FROM pg_catalog.pg_type t, pg_catalog.pg_constraint con "\
-" WHERE t.oid=contypid and (%d = pg_catalog.length('%s'))"\
-"       and pg_catalog.quote_ident(t.typname)='%s'"\
-"       and pg_catalog.pg_type_is_visible(t.oid)"
-
-/* the silly-looking length condition is just to eat up the current word */
-#define Query_for_list_of_tables_for_constraint \
-"SELECT pg_catalog.quote_ident(relname) "\
-"  FROM pg_catalog.pg_class"\
-" WHERE (%d = pg_catalog.length('%s'))"\
-"   AND oid IN "\
-"       (SELECT conrelid FROM pg_catalog.pg_constraint "\
-"         WHERE pg_catalog.quote_ident(conname)='%s')"
-
-/* the silly-looking length condition is just to eat up the current word */
-#define Query_for_rule_of_table \
-"SELECT pg_catalog.quote_ident(rulename) "\
-"  FROM pg_catalog.pg_class c1, pg_catalog.pg_rewrite "\
-" WHERE c1.oid=ev_class and (%d = pg_catalog.length('%s'))"\
-"       and pg_catalog.quote_ident(c1.relname)='%s'"\
-"       and pg_catalog.pg_table_is_visible(c1.oid)"
-
-/* the silly-looking length condition is just to eat up the current word */
-#define Query_for_list_of_tables_for_rule \
-"SELECT pg_catalog.quote_ident(relname) "\
-"  FROM pg_catalog.pg_class"\
-" WHERE (%d = pg_catalog.length('%s'))"\
-"   AND oid IN "\
-"       (SELECT ev_class FROM pg_catalog.pg_rewrite "\
-"         WHERE pg_catalog.quote_ident(rulename)='%s')"
-
-/* the silly-looking length condition is just to eat up the current word */
-#define Query_for_trigger_of_table \
-"SELECT pg_catalog.quote_ident(tgname) "\
-"  FROM pg_catalog.pg_class c1, pg_catalog.pg_trigger "\
-" WHERE c1.oid=tgrelid and (%d = pg_catalog.length('%s'))"\
-"       and pg_catalog.quote_ident(c1.relname)='%s'"\
-"       and pg_catalog.pg_table_is_visible(c1.oid)"\
-"       and not tgisinternal"
-
-/* the silly-looking length condition is just to eat up the current word */
-#define Query_for_list_of_tables_for_trigger \
-"SELECT pg_catalog.quote_ident(relname) "\
-"  FROM pg_catalog.pg_class"\
-" WHERE (%d = pg_catalog.length('%s'))"\
-"   AND oid IN "\
-"       (SELECT tgrelid FROM pg_catalog.pg_trigger "\
-"         WHERE pg_catalog.quote_ident(tgname)='%s')"
-
-#define Query_for_list_of_tasks \
-"SELECT pg_catalog.quote_ident(jobname) FROM pg_catalog.pg_task "\
-" WHERE username = current_user"
-
-#define Query_for_list_of_ts_configurations \
-"SELECT pg_catalog.quote_ident(cfgname) FROM pg_catalog.pg_ts_config "\
-" WHERE substring(pg_catalog.quote_ident(cfgname),1,%d)='%s'"
-
-#define Query_for_list_of_ts_dictionaries \
-"SELECT pg_catalog.quote_ident(dictname) FROM pg_catalog.pg_ts_dict "\
-" WHERE substring(pg_catalog.quote_ident(dictname),1,%d)='%s'"
-
-#define Query_for_list_of_ts_parsers \
-"SELECT pg_catalog.quote_ident(prsname) FROM pg_catalog.pg_ts_parser "\
-" WHERE substring(pg_catalog.quote_ident(prsname),1,%d)='%s'"
-
-#define Query_for_list_of_ts_templates \
-"SELECT pg_catalog.quote_ident(tmplname) FROM pg_catalog.pg_ts_template "\
-" WHERE substring(pg_catalog.quote_ident(tmplname),1,%d)='%s'"
-=======
 " WHERE c.conrelid <> 0 "\
 "       and conname LIKE '%s'"
->>>>>>> REL_16_9
 
 #define Query_for_list_of_fdws \
 " SELECT fdwname "\
@@ -1459,14 +1264,9 @@ static const pgsql_thing_t words_after_create[] = {
 	{"CONFIGURATION", NULL, NULL, &Query_for_list_of_ts_configurations, NULL, THING_NO_SHOW},
 	{"CONVERSION", "SELECT conname FROM pg_catalog.pg_conversion WHERE conname LIKE '%s'"},
 	{"DATABASE", Query_for_list_of_databases},
-<<<<<<< HEAD
-	{"DEFAULT PRIVILEGES", NULL, NULL, NULL, THING_NO_CREATE | THING_NO_DROP},
-	{"DICTIONARY", Query_for_list_of_ts_dictionaries, NULL, NULL, THING_NO_SHOW},
-	{"DIRECTORY TABLE", NULL, NULL, &Query_for_list_of_directory_tables},
-=======
 	{"DEFAULT PRIVILEGES", NULL, NULL, NULL, NULL, THING_NO_CREATE | THING_NO_DROP},
 	{"DICTIONARY", NULL, NULL, &Query_for_list_of_ts_dictionaries, NULL, THING_NO_SHOW},
->>>>>>> REL_16_9
+	{"DIRECTORY TABLE", NULL, NULL, &Query_for_list_of_directory_tables},
 	{"DOMAIN", NULL, NULL, &Query_for_list_of_domains},
 	{"DYNAMIC TABLE", NULL, NULL, &Query_for_list_of_matviews, THING_NO_ALTER},
 	{"EVENT TRIGGER", NULL, NULL, NULL},
@@ -1503,21 +1303,13 @@ static const pgsql_thing_t words_after_create[] = {
 	{"SYSTEM", NULL, NULL, NULL, NULL, THING_NO_CREATE | THING_NO_DROP},
 	{"TABLE", NULL, NULL, &Query_for_list_of_tables},
 	{"TABLESPACE", Query_for_list_of_tablespaces},
-<<<<<<< HEAD
 	{"TAG", Query_for_list_of_tags},
 	{"TASK", Query_for_list_of_tasks},
-	{"TEMP", NULL, NULL, NULL, THING_NO_DROP | THING_NO_ALTER}, /* for CREATE TEMP TABLE
-																 * ... */
-	{"TEMPLATE", Query_for_list_of_ts_templates, NULL, NULL, THING_NO_SHOW},
-	{"TEMPORARY", NULL, NULL, NULL, THING_NO_DROP | THING_NO_ALTER},	/* for CREATE TEMPORARY
-																		 * TABLE ... */
-=======
 	{"TEMP", NULL, NULL, NULL, NULL, THING_NO_DROP | THING_NO_ALTER},	/* for CREATE TEMP TABLE
 																		 * ... */
 	{"TEMPLATE", NULL, NULL, &Query_for_list_of_ts_templates, NULL, THING_NO_SHOW},
 	{"TEMPORARY", NULL, NULL, NULL, NULL, THING_NO_DROP | THING_NO_ALTER},	/* for CREATE TEMPORARY
 																			 * TABLE ... */
->>>>>>> REL_16_9
 	{"TEXT SEARCH", NULL, NULL, NULL},
 	{"TRANSFORM", NULL, NULL, NULL, NULL, THING_NO_ALTER},
 	{"TRIGGER", "SELECT tgname FROM pg_catalog.pg_trigger WHERE tgname LIKE '%s' AND NOT tgisinternal"},
@@ -1942,13 +1734,8 @@ psql_completion(const char *text, int start, int end)
 		"COMMENT", "COMMIT", "COPY", "CREATE", "DEALLOCATE", "DECLARE",
 		"DELETE FROM", "DISCARD", "DO", "DROP", "END", "EXECUTE", "EXPLAIN",
 		"FETCH", "GRANT", "IMPORT FOREIGN SCHEMA", "INSERT INTO", "LISTEN", "LOAD", "LOCK",
-<<<<<<< HEAD
-		"MOVE", "NOTIFY", "PREPARE",
-		"REASSIGN", "REFRESH MATERIALIZED VIEW", "REFRESH DYNAMIC TABLE", "REINDEX", "RELEASE",
-=======
 		"MERGE INTO", "MOVE", "NOTIFY", "PREPARE",
-		"REASSIGN", "REFRESH MATERIALIZED VIEW", "REINDEX", "RELEASE",
->>>>>>> REL_16_9
+		"REASSIGN", "REFRESH MATERIALIZED VIEW", "REFRESH DYNAMIC TABLE", "REINDEX", "RELEASE",
 		"RESET", "REVOKE", "ROLLBACK",
 		"SAVEPOINT", "SECURITY LABEL", "SELECT", "SET", "SHOW", "START",
 		"TABLE", "TRUNCATE", "UNLISTEN", "UPDATE", "VACUUM", "VALUES", "WITH",
@@ -2090,7 +1877,6 @@ psql_completion(const char *text, int start, int end)
 		else
 			COMPLETE_WITH_FUNCTION_ARG(prev2_wd);
 	}
-<<<<<<< HEAD
 	/* ALTER TAG <name > (...) */
 	else if (Matches("ALTER", "TAG"))
 	{
@@ -2104,12 +1890,8 @@ psql_completion(const char *text, int start, int end)
 	{
 		COMPLETE_WITH("OWNER TO", "RENAME TO", "UNSET ALLOWED_VALUES", "ADD ALLOWED_VLAUES", "DROP ALLOWED_VLAUES");
 	}
-	/* ALTER FUNCTION,PROCEDURE,ROUTINE <name> (...) */
-	else if (Matches("ALTER", "FUNCTION|PROCEDURE|ROUTINE", MatchAny, MatchAny))
-=======
 	/* ALTER FUNCTION <name> (...) */
 	else if (Matches("ALTER", "FUNCTION", MatchAny, MatchAny))
->>>>>>> REL_16_9
 	{
 		if (ends_with(prev_wd, ')'))
 			COMPLETE_WITH(Alter_function_options);
@@ -2619,12 +2401,9 @@ psql_completion(const char *text, int start, int end)
 					  "ENABLE", "INHERIT", "NO", "RENAME", "RESET",
 					  "OWNER TO", "SET", "VALIDATE CONSTRAINT",
 					  "REPLICA IDENTITY", "ATTACH PARTITION",
-<<<<<<< HEAD
-					  "DETACH PARTITION", "FORCE ROW LEVEL SECURITY", 
-					  "EXCHANGE", "TRUNCATE");
-=======
 					  "DETACH PARTITION", "FORCE ROW LEVEL SECURITY",
-					  "OF", "NOT OF");
+					  "OF", "NOT OF",
+					  "EXCHANGE", "TRUNCATE");
 	/* ALTER TABLE xxx ADD */
 	else if (Matches("ALTER", "TABLE", MatchAny, "ADD"))
 	{
@@ -2672,7 +2451,6 @@ psql_completion(const char *text, int start, int end)
 		set_completion_reference(prev7_wd);
 		COMPLETE_WITH_SCHEMA_QUERY(Query_for_unique_index_of_table);
 	}
->>>>>>> REL_16_9
 	/* ALTER TABLE xxx ENABLE */
 	else if (Matches("ALTER", "TABLE", MatchAny, "ENABLE"))
 		COMPLETE_WITH("ALWAYS", "REPLICA", "ROW LEVEL SECURITY", "RULE",
@@ -2828,11 +2606,7 @@ psql_completion(const char *text, int start, int end)
 					  "TABLESPACE", "UNLOGGED", "WITH", "WITHOUT");
 
 	/*
-<<<<<<< HEAD
-	 * If we have ALTER TABLE <smt> SET ACCESS METHOD provide a list of table
-=======
 	 * If we have ALTER TABLE <sth> SET ACCESS METHOD provide a list of table
->>>>>>> REL_16_9
 	 * AMs.
 	 */
 	else if (Matches("ALTER", "TABLE", MatchAny, "SET", "ACCESS", "METHOD"))
@@ -2888,20 +2662,16 @@ psql_completion(const char *text, int start, int end)
 	}
 	else if (Matches("ALTER", "TABLE", MatchAny, "DETACH", "PARTITION", MatchAny))
 		COMPLETE_WITH("CONCURRENTLY", "FINALIZE");
-<<<<<<< HEAD
 	/* ALTER TABLE <foo> EXCHANGE, provide partition options */
 	else if (Matches("ALTER", "TABLE", MatchAny, "EXCHANGE"))
 		COMPLETE_WITH("PARTITION FOR (" , "DEFAULT PARTITION");
 	/* ALTER TABLE <foo> TRUNCATE, provide partition options */
 	else if (Matches("ALTER", "TABLE", MatchAny, "TRUNCATE"))
 		COMPLETE_WITH("PARTITION FOR (" , "DEFAULT PARTITION");
-=======
-
 	/* ALTER TABLE <name> OF */
 	else if (Matches("ALTER", "TABLE", MatchAny, "OF"))
 		COMPLETE_WITH_SCHEMA_QUERY(Query_for_list_of_composite_datatypes);
 
->>>>>>> REL_16_9
 	/* ALTER TABLESPACE <foo> with RENAME TO, OWNER TO, SET, RESET */
 	else if (Matches("ALTER", "TABLESPACE", MatchAny))
 		COMPLETE_WITH("RENAME TO", "OWNER TO", "SET", "RESET");
@@ -3063,18 +2833,6 @@ psql_completion(const char *text, int start, int end)
 	else if (Matches("COMMENT"))
 		COMPLETE_WITH("ON");
 	else if (Matches("COMMENT", "ON"))
-<<<<<<< HEAD
-		COMPLETE_WITH("ACCESS METHOD", "CAST", "COLLATION", "CONVERSION",
-					  "DATABASE", "EVENT TRIGGER", "EXTENSION",
-					  "FOREIGN DATA WRAPPER", "FOREIGN TABLE", "SERVER",
-					  "INDEX", "LANGUAGE", "POLICY", "PUBLICATION", "RULE",
-					  "SCHEMA", "SEQUENCE", "STATISTICS", "SUBSCRIPTION",
-					  "TABLE", "TYPE", "VIEW", "MATERIALIZED VIEW", "DYNAMIC TABLE",
-					  "COLUMN", "AGGREGATE", "FUNCTION", "STORAGE SERVER",
-					  "PROCEDURE", "PROFILE", "ROUTINE",
-					  "OPERATOR", "TRIGGER", "CONSTRAINT", "DOMAIN",
-					  "LARGE OBJECT", "TABLESPACE", "TAG", "TEXT SEARCH", "ROLE");
-=======
 		COMPLETE_WITH("ACCESS METHOD", "AGGREGATE", "CAST", "COLLATION",
 					  "COLUMN", "CONSTRAINT", "CONVERSION", "DATABASE",
 					  "DOMAIN", "EXTENSION", "EVENT TRIGGER",
@@ -3085,8 +2843,8 @@ psql_completion(const char *text, int start, int end)
 					  "ROUTINE", "RULE", "SCHEMA", "SEQUENCE", "SERVER",
 					  "STATISTICS", "SUBSCRIPTION", "TABLE",
 					  "TABLESPACE", "TEXT SEARCH", "TRANSFORM FOR",
-					  "TRIGGER", "TYPE", "VIEW");
->>>>>>> REL_16_9
+					  "TRIGGER", "TYPE", "VIEW",  "DYNAMIC TABLE",
+					  "STORAGE SERVER", "PROFILE", "TAG");
 	else if (Matches("COMMENT", "ON", "ACCESS", "METHOD"))
 		COMPLETE_WITH_QUERY(Query_for_list_of_access_methods);
 	else if (Matches("COMMENT", "ON", "CONSTRAINT"))
@@ -5221,13 +4979,9 @@ psql_completion(const char *text, int start, int end)
 	else if (TailMatchesCS("\\dm*"))
 		COMPLETE_WITH_SCHEMA_QUERY(Query_for_list_of_matviews);
 	else if (TailMatchesCS("\\dE*"))
-<<<<<<< HEAD
-		COMPLETE_WITH_SCHEMA_QUERY(Query_for_list_of_foreign_tables, NULL);
-	else if (TailMatchesCS("\\dY*"))
-		COMPLETE_WITH_SCHEMA_QUERY(Query_for_list_of_directory_tables, NULL);
-=======
 		COMPLETE_WITH_SCHEMA_QUERY(Query_for_list_of_foreign_tables);
->>>>>>> REL_16_9
+	else if (TailMatchesCS("\\dY*"))
+		COMPLETE_WITH_SCHEMA_QUERY(Query_for_list_of_directory_tables);
 	else if (TailMatchesCS("\\dy*"))
 		COMPLETE_WITH_QUERY(Query_for_list_of_event_triggers);
 
@@ -5397,10 +5151,6 @@ psql_completion(const char *text, int start, int end)
 	{
 		COMPLETE_WITH_CONST(true, "");
 		/* Also, prevent Readline from appending stuff to the non-match */
-<<<<<<< HEAD
-#ifdef HAVE_RL_COMPLETION_APPEND_CHARACTER
-=======
->>>>>>> REL_16_9
 		rl_completion_append_character = '\0';
 #ifdef HAVE_RL_COMPLETION_SUPPRESS_QUOTE
 		rl_completion_suppress_quote = 1;
@@ -5672,23 +5422,11 @@ _complete_from_query(const char *simple_query,
 			Assert(simple_query == NULL);
 
 			/*
-<<<<<<< HEAD
-			 * When fetching relation names, suppress system catalogs unless
-			 * the input-so-far begins with "pg_" or "gp_".	 This is a compromise
-			 * between not offering system catalogs for completion at all, and
-			 * having them swamp the result when the input is just "p".
-			 */
-			if (strcmp(schema_query->catname,
-					   "pg_catalog.pg_class c") == 0 &&
-				strncmp(text, "pg_", 3) != 0 &&
-				strncmp(text, "gp_", 3) != 0)
-=======
 			 * We issue different queries depending on whether the input is
 			 * already qualified or not.  schema_query gives us the pieces to
 			 * assemble.
 			 */
 			if (schemaname == NULL || schema_query->namespace == NULL)
->>>>>>> REL_16_9
 			{
 				/* Get unqualified names matching the input-so-far */
 				appendPQExpBufferStr(&query_buffer, "SELECT ");

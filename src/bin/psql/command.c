@@ -2103,38 +2103,15 @@ exec_command_password(PsqlScanState scan_state, bool active_branch)
 	{
 		char	   *user = psql_scan_slash_option(scan_state,
 												  OT_SQLID, NULL, true);
-<<<<<<< HEAD
-		char	   *pw1;
-		char	   *pw2;
-		PQExpBufferData buf;
-=======
 		char	   *pw1 = NULL;
 		char	   *pw2 = NULL;
 		PQExpBufferData buf;
 		PromptInterruptContext prompt_ctx;
->>>>>>> REL_16_9
 
 		if (user == NULL)
 		{
 			/* By default, the command applies to CURRENT_USER */
 			PGresult   *res;
-<<<<<<< HEAD
-
-			res = PSQLexec("SELECT CURRENT_USER");
-			if (!res)
-				return PSQL_CMD_ERROR;
-
-			user = pg_strdup(PQgetvalue(res, 0, 0));
-			PQclear(res);
-		}
-
-		initPQExpBuffer(&buf);
-		printfPQExpBuffer(&buf, _("Enter new password for user \"%s\": "), user);
-
-		pw1 = simple_prompt(buf.data, false);
-		pw2 = simple_prompt("Enter it again: ", false);
-=======
->>>>>>> REL_16_9
 
 			res = PSQLexec("SELECT CURRENT_USER");
 			if (!res)
@@ -5388,15 +5365,6 @@ do_watch(PQExpBuffer query_buf, double sleep, int iter)
 #endif
 	}
 
-<<<<<<< HEAD
-	/*
-	 * If the terminal driver echoed "^C", libedit/libreadline might be
-	 * confused about the cursor position.  Therefore, inject a newline
-	 * before the next prompt is displayed.
-	 */
-	fprintf(stdout, "\n");
-	fflush(stdout);
-=======
 	if (pagerpipe)
 	{
 		pclose(pagerpipe);
@@ -5422,7 +5390,6 @@ do_watch(PQExpBuffer query_buf, double sleep, int iter)
 	/* Unblock SIGINT, SIGCHLD and SIGALRM. */
 	sigprocmask(SIG_UNBLOCK, &sigalrm_sigchld_sigint, NULL);
 #endif
->>>>>>> REL_16_9
 
 	pg_free(title);
 	return (res >= 0);
