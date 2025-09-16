@@ -306,7 +306,7 @@
   opfmethod => 'gist', opfname => 'multirange_ops' },
 
 
-{ oid => '6221',
+{ oid => '6408',
   opfmethod => 'btree', opfname => 'complex_ops' },
 { oid => '6224',
   opfmethod => 'hash', opfname => 'complex_ops' },

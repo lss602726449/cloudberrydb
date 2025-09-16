@@ -7530,7 +7530,7 @@
   descr => 'total disk space usage for the specified table and associated indexes',
   proname => 'pg_total_relation_size', provolatile => 'v', proparallel => 'u', prorettype => 'int8',
   proargtypes => 'regclass', prosrc => 'pg_total_relation_size' },
-{ oid => '2137',
+{ oid => '6415',
   descr => 'ao tables segment file count',
   proname => 'gp_ao_segment_file_count', provolatile => 'v', prorettype => 'int2',
   proargtypes => 'regclass', prosrc => 'gp_ao_segment_file_count' },
@@ -7755,7 +7755,7 @@
 { oid => '3422', descr => 'SHA-512 hash',
   proname => 'sha512', proleakproof => 't', prorettype => 'bytea',
   proargtypes => 'bytea', prosrc => 'sha512_bytea' },
-{ oid => '4544', descr => 'SM3 hash',
+{ oid => '6418', descr => 'SM3 hash',
   proname => 'sm3', proleakproof => 't', prorettype => 'bytea',
   proargtypes => 'bytea', prosrc => 'sm3_bytea' },
 
@@ -11014,7 +11014,7 @@
   proname => 'range_agg', prokind => 'a', proisstrict => 'f',
   prorettype => 'anymultirange', proargtypes => 'anyrange',
   prosrc => 'aggregate_dummy' },
-{ oid => '6225', descr => 'aggregate transition function',
+{ oid => '6401', descr => 'aggregate transition function',
   proname => 'multirange_agg_transfn', proisstrict => 'f',
   prorettype => 'internal', proargtypes => 'internal anymultirange',
   prosrc => 'multirange_agg_transfn' },
@@ -12310,34 +12310,34 @@
    prosrc => 'aggregate_dummy' },
 
 # Cloudberry Analytic functions
-{ oid => 6212, descr => 'perform matrix addition on two conformable matrices',
+{ oid => 6405, descr => 'perform matrix addition on two conformable matrices',
    proname => 'int2_matrix_accum', proisstrict => 'f', prorettype => '_int8', proargtypes => '_int8 _int2', prosrc => 'matrix_add' },
 
-{ oid => 6213, descr => 'perform matrix addition on two conformable matrices',
+{ oid => 6407, descr => 'perform matrix addition on two conformable matrices',
    proname => 'int4_matrix_accum', proisstrict => 'f', prorettype => '_int8', proargtypes => '_int8 _int4', prosrc => 'matrix_add' },
 
-{ oid => 6214, descr => 'perform matrix addition on two conformable matrices',
+{ oid => 6406, descr => 'perform matrix addition on two conformable matrices',
    proname => 'int8_matrix_accum', prorettype => '_int8', proargtypes => '_int8 _int8', prosrc => 'matrix_add' },
 
-{ oid => 6215, descr => 'perform matrix addition on two conformable matrices',
+{ oid => 6414, descr => 'perform matrix addition on two conformable matrices',
    proname => 'float8_matrix_accum', prorettype => '_float8', proargtypes => '_float8 _float8', prosrc => 'matrix_add' },
 
-{ oid => 6216, descr => 'sum of matrixes',
+{ oid => 6426, descr => 'sum of matrixes',
    proname => 'sum', prokind => 'a', proisstrict => 'f',
    prorettype => '_int8', proargtypes => '_int2',
    prosrc => 'aggregate_dummy' },
 
-{ oid => 6217, descr => 'sum of matrixes',
+{ oid => 6404, descr => 'sum of matrixes',
    proname => 'sum', prokind => 'a', proisstrict => 'f',
    prorettype => '_int8', proargtypes => '_int4',
    prosrc => 'aggregate_dummy' },
 
-{ oid => 6218, descr => 'sum of matrixes',
+{ oid => 6410, descr => 'sum of matrixes',
    proname => 'sum', prokind => 'a', proisstrict => 'f',
    prorettype => '_int8', proargtypes => '_int8',
    prosrc => 'aggregate_dummy' },
 
-{ oid => 6219, descr => 'sum of matrixes',
+{ oid => 6419, descr => 'sum of matrixes',
    proname => 'sum', prokind => 'a', proisstrict => 'f',
    prorettype => '_float8', proargtypes => '_float8',
    prosrc => 'aggregate_dummy' },
@@ -12346,12 +12346,12 @@
 { oid => 6225, descr => 'aggregate transition function',
    proname => 'int4_pivot_accum', proisstrict => 'f', prorettype => '_int8', proargtypes => '_int8 _text text int4', prosrc => 'int4_pivot_accum' },
 
-{ oid => 6226, descr => 'pivot sum aggregate',
+{ oid => 6420, descr => 'pivot sum aggregate',
    proname => 'pivot_sum', prokind => 'a', proisstrict => 'f',
    prorettype => '_int8', proargtypes => '_text text int4',
    prosrc => 'aggregate_dummy' },
 
-{ oid => 6227, descr => 'aggregate transition function',
+{ oid => 6413, descr => 'aggregate transition function',
    proname => 'int8_pivot_accum', proisstrict => 'f', prorettype => '_int8', proargtypes => '_int8 _text text int8', prosrc => 'int8_pivot_accum' },
 
 { oid => 6228, descr => 'pivot sum aggregate',
@@ -12362,7 +12362,7 @@
 { oid => 6229, descr => 'aggregate transition function',
    proname => 'float8_pivot_accum', proisstrict => 'f', prorettype => '_float8', proargtypes => '_float8 _text text float8', prosrc => 'float8_pivot_accum' },
 
-{ oid => 6230, descr => 'pivot sum aggregate',
+{ oid => 6409, descr => 'pivot sum aggregate',
    proname => 'pivot_sum', prokind => 'a', proisstrict => 'f',
    prorettype => '_float8', proargtypes => '_text text float8',
    prosrc => 'aggregate_dummy' },
@@ -12838,7 +12838,7 @@
    prorettype => 'gp_hyperloglog_estimator', proargtypes => 'anyelement',
    prosrc => 'aggregate_dummy' },
 
-{ oid => 6232, descr => 'deparse DISTRIBUTED BY clause for a given relation',
+{ oid => 6423, descr => 'deparse DISTRIBUTED BY clause for a given relation',
    proname => 'pg_get_table_distributedby', provolatile => 's', prorettype => 'text', proargtypes => 'oid', prosrc => 'pg_get_table_distributedby' },
 
 

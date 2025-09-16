@@ -23,7 +23,7 @@
  *		typedef struct FormData_pg_type_encoding
  * ----------------
  */
-CATALOG(pg_type_encoding,6220,TypeEncodingRelationId)
+CATALOG(pg_type_encoding,6421,TypeEncodingRelationId)
 {
 	Oid		typid;			
 #ifdef CATALOG_VARLEN			/* variable-length fields start here */
@@ -40,6 +40,6 @@ FOREIGN_KEY(typid REFERENCES pg_type(oid));
  * ----------------
  */
 typedef FormData_pg_type_encoding *Form_pg_type_encoding;
-DECLARE_TOAST(pg_type_encoding, 6222, 6223);
+DECLARE_TOAST(pg_type_encoding, 6416, 6417);
 
 #endif   /* PG_TYPE_ENCODING_H */
