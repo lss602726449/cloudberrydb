@@ -3,13 +3,9 @@
  * readfuncs.c
  *	  Reader functions for Postgres tree nodes.
  *
-<<<<<<< HEAD
  * Portions Copyright (c) 2005-2010, Greenplum inc
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
  * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
-=======
- * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -17,7 +13,6 @@
  *	  src/backend/nodes/readfuncs.c
  *
  * NOTES
-<<<<<<< HEAD
  *	  Path nodes do not have any readfuncs support, because we never
  *	  have occasion to read them in.  (There was once code here that
  *	  claimed to read them, but it was broken as well as unused.)  We
@@ -32,14 +27,11 @@
  *    The purpose of these routines is to read serialized trees that were stored
  *    in the catalog, and reconstruct the trees.
  *
-=======
->>>>>>> REL_16_9
  *	  Parse location fields are written out by outfuncs.c, but only for
  *	  debugging use.  When reading a location field, we normally discard
  *	  the stored value and set the location field to -1 (ie, "unknown").
  *	  This is because nodes coming from a stored rule should not be thought
  *	  to have a known location in the current query's text.
- *
  *	  However, if restore_location_fields is true, we do restore location
  *	  fields from the string.  This is currently intended only for use by the
  *	  WRITE_READ_PARSE_PLAN_TREES test code, which doesn't want to cause
@@ -51,9 +43,13 @@
 
 #include <math.h>
 
+#include "fmgr.h"
 #include "miscadmin.h"
-#include "nodes/bitmapset.h"
+#include "nodes/extensible.h"
+#include "nodes/parsenodes.h"
+#include "nodes/plannodes.h"
 #include "nodes/readfuncs.h"
+#include "utils/builtins.h"
 
 #include "cdb/cdbgang.h"
 #include "nodes/altertablenodes.h"
@@ -105,7 +101,7 @@
 #define READ_UINT64_FIELD(fldname) \
 	token = pg_strtok(&length);		/* skip :fldname */ \
 	token = pg_strtok(&length);		/* get field value */ \
-	local_node->fldname = strtou64(token, NULL, 10)
+	local_node->fldname = pg_strtouint64(token, NULL, 10)
 
 /* Read a long integer field (anything written as ":fldname %ld") */
 #define READ_LONG_FIELD(fldname) \
@@ -215,18 +211,8 @@
 
 #define strtobool(x)  ((*(x) == 't') ? true : false)
 
-static char *
-nullable_string(const char *token, int length)
-{
-	/* outToken emits <> for NULL, and pg_strtok makes that an empty string */
-	if (length == 0)
-		return NULL;
-	/* outToken emits "" for empty string */
-	if (length == 2 && token[0] == '"' && token[1] == '"')
-		return pstrdup("");
-	/* otherwise, we must remove protective backslashes added by outToken */
-	return debackslash(token, length);
-}
+#define nullable_string(token,length)  \
+	((length) == 0 ? NULL : debackslash(token, length))
 
 
 #endif /* COMPILING_BINARY_FUNCS */
@@ -234,10 +220,6 @@ nullable_string(const char *token, int length)
 #ifndef COMPILING_BINARY_FUNCS
 /*
  * _readBitmapset
- *
- * Note: this code is used in contexts where we know that a Bitmapset
- * is expected.  There is equivalent code in nodeRead() that can read a
- * Bitmapset when we come across one in other contexts.
  */
 static Bitmapset *
 _readBitmapset(void)
@@ -278,8 +260,7 @@ _readBitmapset(void)
 }
 
 /*
- * We export this function for use by extensions that define extensible nodes.
- * That's somewhat historical, though, because calling nodeRead() will work.
+ * for use by extensions which define extensible nodes
  */
 Bitmapset *
 readBitmapset(void)
@@ -287,7 +268,6 @@ readBitmapset(void)
 	return _readBitmapset();
 }
 
-<<<<<<< HEAD
 /*
  * _readQuery
  */
@@ -511,17 +491,12 @@ _readSetOperationStmt(void)
 
 	READ_DONE();
 }
-=======
-#include "readfuncs.funcs.c"
->>>>>>> REL_16_9
 
 
 /*
- * Support functions for nodes with custom_read_write attribute or
- * special_read_write attribute
+ *	Stuff from primnodes.h.
  */
 
-<<<<<<< HEAD
 static Alias *
 _readAlias(void)
 {
@@ -624,8 +599,6 @@ _readVar(void)
 /*
  * _readConst
  */
-=======
->>>>>>> REL_16_9
 static Const *
 _readConst(void)
 {
@@ -649,7 +622,6 @@ _readConst(void)
 }
 #endif /* COMPILING_BINARY_FUNCS */
 
-<<<<<<< HEAD
 /*
  * _readParam
  */
@@ -884,8 +856,6 @@ _readScalarArrayOpExpr(void)
 /*
  * _readBoolExpr
  */
-=======
->>>>>>> REL_16_9
 static BoolExpr *
 _readBoolExpr(void)
 {
@@ -894,11 +864,11 @@ _readBoolExpr(void)
 	/* do-it-yourself enum representation */
 	token = pg_strtok(&length); /* skip :boolop */
 	token = pg_strtok(&length); /* get field value */
-	if (length == 3 && strncmp(token, "and", 3) == 0)
+	if (strncmp(token, "and", 3) == 0)
 		local_node->boolop = AND_EXPR;
-	else if (length == 2 && strncmp(token, "or", 2) == 0)
+	else if (strncmp(token, "or", 2) == 0)
 		local_node->boolop = OR_EXPR;
-	else if (length == 3 && strncmp(token, "not", 3) == 0)
+	else if (strncmp(token, "not", 3) == 0)
 		local_node->boolop = NOT_EXPR;
 	else
 		elog(ERROR, "unrecognized boolop \"%.*s\"", length, token);
@@ -910,193 +880,92 @@ _readBoolExpr(void)
 }
 #endif /* COMPILING_BINARY_FUNCS */
 
-static A_Const *
-_readA_Const(void)
+/*
+ * _readSubLink
+ */
+static SubLink *
+_readSubLink(void)
 {
-	READ_LOCALS(A_Const);
+	READ_LOCALS(SubLink);
 
-	/* We expect either NULL or :val here */
-	token = pg_strtok(&length);
-	if (length == 4 && strncmp(token, "NULL", 4) == 0)
-		local_node->isnull = true;
-	else
-	{
-		union ValUnion *tmp = nodeRead(NULL, 0);
-
-		/* To forestall valgrind complaints, copy only the valid data */
-		switch (nodeTag(tmp))
-		{
-			case T_Integer:
-				memcpy(&local_node->val, tmp, sizeof(Integer));
-				break;
-			case T_Float:
-				memcpy(&local_node->val, tmp, sizeof(Float));
-				break;
-			case T_Boolean:
-				memcpy(&local_node->val, tmp, sizeof(Boolean));
-				break;
-			case T_String:
-				memcpy(&local_node->val, tmp, sizeof(String));
-				break;
-			case T_BitString:
-				memcpy(&local_node->val, tmp, sizeof(BitString));
-				break;
-			default:
-				elog(ERROR, "unrecognized node type: %d",
-					 (int) nodeTag(tmp));
-				break;
-		}
-	}
-
+	READ_ENUM_FIELD(subLinkType, SubLinkType);
+	READ_INT_FIELD(subLinkId);
+	READ_NODE_FIELD(testexpr);
+	READ_NODE_FIELD(operName);
+	READ_NODE_FIELD(subselect);
 	READ_LOCATION_FIELD(location);
 
 	READ_DONE();
 }
 
 /*
-<<<<<<< HEAD
  * _readFieldSelect
  */
 static FieldSelect *
 _readFieldSelect(void)
-=======
- * _readConstraint
- */
-static Constraint *
-_readConstraint(void)
->>>>>>> REL_16_9
 {
-	READ_LOCALS(Constraint);
+	READ_LOCALS(FieldSelect);
 
-	READ_STRING_FIELD(conname);
-	READ_BOOL_FIELD(deferrable);
-	READ_BOOL_FIELD(initdeferred);
-	READ_LOCATION_FIELD(location);
-
-	token = pg_strtok(&length); /* skip :contype */
-	token = pg_strtok(&length); /* get field value */
-	if (length == 4 && strncmp(token, "NULL", 4) == 0)
-		local_node->contype = CONSTR_NULL;
-	else if (length == 8 && strncmp(token, "NOT_NULL", 8) == 0)
-		local_node->contype = CONSTR_NOTNULL;
-	else if (length == 7 && strncmp(token, "DEFAULT", 7) == 0)
-		local_node->contype = CONSTR_DEFAULT;
-	else if (length == 8 && strncmp(token, "IDENTITY", 8) == 0)
-		local_node->contype = CONSTR_IDENTITY;
-	else if (length == 9 && strncmp(token, "GENERATED", 9) == 0)
-		local_node->contype = CONSTR_GENERATED;
-	else if (length == 5 && strncmp(token, "CHECK", 5) == 0)
-		local_node->contype = CONSTR_CHECK;
-	else if (length == 11 && strncmp(token, "PRIMARY_KEY", 11) == 0)
-		local_node->contype = CONSTR_PRIMARY;
-	else if (length == 6 && strncmp(token, "UNIQUE", 6) == 0)
-		local_node->contype = CONSTR_UNIQUE;
-	else if (length == 9 && strncmp(token, "EXCLUSION", 9) == 0)
-		local_node->contype = CONSTR_EXCLUSION;
-	else if (length == 11 && strncmp(token, "FOREIGN_KEY", 11) == 0)
-		local_node->contype = CONSTR_FOREIGN;
-	else if (length == 15 && strncmp(token, "ATTR_DEFERRABLE", 15) == 0)
-		local_node->contype = CONSTR_ATTR_DEFERRABLE;
-	else if (length == 19 && strncmp(token, "ATTR_NOT_DEFERRABLE", 19) == 0)
-		local_node->contype = CONSTR_ATTR_NOT_DEFERRABLE;
-	else if (length == 13 && strncmp(token, "ATTR_DEFERRED", 13) == 0)
-		local_node->contype = CONSTR_ATTR_DEFERRED;
-	else if (length == 14 && strncmp(token, "ATTR_IMMEDIATE", 14) == 0)
-		local_node->contype = CONSTR_ATTR_IMMEDIATE;
-
-	switch (local_node->contype)
-	{
-		case CONSTR_NULL:
-		case CONSTR_NOTNULL:
-			/* no extra fields */
-			break;
-
-		case CONSTR_DEFAULT:
-			READ_NODE_FIELD(raw_expr);
-			READ_STRING_FIELD(cooked_expr);
-			break;
-
-		case CONSTR_IDENTITY:
-			READ_NODE_FIELD(options);
-			READ_CHAR_FIELD(generated_when);
-			break;
-
-		case CONSTR_GENERATED:
-			READ_NODE_FIELD(raw_expr);
-			READ_STRING_FIELD(cooked_expr);
-			READ_CHAR_FIELD(generated_when);
-			break;
-
-		case CONSTR_CHECK:
-			READ_BOOL_FIELD(is_no_inherit);
-			READ_NODE_FIELD(raw_expr);
-			READ_STRING_FIELD(cooked_expr);
-			READ_BOOL_FIELD(skip_validation);
-			READ_BOOL_FIELD(initially_valid);
-			break;
-
-		case CONSTR_PRIMARY:
-			READ_NODE_FIELD(keys);
-			READ_NODE_FIELD(including);
-			READ_NODE_FIELD(options);
-			READ_STRING_FIELD(indexname);
-			READ_STRING_FIELD(indexspace);
-			READ_BOOL_FIELD(reset_default_tblspc);
-			/* access_method and where_clause not currently used */
-			break;
-
-		case CONSTR_UNIQUE:
-			READ_BOOL_FIELD(nulls_not_distinct);
-			READ_NODE_FIELD(keys);
-			READ_NODE_FIELD(including);
-			READ_NODE_FIELD(options);
-			READ_STRING_FIELD(indexname);
-			READ_STRING_FIELD(indexspace);
-			READ_BOOL_FIELD(reset_default_tblspc);
-			/* access_method and where_clause not currently used */
-			break;
-
-		case CONSTR_EXCLUSION:
-			READ_NODE_FIELD(exclusions);
-			READ_NODE_FIELD(including);
-			READ_NODE_FIELD(options);
-			READ_STRING_FIELD(indexname);
-			READ_STRING_FIELD(indexspace);
-			READ_BOOL_FIELD(reset_default_tblspc);
-			READ_STRING_FIELD(access_method);
-			READ_NODE_FIELD(where_clause);
-			break;
-
-		case CONSTR_FOREIGN:
-			READ_NODE_FIELD(pktable);
-			READ_NODE_FIELD(fk_attrs);
-			READ_NODE_FIELD(pk_attrs);
-			READ_CHAR_FIELD(fk_matchtype);
-			READ_CHAR_FIELD(fk_upd_action);
-			READ_CHAR_FIELD(fk_del_action);
-			READ_NODE_FIELD(fk_del_set_cols);
-			READ_NODE_FIELD(old_conpfeqop);
-			READ_OID_FIELD(old_pktable_oid);
-			READ_BOOL_FIELD(skip_validation);
-			READ_BOOL_FIELD(initially_valid);
-			break;
-
-		case CONSTR_ATTR_DEFERRABLE:
-		case CONSTR_ATTR_NOT_DEFERRABLE:
-		case CONSTR_ATTR_DEFERRED:
-		case CONSTR_ATTR_IMMEDIATE:
-			/* no extra fields */
-			break;
-
-		default:
-			elog(ERROR, "unrecognized ConstrType: %d", (int) local_node->contype);
-			break;
-	}
+	READ_NODE_FIELD(arg);
+	READ_INT_FIELD(fieldnum);
+	READ_OID_FIELD(resulttype);
+	READ_INT_FIELD(resulttypmod);
+	READ_OID_FIELD(resultcollid);
 
 	READ_DONE();
 }
 
-<<<<<<< HEAD
+/*
+ * _readFieldStore
+ */
+static FieldStore *
+_readFieldStore(void)
+{
+	READ_LOCALS(FieldStore);
+
+	READ_NODE_FIELD(arg);
+	READ_NODE_FIELD(newvals);
+	READ_NODE_FIELD(fieldnums);
+	READ_OID_FIELD(resulttype);
+
+	READ_DONE();
+}
+
+/*
+ * _readRelabelType
+ */
+static RelabelType *
+_readRelabelType(void)
+{
+	READ_LOCALS(RelabelType);
+
+	READ_NODE_FIELD(arg);
+	READ_OID_FIELD(resulttype);
+	READ_INT_FIELD(resulttypmod);
+	READ_OID_FIELD(resultcollid);
+	READ_ENUM_FIELD(relabelformat, CoercionForm);
+	READ_LOCATION_FIELD(location);
+
+	READ_DONE();
+}
+
+/*
+ * _readCoerceViaIO
+ */
+static CoerceViaIO *
+_readCoerceViaIO(void)
+{
+	READ_LOCALS(CoerceViaIO);
+
+	READ_NODE_FIELD(arg);
+	READ_OID_FIELD(resulttype);
+	READ_OID_FIELD(resultcollid);
+	READ_ENUM_FIELD(coerceformat, CoercionForm);
+	READ_LOCATION_FIELD(location);
+
+	READ_DONE();
+}
+
 /*
  * _readArrayCoerceExpr
  */
@@ -1566,8 +1435,6 @@ _readAppendRelInfo(void)
 /*
  * _readRangeTblEntry
  */
-=======
->>>>>>> REL_16_9
 static RangeTblEntry *
 _readRangeTblEntry(void)
 {
@@ -1586,16 +1453,10 @@ _readRangeTblEntry(void)
 			READ_CHAR_FIELD(relkind);
 			READ_INT_FIELD(rellockmode);
 			READ_NODE_FIELD(tablesample);
-			READ_UINT_FIELD(perminfoindex);
 			break;
 		case RTE_SUBQUERY:
 			READ_NODE_FIELD(subquery);
 			READ_BOOL_FIELD(security_barrier);
-			/* we re-use these RELATION fields, too: */
-			READ_OID_FIELD(relid);
-			READ_CHAR_FIELD(relkind);
-			READ_INT_FIELD(rellockmode);
-			READ_UINT_FIELD(perminfoindex);
 			break;
 		case RTE_JOIN:
 			READ_ENUM_FIELD(jointype, JoinType);
@@ -1643,11 +1504,10 @@ _readRangeTblEntry(void)
 		case RTE_NAMEDTUPLESTORE:
 			READ_STRING_FIELD(enrname);
 			READ_FLOAT_FIELD(enrtuples);
+			READ_OID_FIELD(relid);
 			READ_NODE_FIELD(coltypes);
 			READ_NODE_FIELD(coltypmods);
 			READ_NODE_FIELD(colcollations);
-			/* we re-use these RELATION fields, too: */
-			READ_OID_FIELD(relid);
 			break;
 		case RTE_RESULT:
 			/* no extra fields */
@@ -1663,6 +1523,12 @@ _readRangeTblEntry(void)
 	READ_BOOL_FIELD(lateral);
 	READ_BOOL_FIELD(inh);
 	READ_BOOL_FIELD(inFromCl);
+	READ_UINT_FIELD(requiredPerms);
+	READ_OID_FIELD(checkAsUser);
+	READ_BITMAPSET_FIELD(selectedCols);
+	READ_BITMAPSET_FIELD(insertedCols);
+	READ_BITMAPSET_FIELD(updatedCols);
+	READ_BITMAPSET_FIELD(extraUpdatedCols);
 	READ_NODE_FIELD(securityQuals);
 
 	READ_BOOL_FIELD(forceDistRandom);
@@ -1670,12 +1536,14 @@ _readRangeTblEntry(void)
 	READ_DONE();
 }
 
-static A_Expr *
-_readA_Expr(void)
+/*
+ * _readRangeTblFunction
+ */
+static RangeTblFunction *
+_readRangeTblFunction(void)
 {
-	READ_LOCALS(A_Expr);
+	READ_LOCALS(RangeTblFunction);
 
-<<<<<<< HEAD
 	READ_NODE_FIELD(funcexpr);
 	READ_INT_FIELD(funccolcount);
 	READ_NODE_FIELD(funccolnames);
@@ -1687,84 +1555,10 @@ _readA_Expr(void)
 	READ_BYTEA_FIELD(funcuserdata);
 #endif
 	READ_BITMAPSET_FIELD(funcparams);
-=======
-	token = pg_strtok(&length);
->>>>>>> REL_16_9
 
-	if (length == 3 && strncmp(token, "ANY", 3) == 0)
-	{
-		local_node->kind = AEXPR_OP_ANY;
-		READ_NODE_FIELD(name);
-	}
-	else if (length == 3 && strncmp(token, "ALL", 3) == 0)
-	{
-		local_node->kind = AEXPR_OP_ALL;
-		READ_NODE_FIELD(name);
-	}
-	else if (length == 8 && strncmp(token, "DISTINCT", 8) == 0)
-	{
-		local_node->kind = AEXPR_DISTINCT;
-		READ_NODE_FIELD(name);
-	}
-	else if (length == 12 && strncmp(token, "NOT_DISTINCT", 12) == 0)
-	{
-		local_node->kind = AEXPR_NOT_DISTINCT;
-		READ_NODE_FIELD(name);
-	}
-	else if (length == 6 && strncmp(token, "NULLIF", 6) == 0)
-	{
-		local_node->kind = AEXPR_NULLIF;
-		READ_NODE_FIELD(name);
-	}
-	else if (length == 2 && strncmp(token, "IN", 2) == 0)
-	{
-		local_node->kind = AEXPR_IN;
-		READ_NODE_FIELD(name);
-	}
-	else if (length == 4 && strncmp(token, "LIKE", 4) == 0)
-	{
-		local_node->kind = AEXPR_LIKE;
-		READ_NODE_FIELD(name);
-	}
-	else if (length == 5 && strncmp(token, "ILIKE", 5) == 0)
-	{
-		local_node->kind = AEXPR_ILIKE;
-		READ_NODE_FIELD(name);
-	}
-	else if (length == 7 && strncmp(token, "SIMILAR", 7) == 0)
-	{
-		local_node->kind = AEXPR_SIMILAR;
-		READ_NODE_FIELD(name);
-	}
-	else if (length == 7 && strncmp(token, "BETWEEN", 7) == 0)
-	{
-		local_node->kind = AEXPR_BETWEEN;
-		READ_NODE_FIELD(name);
-	}
-	else if (length == 11 && strncmp(token, "NOT_BETWEEN", 11) == 0)
-	{
-		local_node->kind = AEXPR_NOT_BETWEEN;
-		READ_NODE_FIELD(name);
-	}
-	else if (length == 11 && strncmp(token, "BETWEEN_SYM", 11) == 0)
-	{
-		local_node->kind = AEXPR_BETWEEN_SYM;
-		READ_NODE_FIELD(name);
-	}
-	else if (length == 15 && strncmp(token, "NOT_BETWEEN_SYM", 15) == 0)
-	{
-		local_node->kind = AEXPR_NOT_BETWEEN_SYM;
-		READ_NODE_FIELD(name);
-	}
-	else if (length == 5 && strncmp(token, ":name", 5) == 0)
-	{
-		local_node->kind = AEXPR_OP;
-		local_node->name = nodeRead(NULL, 0);
-	}
-	else
-		elog(ERROR, "unrecognized A_Expr kind: \"%.*s\"", length, token);
+	READ_DONE();
+}
 
-<<<<<<< HEAD
 /*
  * Apache Cloudberry additions for serialization support
  * These are currently not used (see outfastc ad readfast.c)
@@ -1798,16 +1592,11 @@ _readDefElem(void)
 	READ_STRING_FIELD(defname);
 	READ_NODE_FIELD(arg);
 	READ_ENUM_FIELD(defaction, DefElemAction);
-=======
-	READ_NODE_FIELD(lexpr);
-	READ_NODE_FIELD(rexpr);
->>>>>>> REL_16_9
 	READ_LOCATION_FIELD(location);
 
 	READ_DONE();
 }
 
-<<<<<<< HEAD
 /*
  *	Stuff from plannodes.h.
  */
@@ -3046,8 +2835,6 @@ _readAlternativeSubPlan(void)
 /*
  * _readExtensibleNode
  */
-=======
->>>>>>> REL_16_9
 static ExtensibleNode *
 _readExtensibleNode(void)
 {
@@ -3076,6 +2863,40 @@ _readExtensibleNode(void)
 }
 #endif /* COMPILING_BINARY_FUNCS */
 
+/*
+ * _readPartitionBoundSpec
+ */
+static PartitionBoundSpec *
+_readPartitionBoundSpec(void)
+{
+	READ_LOCALS(PartitionBoundSpec);
+
+	READ_CHAR_FIELD(strategy);
+	READ_BOOL_FIELD(is_default);
+	READ_INT_FIELD(modulus);
+	READ_INT_FIELD(remainder);
+	READ_NODE_FIELD(listdatums);
+	READ_NODE_FIELD(lowerdatums);
+	READ_NODE_FIELD(upperdatums);
+	READ_LOCATION_FIELD(location);
+
+	READ_DONE();
+}
+
+/*
+ * _readPartitionRangeDatum
+ */
+static PartitionRangeDatum *
+_readPartitionRangeDatum(void)
+{
+	READ_LOCALS(PartitionRangeDatum);
+
+	READ_ENUM_FIELD(kind, PartitionRangeDatumKind);
+	READ_NODE_FIELD(value);
+	READ_LOCATION_FIELD(location);
+
+	READ_DONE();
+}
 
 #include "readfuncs_common.c"
 #ifndef COMPILING_BINARY_FUNCS
@@ -3090,6 +2911,8 @@ _readExtensibleNode(void)
 Node *
 parseNodeString(void)
 {
+	void	   *return_value;
+
 	READ_TEMP_LOCALS();
 
 	/* Guard against stack overflow due to overly complex expressions */
@@ -3100,7 +2923,6 @@ parseNodeString(void)
 #define MATCH(tokname, namelen) \
 	(length == namelen && memcmp(token, tokname, namelen) == 0)
 
-<<<<<<< HEAD
 	/*
 	 * Same as MATCH, but we make our life a bit easier by relying on the
 	 * compiler to be smart, and evaluate the strlen("<constant>") at
@@ -3603,12 +3425,8 @@ parseNodeString(void)
 						length, token, PACKAGE_NAME)));
 		return_value = NULL;	/* keep compiler quiet */
 	}
-=======
-#include "readfuncs.switch.c"
->>>>>>> REL_16_9
 
-	elog(ERROR, "badly formatted node string \"%.32s\"...", token);
-	return NULL;				/* keep compiler quiet */
+	return (Node *) return_value;
 }
 
 
@@ -3674,45 +3492,32 @@ readDatum(bool typbyval)
 }
 
 /*
- * common implementation for scalar-array-reading functions
- *
- * The data format is either "<>" for a NULL pointer (in which case numCols
- * is ignored) or "(item item item)" where the number of items must equal
- * numCols.  The convfunc must be okay with stopping at whitespace or a
- * right parenthesis, since pg_strtok won't null-terminate the token.
+ * readAttrNumberCols
  */
-#define READ_SCALAR_ARRAY(fnname, datatype, convfunc) \
-datatype * \
-fnname(int numCols) \
-{ \
-	datatype   *vals; \
-	READ_TEMP_LOCALS(); \
-	token = pg_strtok(&length); \
-	if (token == NULL) \
-		elog(ERROR, "incomplete scalar array"); \
-	if (length == 0) \
-		return NULL;			/* it was "<>", so return NULL pointer */ \
-	if (length != 1 || token[0] != '(') \
-		elog(ERROR, "unrecognized token: \"%.*s\"", length, token); \
-	vals = (datatype *) palloc(numCols * sizeof(datatype)); \
-	for (int i = 0; i < numCols; i++) \
-	{ \
-		token = pg_strtok(&length); \
-		if (token == NULL || token[0] == ')') \
-			elog(ERROR, "incomplete scalar array"); \
-		vals[i] = convfunc(token); \
-	} \
-	token = pg_strtok(&length); \
-	if (token == NULL || length != 1 || token[0] != ')') \
-		elog(ERROR, "incomplete scalar array"); \
-	return vals; \
+AttrNumber *
+readAttrNumberCols(int numCols)
+{
+	int			tokenLength,
+				i;
+	const char *token;
+	AttrNumber *attr_vals;
+
+	if (numCols <= 0)
+		return NULL;
+
+	attr_vals = (AttrNumber *) palloc(numCols * sizeof(AttrNumber));
+	for (i = 0; i < numCols; i++)
+	{
+		token = pg_strtok(&tokenLength);
+		attr_vals[i] = atoi(token);
+	}
+
+	return attr_vals;
 }
 
 /*
- * Note: these functions are exported in nodes.h for possible use by
- * extensions, so don't mess too much with their names or API.
+ * readOidCols
  */
-<<<<<<< HEAD
 Oid *
 readOidCols(int numCols)
 {
@@ -3782,11 +3587,3 @@ readBoolCols(int numCols)
 	return bool_vals;
 }
 #endif
-=======
-READ_SCALAR_ARRAY(readAttrNumberCols, int16, atoi)
-READ_SCALAR_ARRAY(readOidCols, Oid, atooid)
-/* outfuncs.c has writeIndexCols, but we don't yet need that here */
-/* READ_SCALAR_ARRAY(readIndexCols, Index, atoui) */
-READ_SCALAR_ARRAY(readIntCols, int, atoi)
-READ_SCALAR_ARRAY(readBoolCols, bool, strtobool)
->>>>>>> REL_16_9
