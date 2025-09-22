@@ -44,9 +44,9 @@ typedef void * (*RecordAssembleFunc)(RmgrId rmid, uint8 info,
 typedef XLogRecPtr (*XLogInsert_hook_type)(RmgrId rmid, uint8 info, TransactionId headerXid, uint8 curinsert_flags, RecordAssembleFunc recordAssembleFunc);
 extern PGDLLIMPORT XLogInsert_hook_type XLogInsert_hook;
 
-extern bool GetXLogRegisterBufferTagIfAny(RelFileNode *rnode, ForkNumber *forknum, BlockNumber *blkno);
+extern bool GetXLogRegisterBufferTagIfAny(RelFileLocator *rnode, ForkNumber *forknum, BlockNumber *blkno);
 extern int GetNumXLogRegisterBuffers(void);
-extern bool GetXLogRegisterBuffer(int block_id, RelFileNode *rnode, ForkNumber *forknum, BlockNumber *blkno, char **page);
+extern bool GetXLogRegisterBuffer(int block_id, RelFileLocator *rnode, ForkNumber *forknum, BlockNumber *blkno, char **page);
 extern char *GetXLogRegisterRdata(int rdata_index);
 
 /* prototypes for public functions in xloginsert.c: */

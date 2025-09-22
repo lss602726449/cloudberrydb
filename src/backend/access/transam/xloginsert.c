@@ -1422,7 +1422,7 @@ InitXLogInsert(void)
  * Get RelFileNode/ForkNumber/BlockNumber of XLog register block if any.
  */
 bool
-GetXLogRegisterBufferTagIfAny(RelFileNode *rnode, ForkNumber *forknum, BlockNumber *blkno)
+GetXLogRegisterBufferTagIfAny(RelFileLocator *rnode, ForkNumber *forknum, BlockNumber *blkno)
 {
     for (int i = 0; i < max_registered_block_id; i++)
     {
@@ -1443,12 +1443,12 @@ GetNumXLogRegisterBuffers(void)
  * Caller should make sure the block_id is valid(block_id < max_registered_block_id).
  */
 bool
-GetXLogRegisterBuffer(int block_id, RelFileNode *rnode, ForkNumber *forknum, BlockNumber *blkno, Page *page)
+GetXLogRegisterBuffer(int block_id, RelFileLocator *rnode, ForkNumber *forknum, BlockNumber *blkno, Page *page)
 {
     if (registered_buffers[block_id].in_use)
     {
         if (rnode)
-            *rnode = registered_buffers[block_id].rnode;
+            *rnode = registered_buffers[block_id].rlocator;
         if (forknum)
             *forknum = registered_buffers[block_id].forkno;
         if (blkno)

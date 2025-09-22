@@ -71,10 +71,6 @@
 #include "tcop/cmdtag.h"
 
 
-/* buffer size to use for command completion tags */
-#define COMPLETION_TAG_BUFSIZE	72
-
-
 /* ----------------
  *		CommandDest is a simplistic means of identifying the desired
  *		destination.  Someday this will probably need to be improved.

@@ -221,9 +221,6 @@ typedef struct PortalData
 	TimestampTz creation_time;	/* time at which this portal was defined */
 	bool		visible;		/* include this portal in pg_cursors? */
 
-	/* Stuff added at the end to avoid ABI break in stable branches: */
-	int			createLevel;	/* creating subxact's nesting level */
-
 	/* MPP: is this portal a CURSOR, or protocol level portal? */
 	bool		is_extended_query; /* simple or extended query protocol? */
 }			PortalData;

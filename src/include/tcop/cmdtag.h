@@ -14,7 +14,7 @@
 #define CMDTAG_H
 
 /* buffer size required for command completion tags */
-#define COMPLETION_TAG_BUFSIZE	64
+#define COMPLETION_TAG_BUFSIZE	72
 
 #define PG_CMDTAG(tag, name, evtrgok, rwrok, rowcnt) \
 	tag,

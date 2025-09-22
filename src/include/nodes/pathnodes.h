@@ -213,9 +213,6 @@ typedef struct PlannerGlobal
 	/* highest plan node ID assigned */
 	int			lastPlanNodeId;
 
-	/* redo plan when TransactionXmin changes? */
-	bool		transientPlan;
-
 	/* is plan specific to current role? */
 	bool		dependsOnRole;
 
@@ -399,9 +396,6 @@ struct PlannerInfo
 	/* list of active EquivalenceClasses */
 	List	   *eq_classes;
 
-	/* set true once ECs are canonical */
-	bool		ec_merging_done;
-
 	List       *list_cteplaninfo; /* list of CtePlannerInfo, one for each CTE */
 
 	/*
@@ -413,12 +407,6 @@ struct PlannerInfo
 
 	/* list of "canonical" PathKeys */
 	List	   *canon_pathkeys;
-
-	/*
-	 * list of OuterJoinClauseInfos for mergejoinable outer join clauses
-	 * w/nonnullable var on left
-	 */
-	List	   *left_join_clauses;
 
 	/*
 	 * list of OuterJoinClauseInfos for mergejoinable outer join clauses
@@ -477,9 +465,6 @@ struct PlannerInfo
 	/* allocated size of array */
 	int			placeholder_array_size pg_node_attr(read_write_ignore);
 
-	/* list of ForeignKeyOptInfos */
-	List	   *fkey_list;
-
 	/* desired pathkeys for query_planner() */
 	List	   *query_pathkeys;
 
@@ -488,8 +473,6 @@ struct PlannerInfo
 
 	/* hint on where the result of the query will be needed. Null if not known */
 	CdbPathLocus final_locus;
-
-	List	   *initial_rels;	/* RelOptInfos we are now trying to join */
 
 	/*
 	 * The number of elements in the group_pathkeys list which belong to the

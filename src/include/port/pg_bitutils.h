@@ -221,16 +221,6 @@ pg_nextpower2_64(uint64 num)
 }
 
 /*
- * pg_nextpower2_size_t
- *		Returns the next higher power of 2 above 'num', for a size_t input.
- */
-#if SIZEOF_SIZE_T == 4
-#define pg_nextpower2_size_t(num) pg_nextpower2_32(num)
-#else
-#define pg_nextpower2_size_t(num) pg_nextpower2_64(num)
-#endif
-
-/*
  * pg_prevpower2_32
  *		Returns the next lower power of 2 below 'num', or 'num' if it's
  *		already a power of 2.
@@ -255,16 +245,6 @@ pg_prevpower2_64(uint64 num)
 {
 	return ((uint64) 1) << pg_leftmost_one_pos64(num);
 }
-
-/*
- * pg_prevpower2_size_t
- *		Returns the next lower power of 2 below 'num', for a size_t input.
- */
-#if SIZEOF_SIZE_T == 4
-#define pg_prevpower2_size_t(num) pg_prevpower2_32(num)
-#else
-#define pg_prevpower2_size_t(num) pg_prevpower2_64(num)
-#endif
 
 /*
  * pg_ceil_log2_32

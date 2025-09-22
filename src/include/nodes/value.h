@@ -76,6 +76,16 @@ typedef struct BitString
 	char	   *bsval;
 } BitString;
 
+typedef struct Value
+{
+	NodeTag		type;			/* tag appropriately (eg. T_String) */
+	union ValUnion2
+	{
+		int			ival;		/* machine integer */
+		char	   *str;		/* string */
+	}			val;
+} Value;
+
 #define intVal(v)		(castNode(Integer, v)->ival)
 #define floatVal(v)		atof(castNode(Float, v)->fval)
 #define boolVal(v)		(castNode(Boolean, v)->boolval)
