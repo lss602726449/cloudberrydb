@@ -381,6 +381,7 @@ typedef enum NodeTag
 	T_Value,
 	T_Integer,
 	T_Float,
+	T_Boolean,
 	T_String,
 	T_BitString,
 	T_Null,

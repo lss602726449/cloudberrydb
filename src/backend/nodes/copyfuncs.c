@@ -2933,20 +2933,23 @@ _copyRestrictInfo(const RestrictInfo *from)
 
 	COPY_NODE_FIELD(clause);
 	COPY_SCALAR_FIELD(is_pushed_down);
-	COPY_SCALAR_FIELD(outerjoin_delayed);
 	COPY_SCALAR_FIELD(can_join);
 	COPY_SCALAR_FIELD(pseudoconstant);
+	COPY_SCALAR_FIELD(has_clone);
+	COPY_SCALAR_FIELD(is_clone);
 	COPY_SCALAR_FIELD(leakproof);
 	COPY_SCALAR_FIELD(has_volatile);
 	COPY_SCALAR_FIELD(security_level);
+	COPY_SCALAR_FIELD(num_base_rels);
 	COPY_SCALAR_FIELD(contain_outer_query_references);
 	COPY_BITMAPSET_FIELD(clause_relids);
 	COPY_BITMAPSET_FIELD(required_relids);
+	COPY_BITMAPSET_FIELD(incompatible_relids);
 	COPY_BITMAPSET_FIELD(outer_relids);
-	COPY_BITMAPSET_FIELD(nullable_relids);
 	COPY_BITMAPSET_FIELD(left_relids);
 	COPY_BITMAPSET_FIELD(right_relids);
 	COPY_NODE_FIELD(orclause);
+	COPY_SCALAR_FIELD(rinfo_serial);
 	/* EquivalenceClasses are never copied, so shallow-copy the pointers */
 	COPY_SCALAR_FIELD(parent_ec);
 	COPY_SCALAR_FIELD(eval_cost);
@@ -2966,6 +2969,8 @@ _copyRestrictInfo(const RestrictInfo *from)
 	COPY_SCALAR_FIELD(right_bucketsize);
 	COPY_SCALAR_FIELD(left_mcvfreq);
 	COPY_SCALAR_FIELD(right_mcvfreq);
+	COPY_SCALAR_FIELD(left_hasheqoperator);
+	COPY_SCALAR_FIELD(right_hasheqoperator);
 	COPY_SCALAR_FIELD(hasheqoperator);
 
 	return newnode;
@@ -3013,8 +3018,12 @@ _copySpecialJoinInfo(const SpecialJoinInfo *from)
 	COPY_BITMAPSET_FIELD(syn_lefthand);
 	COPY_BITMAPSET_FIELD(syn_righthand);
 	COPY_SCALAR_FIELD(jointype);
+	COPY_SCALAR_FIELD(ojrelid);
+	COPY_BITMAPSET_FIELD(commute_above_l);
+	COPY_BITMAPSET_FIELD(commute_above_r);
+	COPY_BITMAPSET_FIELD(commute_below_l);
+	COPY_BITMAPSET_FIELD(commute_below_r);
 	COPY_SCALAR_FIELD(lhs_strict);
-	COPY_SCALAR_FIELD(delay_upper_joins);
 	COPY_SCALAR_FIELD(semi_can_btree);
 	COPY_SCALAR_FIELD(semi_can_hash);
 	COPY_NODE_FIELD(semi_operators);
@@ -3076,6 +3085,7 @@ _copyRangeTblEntry(const RangeTblEntry *from)
 	COPY_SCALAR_FIELD(relkind);
 	COPY_SCALAR_FIELD(rellockmode);
 	COPY_NODE_FIELD(tablesample);
+	COPY_SCALAR_FIELD(perminfoindex);
 	COPY_SCALAR_FIELD(relisivm);
 	COPY_NODE_FIELD(subquery);
 	COPY_SCALAR_FIELD(security_barrier);
@@ -3102,12 +3112,6 @@ _copyRangeTblEntry(const RangeTblEntry *from)
 	COPY_SCALAR_FIELD(lateral);
 	COPY_SCALAR_FIELD(inh);
 	COPY_SCALAR_FIELD(inFromCl);
-	COPY_SCALAR_FIELD(requiredPerms);
-	COPY_SCALAR_FIELD(checkAsUser);
-	COPY_BITMAPSET_FIELD(selectedCols);
-	COPY_BITMAPSET_FIELD(insertedCols);
-	COPY_BITMAPSET_FIELD(updatedCols);
-	COPY_BITMAPSET_FIELD(extraUpdatedCols);
 	COPY_NODE_FIELD(securityQuals);
 
 	COPY_STRING_FIELD(ctename);
@@ -3358,25 +3362,33 @@ _copyAConst(const A_Const *from)
 {
 	A_Const    *newnode = makeNode(A_Const);
 
-	/* This part must duplicate _copyValue */
-	COPY_SCALAR_FIELD(val.type);
-	switch (from->val.type)
+	COPY_SCALAR_FIELD(isnull);
+	if (!from->isnull)
 	{
-		case T_Integer:
-			COPY_SCALAR_FIELD(val.val.ival);
-			break;
-		case T_Float:
-		case T_String:
-		case T_BitString:
-			COPY_STRING_FIELD(val.val.str);
-			break;
-		case T_Null:
-			/* nothing to do */
-			break;
-		default:
-			elog(ERROR, "unrecognized node type: %d",
-				 (int) from->val.type);
-			break;
+		/* This part must duplicate other _copy*() functions. */
+		COPY_SCALAR_FIELD(val.node.type);
+		switch (nodeTag(&from->val))
+		{
+			case T_Integer:
+				COPY_SCALAR_FIELD(val.ival.ival);
+				break;
+			case T_Float:
+				COPY_STRING_FIELD(val.fval.fval);
+				break;
+			case T_Boolean:
+				COPY_SCALAR_FIELD(val.boolval.boolval);
+				break;
+			case T_String:
+				COPY_STRING_FIELD(val.sval.sval);
+				break;
+			case T_BitString:
+				COPY_STRING_FIELD(val.bsval.bsval);
+				break;
+			default:
+				elog(ERROR, "unrecognized node type: %d",
+					 (int) nodeTag(&from->val));
+				break;
+		}
 	}
 
 	COPY_LOCATION_FIELD(location);
@@ -4107,7 +4119,7 @@ _copyGrantRoleStmt(const GrantRoleStmt *from)
 	COPY_NODE_FIELD(granted_roles);
 	COPY_NODE_FIELD(grantee_roles);
 	COPY_SCALAR_FIELD(is_grant);
-	COPY_SCALAR_FIELD(admin_opt);
+	COPY_NODE_FIELD(opt);
 	COPY_NODE_FIELD(grantor);
 	COPY_SCALAR_FIELD(behavior);
 
@@ -4421,10 +4433,11 @@ _copyIndexStmt(const IndexStmt *from)
 	COPY_NODE_FIELD(excludeOpNames);
 	COPY_STRING_FIELD(idxcomment);
 	COPY_SCALAR_FIELD(indexOid);
-	COPY_SCALAR_FIELD(oldNode);
+	COPY_SCALAR_FIELD(oldNumber);
 	COPY_SCALAR_FIELD(oldCreateSubid);
-	COPY_SCALAR_FIELD(oldFirstRelfilenodeSubid);
+	COPY_SCALAR_FIELD(oldFirstRelfilelocatorSubid);
 	COPY_SCALAR_FIELD(unique);
+	COPY_SCALAR_FIELD(nulls_not_distinct);
 	COPY_SCALAR_FIELD(primary);
 	COPY_SCALAR_FIELD(isconstraint);
 	COPY_SCALAR_FIELD(deferrable);
@@ -5965,7 +5978,7 @@ _copyPartitionSpec(const PartitionSpec *from)
 {
 	PartitionSpec *newnode = makeNode(PartitionSpec);
 
-	COPY_STRING_FIELD(strategy);
+	COPY_SCALAR_FIELD(strategy);
 	COPY_NODE_FIELD(partParams);
 	COPY_NODE_FIELD(gpPartDef);
 	COPY_NODE_FIELD(subPartSpec);
@@ -6140,7 +6153,7 @@ _copyCreatePublicationStmt(const CreatePublicationStmt *from)
 
 	COPY_STRING_FIELD(pubname);
 	COPY_NODE_FIELD(options);
-	COPY_NODE_FIELD(tables);
+	COPY_NODE_FIELD(pubobjects);
 	COPY_SCALAR_FIELD(for_all_tables);
 
 	return newnode;
@@ -6153,9 +6166,9 @@ _copyAlterPublicationStmt(const AlterPublicationStmt *from)
 
 	COPY_STRING_FIELD(pubname);
 	COPY_NODE_FIELD(options);
-	COPY_NODE_FIELD(tables);
+	COPY_NODE_FIELD(pubobjects);
 	COPY_SCALAR_FIELD(for_all_tables);
-	COPY_SCALAR_FIELD(tableAction);
+	COPY_SCALAR_FIELD(action);
 
 	return newnode;
 }
