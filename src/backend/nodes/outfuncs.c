@@ -98,9 +98,10 @@ static void outChar(StringInfo str, char c);
 	appendStringInfo(str, " :" CppAsString(fldname) " %d", \
 					 (int) node->fldname)
 
-/* Write a float field --- caller must give format to define precision */
-#define WRITE_FLOAT_FIELD(fldname,format) \
-	appendStringInfo(str, " :" CppAsString(fldname) " " format, node->fldname)
+/* Write a float field (actually, they're double) */
+#define WRITE_FLOAT_FIELD(fldname) \
+	(appendStringInfo(str, " :" CppAsString(fldname) " "), \
+	 outDouble(str, node->fldname))
 
 /* Write a boolean field */
 #define WRITE_BOOL_FIELD(fldname) \
@@ -394,9 +395,9 @@ _outPlannedStmt(StringInfo str, const PlannedStmt *node)
 static void
 _outPlanInfo(StringInfo str, const Plan *node)
 {
-	WRITE_FLOAT_FIELD(startup_cost, "%.2f");
-	WRITE_FLOAT_FIELD(total_cost, "%.2f");
-	WRITE_FLOAT_FIELD(plan_rows, "%.0f");
+	WRITE_FLOAT_FIELD(startup_cost);
+	WRITE_FLOAT_FIELD(total_cost);
+	WRITE_FLOAT_FIELD(plan_rows);
 	WRITE_INT_FIELD(plan_width);
 	WRITE_BOOL_FIELD(parallel_aware);
 	WRITE_BOOL_FIELD(parallel_safe);
@@ -1091,7 +1092,7 @@ _outHash(StringInfo str, const Hash *node)
 	WRITE_OID_FIELD(skewTable);
 	WRITE_INT_FIELD(skewColumn);
 	WRITE_BOOL_FIELD(skewInherit);
-	WRITE_FLOAT_FIELD(rows_total, "%.0f");
+	WRITE_FLOAT_FIELD(rows_total);
 	WRITE_BOOL_FIELD(rescannable);          /*CDB*/
 	WRITE_BOOL_FIELD(sync_barrier);
 }
@@ -1580,8 +1581,8 @@ _outSubPlan(StringInfo str, const SubPlan *node)
 	WRITE_NODE_FIELD(parParam);
 	WRITE_NODE_FIELD(args);
 	WRITE_NODE_FIELD(extParam);
-	WRITE_FLOAT_FIELD(startup_cost, "%.2f");
-	WRITE_FLOAT_FIELD(per_call_cost, "%.2f");
+	WRITE_FLOAT_FIELD(startup_cost);
+	WRITE_FLOAT_FIELD(per_call_cost);
 }
 
 static void
@@ -1983,9 +1984,9 @@ _outPathInfo(StringInfo str, const Path *node)
 	WRITE_BOOL_FIELD(parallel_aware);
 	WRITE_BOOL_FIELD(parallel_safe);
 	WRITE_INT_FIELD(parallel_workers);
-	WRITE_FLOAT_FIELD(rows, "%.0f");
-	WRITE_FLOAT_FIELD(startup_cost, "%.2f");
-	WRITE_FLOAT_FIELD(total_cost, "%.2f");
+	WRITE_FLOAT_FIELD(rows);
+	WRITE_FLOAT_FIELD(startup_cost);
+	WRITE_FLOAT_FIELD(total_cost);
     _outCdbPathLocus(str, &node->locus);
 	WRITE_NODE_FIELD(pathkeys);
 }
@@ -2025,8 +2026,8 @@ _outIndexPath(StringInfo str, const IndexPath *node)
 	WRITE_NODE_FIELD(indexorderbys);
 	WRITE_NODE_FIELD(indexorderbycols);
 	WRITE_ENUM_FIELD(indexscandir, ScanDirection);
-	WRITE_FLOAT_FIELD(indextotalcost, "%.2f");
-	WRITE_FLOAT_FIELD(indexselectivity, "%.4f");
+	WRITE_FLOAT_FIELD(indextotalcost);
+	WRITE_FLOAT_FIELD(indexselectivity);
     WRITE_INT_FIELD(num_leading_eq);
 }
 
@@ -2048,7 +2049,7 @@ _outBitmapAndPath(StringInfo str, const BitmapAndPath *node)
 	_outPathInfo(str, (const Path *) node);
 
 	WRITE_NODE_FIELD(bitmapquals);
-	WRITE_FLOAT_FIELD(bitmapselectivity, "%.4f");
+	WRITE_FLOAT_FIELD(bitmapselectivity);
 }
 
 static void
@@ -2059,7 +2060,7 @@ _outBitmapOrPath(StringInfo str, const BitmapOrPath *node)
 	_outPathInfo(str, (const Path *) node);
 
 	WRITE_NODE_FIELD(bitmapquals);
-	WRITE_FLOAT_FIELD(bitmapselectivity, "%.4f");
+	WRITE_FLOAT_FIELD(bitmapselectivity);
 }
 
 static void
@@ -2126,7 +2127,7 @@ _outAppendPath(StringInfo str, const AppendPath *node)
 
 	WRITE_NODE_FIELD(subpaths);
 	WRITE_INT_FIELD(first_partial_path);
-	WRITE_FLOAT_FIELD(limit_tuples, "%.0f");
+	WRITE_FLOAT_FIELD(limit_tuples);
 }
 
 static void
@@ -2137,7 +2138,7 @@ _outMergeAppendPath(StringInfo str, const MergeAppendPath *node)
 	_outPathInfo(str, (const Path *) node);
 
 	WRITE_NODE_FIELD(subpaths);
-	WRITE_FLOAT_FIELD(limit_tuples, "%.0f");
+	WRITE_FLOAT_FIELD(limit_tuples);
 }
 
 static void
@@ -2174,7 +2175,7 @@ _outMemoizePath(StringInfo str, const MemoizePath *node)
 	WRITE_NODE_FIELD(param_exprs);
 	WRITE_BOOL_FIELD(singlerow);
 	WRITE_BOOL_FIELD(binary_mode);
-	WRITE_FLOAT_FIELD(calls, "%.0f");
+	WRITE_FLOAT_FIELD(calls);
 	WRITE_UINT_FIELD(est_entries);
 }
 
@@ -2283,7 +2284,7 @@ _outAggPath(StringInfo str, const AggPath *node)
 	WRITE_NODE_FIELD(subpath);
 	WRITE_ENUM_FIELD(aggstrategy, AggStrategy);
 	WRITE_ENUM_FIELD(aggsplit, AggSplit);
-	WRITE_FLOAT_FIELD(numGroups, "%.0f");
+	WRITE_FLOAT_FIELD(numGroups);
 	WRITE_UINT64_FIELD(transitionSpace);
 	WRITE_NODE_FIELD(groupClause);
 	WRITE_NODE_FIELD(qual);
@@ -2298,7 +2299,7 @@ _outRollupData(StringInfo str, const RollupData *node)
 	WRITE_NODE_FIELD(groupClause);
 	WRITE_NODE_FIELD(gsets);
 	WRITE_NODE_FIELD(gsets_data);
-	WRITE_FLOAT_FIELD(numGroups, "%.0f");
+	WRITE_FLOAT_FIELD(numGroups);
 	WRITE_BOOL_FIELD(hashable);
 	WRITE_BOOL_FIELD(is_hashed);
 }
@@ -2309,7 +2310,7 @@ _outGroupingSetData(StringInfo str, const GroupingSetData *node)
 	WRITE_NODE_TYPE("GSDATA");
 
 	WRITE_NODE_FIELD(set);
-	WRITE_FLOAT_FIELD(numGroups, "%.0f");
+	WRITE_FLOAT_FIELD(numGroups);
 }
 
 static void
@@ -2361,7 +2362,7 @@ _outSetOpPath(StringInfo str, const SetOpPath *node)
 	WRITE_NODE_FIELD(distinctList);
 	WRITE_INT_FIELD(flagColIdx);
 	WRITE_INT_FIELD(firstFlag);
-	WRITE_FLOAT_FIELD(numGroups, "%.0f");
+	WRITE_FLOAT_FIELD(numGroups);
 }
 
 static void
@@ -2375,7 +2376,7 @@ _outRecursiveUnionPath(StringInfo str, const RecursiveUnionPath *node)
 	WRITE_NODE_FIELD(rightpath);
 	WRITE_NODE_FIELD(distinctList);
 	WRITE_INT_FIELD(wtParam);
-	WRITE_FLOAT_FIELD(numGroups, "%.0f");
+	WRITE_FLOAT_FIELD(numGroups);
 }
 
 static void
@@ -2475,7 +2476,7 @@ _outHashPath(StringInfo str, const HashPath *node)
 
 	WRITE_NODE_FIELD(path_hashclauses);
 	WRITE_INT_FIELD(num_batches);
-	WRITE_FLOAT_FIELD(inner_rows_total, "%.0f");
+	WRITE_FLOAT_FIELD(inner_rows_total);
 }
 
 static void
@@ -2550,9 +2551,9 @@ _outPlannerInfo(StringInfo str, const PlannerInfo *node)
 	WRITE_INT_FIELD(max_sortgroupref);
 	WRITE_NODE_FIELD(update_colnos);
 	WRITE_NODE_FIELD(minmax_aggs);
-	WRITE_FLOAT_FIELD(total_table_pages, "%.0f");
-	WRITE_FLOAT_FIELD(tuple_fraction, "%.4f");
-	WRITE_FLOAT_FIELD(limit_tuples, "%.0f");
+	WRITE_FLOAT_FIELD(total_table_pages);
+	WRITE_FLOAT_FIELD(tuple_fraction);
+	WRITE_FLOAT_FIELD(limit_tuples);
 	WRITE_UINT_FIELD(qual_security_level);
 	WRITE_BOOL_FIELD(hasJoinRTEs);
 	WRITE_BOOL_FIELD(hasLateralRTEs);
@@ -2574,7 +2575,7 @@ _outRelOptInfo(StringInfo str, const RelOptInfo *node)
 	/* NB: this isn't a complete set of fields */
 	WRITE_ENUM_FIELD(reloptkind, RelOptKind);
 	WRITE_BITMAPSET_FIELD(relids);
-	WRITE_FLOAT_FIELD(rows, "%.0f");
+	WRITE_FLOAT_FIELD(rows);
 	WRITE_BOOL_FIELD(consider_startup);
 	WRITE_BOOL_FIELD(consider_param_startup);
 	WRITE_BOOL_FIELD(consider_parallel);
@@ -2598,8 +2599,8 @@ _outRelOptInfo(StringInfo str, const RelOptInfo *node)
 	WRITE_NODE_FIELD(indexlist);
 	WRITE_NODE_FIELD(statlist);
 	WRITE_UINT_FIELD(pages);
-	WRITE_FLOAT_FIELD(tuples, "%.0f");
-	WRITE_FLOAT_FIELD(allvisfrac, "%.6f");
+	WRITE_FLOAT_FIELD(tuples);
+	WRITE_FLOAT_FIELD(allvisfrac);
 	WRITE_BITMAPSET_FIELD(eclass_indexes);
 	WRITE_NODE_FIELD(subroot);
 	WRITE_NODE_FIELD(subplan_params);
@@ -2629,7 +2630,7 @@ _outIndexOptInfo(StringInfo str, const IndexOptInfo *node)
 	WRITE_OID_FIELD(indexoid);
 	/* Do NOT print rel field, else infinite recursion */
 	WRITE_UINT_FIELD(pages);
-	WRITE_FLOAT_FIELD(tuples, "%.0f");
+	WRITE_FLOAT_FIELD(tuples);
 	WRITE_INT_FIELD(tree_height);
 	WRITE_INT_FIELD(ncolumns);
 	/* array fields aren't really worth the trouble to print */
@@ -2748,8 +2749,8 @@ _outPathTarget(StringInfo str, const PathTarget *node)
 		for (i = 0; i < list_length(node->exprs); i++)
 			appendStringInfo(str, " %u", node->sortgrouprefs[i]);
 	}
-	WRITE_FLOAT_FIELD(cost.startup, "%.2f");
-	WRITE_FLOAT_FIELD(cost.per_tuple, "%.2f");
+	WRITE_FLOAT_FIELD(cost.startup);
+	WRITE_FLOAT_FIELD(cost.per_tuple);
 	WRITE_INT_FIELD(width);
 	WRITE_ENUM_FIELD(has_volatile_expr, VolatileFunctionStatus);
 }
@@ -2760,7 +2761,7 @@ _outParamPathInfo(StringInfo str, const ParamPathInfo *node)
 	WRITE_NODE_TYPE("PARAMPATHINFO");
 
 	WRITE_BITMAPSET_FIELD(ppi_req_outer);
-	WRITE_FLOAT_FIELD(ppi_rows, "%.0f");
+	WRITE_FLOAT_FIELD(ppi_rows);
 	WRITE_NODE_FIELD(ppi_clauses);
 }
 #endif /* COMPILING_BINARY_FUNCS */
@@ -2773,7 +2774,7 @@ _outRelAggInfo(StringInfo str, const RelAggInfo *node)
 	WRITE_BITMAPSET_FIELD(relids);
 	WRITE_NODE_FIELD(target);
 	WRITE_NODE_FIELD(agg_input);
-	WRITE_FLOAT_FIELD(input_rows, "%.0f");
+	WRITE_FLOAT_FIELD(input_rows);
 	WRITE_NODE_FIELD(group_clauses);
 	WRITE_NODE_FIELD(group_exprs);
 	WRITE_NODE_FIELD(agg_exprs);
@@ -2792,23 +2793,28 @@ _outRestrictInfo(StringInfo str, const RestrictInfo *node)
 	/* NB: this isn't a complete set of fields */
 	WRITE_NODE_FIELD(clause);
 	WRITE_BOOL_FIELD(is_pushed_down);
-	WRITE_BOOL_FIELD(outerjoin_delayed);
 	WRITE_BOOL_FIELD(can_join);
 	WRITE_BOOL_FIELD(pseudoconstant);
+	WRITE_BOOL_FIELD(has_clone);
+	WRITE_BOOL_FIELD(is_clone);
 	WRITE_BOOL_FIELD(leakproof);
 	WRITE_ENUM_FIELD(has_volatile, VolatileFunctionStatus);
 	WRITE_UINT_FIELD(security_level);
+	WRITE_INT_FIELD(num_base_rels);
 	WRITE_BOOL_FIELD(contain_outer_query_references);
 	WRITE_BITMAPSET_FIELD(clause_relids);
 	WRITE_BITMAPSET_FIELD(required_relids);
+	WRITE_BITMAPSET_FIELD(incompatible_relids);
 	WRITE_BITMAPSET_FIELD(outer_relids);
-	WRITE_BITMAPSET_FIELD(nullable_relids);
 	WRITE_BITMAPSET_FIELD(left_relids);
 	WRITE_BITMAPSET_FIELD(right_relids);
 	WRITE_NODE_FIELD(orclause);
 	/* don't write parent_ec, leads to infinite recursion in plan tree dump */
-	WRITE_FLOAT_FIELD(norm_selec, "%.4f");
-	WRITE_FLOAT_FIELD(outer_selec, "%.4f");
+	WRITE_INT_FIELD(rinfo_serial);
+	WRITE_FLOAT_FIELD(eval_cost.startup);
+	WRITE_FLOAT_FIELD(eval_cost.per_tuple);
+	WRITE_FLOAT_FIELD(norm_selec);
+	WRITE_FLOAT_FIELD(outer_selec);
 	WRITE_NODE_FIELD(mergeopfamilies);
 	/* don't write left_ec, leads to infinite recursion in plan tree dump */
 	/* don't write right_ec, leads to infinite recursion in plan tree dump */
@@ -2816,6 +2822,11 @@ _outRestrictInfo(StringInfo str, const RestrictInfo *node)
 	WRITE_NODE_FIELD(right_em);
 	WRITE_BOOL_FIELD(outer_is_left);
 	WRITE_OID_FIELD(hashjoinoperator);
+	WRITE_FLOAT_FIELD(left_bucketsize);
+	WRITE_FLOAT_FIELD(left_mcvfreq);
+	WRITE_FLOAT_FIELD(right_mcvfreq);
+	WRITE_OID_FIELD(left_hasheqoperator);
+	WRITE_OID_FIELD(right_hasheqoperator);
 	WRITE_OID_FIELD(hasheqoperator);
 }
 
@@ -2922,7 +2933,7 @@ _outMinMaxAggInfo(StringInfo str, const MinMaxAggInfo *node)
 	WRITE_NODE_FIELD(target);
 	/* We intentionally omit subroot --- too large, not interesting enough */
 	WRITE_NODE_FIELD(path);
-	WRITE_FLOAT_FIELD(pathcost, "%.2f");
+	WRITE_FLOAT_FIELD(pathcost);
 	WRITE_NODE_FIELD(param);
 }
 
@@ -3647,7 +3658,7 @@ _outRangeTblEntry(StringInfo str, const RangeTblEntry *node)
 			break;
 		case RTE_NAMEDTUPLESTORE:
 			WRITE_STRING_FIELD(enrname);
-			WRITE_FLOAT_FIELD(enrtuples, "%.0f");
+			WRITE_FLOAT_FIELD(enrtuples);
 			WRITE_OID_FIELD(relid);
 			WRITE_NODE_FIELD(coltypes);
 			WRITE_NODE_FIELD(coltypmods);
