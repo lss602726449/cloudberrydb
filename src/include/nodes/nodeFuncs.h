@@ -223,8 +223,6 @@ extern bool planstate_tree_walker_impl(struct PlanState *planstate,
 									   void *context);
 
 struct PlanState;
-extern bool planstate_tree_walker(struct PlanState *planstate, bool (*walker) (),
-								  void *context);
 
 extern bool query_or_expression_tree_walker_wrapper(Node *node,
 													bool (*walker) (Node *, void *),

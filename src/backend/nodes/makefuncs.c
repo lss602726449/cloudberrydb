@@ -980,5 +980,4 @@ makeJsonIsPredicate(Node *expr, JsonFormat *format, JsonValueType item_type,
 	n->location = location;
 
 	return (Node *) n;
->>>>>>> REL_16_9
 }
