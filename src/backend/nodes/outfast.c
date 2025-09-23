@@ -95,7 +95,7 @@
 	{ int16 en=node->fldname; appendBinaryStringInfo(str, (const char *)&en, sizeof(int16)); }
 
 /* Write a float field --- the format is accepted but ignored (for compat with outfuncs.c)  */
-#define WRITE_FLOAT_FIELD(fldname,format) \
+#define WRITE_FLOAT_FIELD(fldname) \
 	appendBinaryStringInfo(str, (const char *)&node->fldname, sizeof(double))
 
 /* Write a boolean field */
@@ -579,9 +579,14 @@ _outAConst(StringInfo str, A_Const *node)
 {
 	WRITE_NODE_TYPE("A_CONST");
 
-	_outValue(str, &(node->val));
-	WRITE_LOCATION_FIELD(location);  /*CDB*/
-
+	if (node->isnull)
+		appendStringInfoString(str, " NULL");
+	else
+	{
+		appendStringInfoString(str, " :val ");
+		outNode(str, &node->val);
+	}
+	WRITE_LOCATION_FIELD(location);
 }
 
 static void

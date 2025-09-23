@@ -1254,7 +1254,7 @@ _outGrantRoleStmt(StringInfo str, const GrantRoleStmt *node)
 	WRITE_NODE_FIELD(granted_roles);
 	WRITE_NODE_FIELD(grantee_roles);
 	WRITE_BOOL_FIELD(is_grant);
-	WRITE_BOOL_FIELD(admin_opt);
+	WRITE_NODE_FIELD(opt);
 	WRITE_NODE_FIELD(grantor);
 	WRITE_ENUM_FIELD(behavior, DropBehavior);
 }
@@ -1643,7 +1643,7 @@ _outCreatePublicationStmt(StringInfo str, const CreatePublicationStmt *node)
 
 	WRITE_STRING_FIELD(pubname);
 	WRITE_NODE_FIELD(options);
-	WRITE_NODE_FIELD(tables);
+	WRITE_NODE_FIELD(pubobjects);
 	WRITE_BOOL_FIELD(for_all_tables);
 }
 
@@ -1654,9 +1654,9 @@ _outAlterPublicationStmt(StringInfo str, const AlterPublicationStmt *node)
 
 	WRITE_STRING_FIELD(pubname);
 	WRITE_NODE_FIELD(options);
-	WRITE_NODE_FIELD(tables);
+	WRITE_NODE_FIELD(pubobjects);
 	WRITE_BOOL_FIELD(for_all_tables);
-	WRITE_ENUM_FIELD(tableAction, DefElemAction);
+	WRITE_ENUM_FIELD(action, AlterPublicationAction);
 }
 
 static void
@@ -1765,7 +1765,7 @@ _outEphemeralNamedRelationInfo(StringInfo str, const EphemeralNamedRelationInfo 
 	WRITE_INT_FIELD(tuple->tdtypmod);
 	WRITE_INT_FIELD(tuple->tdrefcount);
 	WRITE_ENUM_FIELD(enrtype, EphemeralNameRelationType);
-	WRITE_FLOAT_FIELD(enrtuples, "%.0f");
+	WRITE_FLOAT_FIELD(enrtuples);
 }
 
 static void
