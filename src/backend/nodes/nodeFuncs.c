@@ -2133,14 +2133,8 @@ expression_tree_walker_impl(Node *node,
 			{
 				WindowFunc   *expr = (WindowFunc *) node;
 
-<<<<<<< HEAD
-				/* recurse directly on explicit arg List */
-				if (expression_tree_walker((Node *) expr->args,
-										   walker, context))
-=======
 				/* recurse directly on List */
 				if (LIST_WALK(expr->args))
->>>>>>> REL_16_9
 					return true;
 				if (WALK(expr->aggfilter))
 					return true;
@@ -2342,25 +2336,6 @@ expression_tree_walker_impl(Node *node,
 		case T_Query:
 			/* Do nothing with a sub-Query, per discussion above */
 			break;
-<<<<<<< HEAD
-=======
-		case T_WindowClause:
-			{
-				WindowClause *wc = (WindowClause *) node;
-
-				if (WALK(wc->partitionClause))
-					return true;
-				if (WALK(wc->orderClause))
-					return true;
-				if (WALK(wc->startOffset))
-					return true;
-				if (WALK(wc->endOffset))
-					return true;
-				if (WALK(wc->runCondition))
-					return true;
-			}
-			break;
->>>>>>> REL_16_9
 		case T_CTECycleClause:
 			{
 				CTECycleClause *cc = (CTECycleClause *) node;
@@ -2582,8 +2557,7 @@ expression_tree_walker_impl(Node *node,
 		case T_PlaceHolderInfo:
 			return WALK(((PlaceHolderInfo *) node)->ph_var);
 		case T_RangeTblFunction:
-<<<<<<< HEAD
-			return walker(((RangeTblFunction *) node)->funcexpr, context);
+			return WALK(((RangeTblFunction *) node)->funcexpr);
 
 		case T_WindowDef:
 			{
@@ -2634,9 +2608,6 @@ expression_tree_walker_impl(Node *node,
 			}
 			break;
 
-=======
-			return WALK(((RangeTblFunction *) node)->funcexpr);
->>>>>>> REL_16_9
 		case T_TableSampleClause:
 			{
 				TableSampleClause *tsc = (TableSampleClause *) node;
@@ -2739,15 +2710,11 @@ query_tree_walker_impl(Query *query,
 		return true;
 	if (WALK(query->setOperations))
 		return true;
-<<<<<<< HEAD
-	if (walker(query->groupClause, context))
+	if (WALK(query->groupClause))
 		return true;
-	if (walker(query->windowClause, context))
+	if (WALK(query->windowClause))
 		return true;
-	if (walker(query->limitOffset, context))
-=======
 	if (WALK(query->havingQual))
->>>>>>> REL_16_9
 		return true;
 	if (WALK(query->limitOffset))
 		return true;
@@ -2910,9 +2877,9 @@ range_table_entry_walker_impl(RangeTblEntry *rte,
 				return true;
 			break;
 		case RTE_TABLEFUNCTION:
-			if (walker(rte->subquery, context))
+			if (WALK(rte->subquery))
 				return true;
-			if (walker(rte->functions, context))
+			if (WALK(rte->functions))
 				return true;
 			break;
 		case RTE_TABLEFUNC:
@@ -4014,10 +3981,7 @@ range_table_entry_mutator(RangeTblEntry *rte, Node *(*mutator)(), void *context,
 			break;
 		case RTE_SUBQUERY:
 			if (!(flags & QTW_IGNORE_RT_SUBQUERIES))
-			{
-				CHECKFLATCOPY(newrte->subquery, rte->subquery, Query);
 				MUTATE(newrte->subquery, newrte->subquery, Query *);
-			}
 			else
 			{
 				/* else, copy RT subqueries as-is */
@@ -4077,54 +4041,7 @@ range_table_mutator_impl(List *rtable,
 	foreach(rt, rtable)
 	{
 		RangeTblEntry *rte = (RangeTblEntry *) lfirst(rt);
-<<<<<<< HEAD
 		Node *newrte = range_table_entry_mutator(rte, mutator, context, flags);
-=======
-		RangeTblEntry *newrte;
-
-		FLATCOPY(newrte, rte, RangeTblEntry);
-		switch (rte->rtekind)
-		{
-			case RTE_RELATION:
-				MUTATE(newrte->tablesample, rte->tablesample,
-					   TableSampleClause *);
-				/* we don't bother to copy eref, aliases, etc; OK? */
-				break;
-			case RTE_SUBQUERY:
-				if (!(flags & QTW_IGNORE_RT_SUBQUERIES))
-					MUTATE(newrte->subquery, rte->subquery, Query *);
-				else
-				{
-					/* else, copy RT subqueries as-is */
-					newrte->subquery = copyObject(rte->subquery);
-				}
-				break;
-			case RTE_JOIN:
-				if (!(flags & QTW_IGNORE_JOINALIASES))
-					MUTATE(newrte->joinaliasvars, rte->joinaliasvars, List *);
-				else
-				{
-					/* else, copy join aliases as-is */
-					newrte->joinaliasvars = copyObject(rte->joinaliasvars);
-				}
-				break;
-			case RTE_FUNCTION:
-				MUTATE(newrte->functions, rte->functions, List *);
-				break;
-			case RTE_TABLEFUNC:
-				MUTATE(newrte->tablefunc, rte->tablefunc, TableFunc *);
-				break;
-			case RTE_VALUES:
-				MUTATE(newrte->values_lists, rte->values_lists, List *);
-				break;
-			case RTE_CTE:
-			case RTE_NAMEDTUPLESTORE:
-			case RTE_RESULT:
-				/* nothing to do */
-				break;
-		}
-		MUTATE(newrte->securityQuals, rte->securityQuals, List *);
->>>>>>> REL_16_9
 		newrt = lappend(newrt, newrte);
 	}
 	return newrt;
@@ -4231,14 +4148,10 @@ raw_expression_tree_walker_impl(Node *node,
 		case T_RangeVar:
 			return WALK(((RangeVar *) node)->alias);
 		case T_GroupingFunc:
-<<<<<<< HEAD
-			return walker(((GroupingFunc *) node)->args, context);
+			return WALK(((GroupingFunc *) node)->args);
 		case T_GroupId:
 		case T_GroupingSetId:
 			break;
-=======
-			return WALK(((GroupingFunc *) node)->args);
->>>>>>> REL_16_9
 		case T_SubLink:
 			{
 				SubLink    *sublink = (SubLink *) node;
@@ -4719,12 +4632,9 @@ raw_expression_tree_walker_impl(Node *node,
 			break;
 		case T_CommonTableExpr:
 			/* search_clause and cycle_clause are not interesting here */
-<<<<<<< HEAD
-			return walker(((CommonTableExpr *) node)->ctequery, context);
-		case T_TableValueExpr:
-			return walker(((TableValueExpr *) node)->subquery, context);
-=======
 			return WALK(((CommonTableExpr *) node)->ctequery);
+		case T_TableValueExpr:
+			return WALK(((TableValueExpr *) node)->subquery);
 		case T_JsonOutput:
 			{
 				JsonOutput *out = (JsonOutput *) node;
@@ -4809,7 +4719,6 @@ raw_expression_tree_walker_impl(Node *node,
 					return true;
 			}
 			break;
->>>>>>> REL_16_9
 		default:
 			elog(ERROR, "unrecognized node type: %d",
 				 (int) nodeTag(node));
