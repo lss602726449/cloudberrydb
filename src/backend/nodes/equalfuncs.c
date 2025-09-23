@@ -915,11 +915,13 @@ _equalRestrictInfo(const RestrictInfo *a, const RestrictInfo *b)
 {
 	COMPARE_NODE_FIELD(clause);
 	COMPARE_SCALAR_FIELD(is_pushed_down);
-	COMPARE_SCALAR_FIELD(outerjoin_delayed);
+	COMPARE_SCALAR_FIELD(has_clone);
+	COMPARE_SCALAR_FIELD(is_clone);
 	COMPARE_SCALAR_FIELD(security_level);
 	COMPARE_BITMAPSET_FIELD(required_relids);
+	COMPARE_BITMAPSET_FIELD(incompatible_relids);
 	COMPARE_BITMAPSET_FIELD(outer_relids);
-	COMPARE_BITMAPSET_FIELD(nullable_relids);
+	COMPARE_SCALAR_FIELD(rinfo_serial);
 
 	/*
 	 * We ignore all the remaining fields, since they may not be set yet, and
@@ -962,8 +964,12 @@ _equalSpecialJoinInfo(const SpecialJoinInfo *a, const SpecialJoinInfo *b)
 	COMPARE_BITMAPSET_FIELD(syn_lefthand);
 	COMPARE_BITMAPSET_FIELD(syn_righthand);
 	COMPARE_SCALAR_FIELD(jointype);
+	COMPARE_SCALAR_FIELD(ojrelid);
+	COMPARE_BITMAPSET_FIELD(commute_above_l);
+	COMPARE_BITMAPSET_FIELD(commute_above_r);
+	COMPARE_BITMAPSET_FIELD(commute_below_l);
+	COMPARE_BITMAPSET_FIELD(commute_below_r);
 	COMPARE_SCALAR_FIELD(lhs_strict);
-	COMPARE_SCALAR_FIELD(delay_upper_joins);
 	COMPARE_SCALAR_FIELD(semi_can_btree);
 	COMPARE_SCALAR_FIELD(semi_can_hash);
 	COMPARE_NODE_FIELD(semi_operators);
@@ -1289,7 +1295,7 @@ _equalGrantRoleStmt(const GrantRoleStmt *a, const GrantRoleStmt *b)
 	COMPARE_NODE_FIELD(granted_roles);
 	COMPARE_NODE_FIELD(grantee_roles);
 	COMPARE_SCALAR_FIELD(is_grant);
-	COMPARE_SCALAR_FIELD(admin_opt);
+	COMPARE_NODE_FIELD(opt);
 	COMPARE_NODE_FIELD(grantor);
 	COMPARE_SCALAR_FIELD(behavior);
 
@@ -1553,10 +1559,11 @@ _equalIndexStmt(const IndexStmt *a, const IndexStmt *b)
 	COMPARE_NODE_FIELD(excludeOpNames);
 	COMPARE_STRING_FIELD(idxcomment);
 	COMPARE_SCALAR_FIELD(indexOid);
-	COMPARE_SCALAR_FIELD(oldNode);
+	COMPARE_SCALAR_FIELD(oldNumber);
 	COMPARE_SCALAR_FIELD(oldCreateSubid);
-	COMPARE_SCALAR_FIELD(oldFirstRelfilenodeSubid);
+	COMPARE_SCALAR_FIELD(oldFirstRelfilelocatorSubid);
 	COMPARE_SCALAR_FIELD(unique);
+	COMPARE_SCALAR_FIELD(nulls_not_distinct);
 	COMPARE_SCALAR_FIELD(primary);
 	COMPARE_SCALAR_FIELD(isconstraint);
 	COMPARE_SCALAR_FIELD(deferrable);
@@ -2706,7 +2713,7 @@ _equalCreatePublicationStmt(const CreatePublicationStmt *a,
 {
 	COMPARE_STRING_FIELD(pubname);
 	COMPARE_NODE_FIELD(options);
-	COMPARE_NODE_FIELD(tables);
+	COMPARE_NODE_FIELD(pubobjects);
 	COMPARE_SCALAR_FIELD(for_all_tables);
 
 	return true;
@@ -2718,9 +2725,9 @@ _equalAlterPublicationStmt(const AlterPublicationStmt *a,
 {
 	COMPARE_STRING_FIELD(pubname);
 	COMPARE_NODE_FIELD(options);
-	COMPARE_NODE_FIELD(tables);
+	COMPARE_NODE_FIELD(pubobjects);
 	COMPARE_SCALAR_FIELD(for_all_tables);
-	COMPARE_SCALAR_FIELD(tableAction);
+	COMPARE_SCALAR_FIELD(action);
 
 	return true;
 }
@@ -3144,6 +3151,7 @@ _equalRangeTblEntry(const RangeTblEntry *a, const RangeTblEntry *b)
 	COMPARE_SCALAR_FIELD(relkind);
 	COMPARE_SCALAR_FIELD(rellockmode);
 	COMPARE_NODE_FIELD(tablesample);
+	COMPARE_SCALAR_FIELD(perminfoindex);
 	COMPARE_SCALAR_FIELD(relisivm);
 	COMPARE_NODE_FIELD(subquery);
 	COMPARE_SCALAR_FIELD(security_barrier);
@@ -3170,12 +3178,6 @@ _equalRangeTblEntry(const RangeTblEntry *a, const RangeTblEntry *b)
 	COMPARE_SCALAR_FIELD(lateral);
 	COMPARE_SCALAR_FIELD(inh);
 	COMPARE_SCALAR_FIELD(inFromCl);
-	COMPARE_SCALAR_FIELD(requiredPerms);
-	COMPARE_SCALAR_FIELD(checkAsUser);
-	COMPARE_BITMAPSET_FIELD(selectedCols);
-	COMPARE_BITMAPSET_FIELD(insertedCols);
-	COMPARE_BITMAPSET_FIELD(updatedCols);
-	COMPARE_BITMAPSET_FIELD(extraUpdatedCols);
 	COMPARE_NODE_FIELD(securityQuals);
 
 	return true;
@@ -3425,7 +3427,7 @@ _equalPartitionElem(const PartitionElem *a, const PartitionElem *b)
 static bool
 _equalPartitionSpec(const PartitionSpec *a, const PartitionSpec *b)
 {
-	COMPARE_STRING_FIELD(strategy);
+	COMPARE_SCALAR_FIELD(strategy);
 	COMPARE_NODE_FIELD(partParams);
 	COMPARE_LOCATION_FIELD(location);
 
