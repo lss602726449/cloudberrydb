@@ -43,65 +43,40 @@ _readAConst(void)
 {
 	READ_LOCALS(A_Const);
 
-	/* skip " :val " */
+	/* We expect either NULL or :val here */
 	token = pg_strtok(&length);
-	if (length != 4 || token[0] != ':' || token[1] != 'v')
-		elog(ERROR,"Unable to understand A_CONST node \"%.30s\"", token);
-
-	token = pg_strtok(&length);
-	token = debackslash(token,length);
-	local_node->val.type = T_String;
-
-	if (token[0] == '"')
-	{
-		local_node->val.val.str = palloc(length - 1);
-		strncpy(local_node->val.val.str , token+1, strlen(token)-2);
-		local_node->val.val.str[strlen(token)-2] = '\0';
-	}
-	else if (length > 2 && (token[0] == 'b'|| token[0] == 'B') && (token[1] == '\'' || token[1] == '"'))
-	{
-		local_node->val.type = T_BitString;
-		local_node->val.val.str = palloc(length+1);
-		strncpy(local_node->val.val.str , token, length);
-		local_node->val.val.str[length] = '\0';
-	}
+	if (length == 4 && strncmp(token, "NULL", 4) == 0)
+		local_node->isnull = true;
 	else
 	{
-		bool isInt = true;
-		bool isFloat = true;
-		int i = 0;
-		if (token[i] == ' ')
-			i++;
-		if (token[i] == '-' || token[i] == '+')
-			i++;
-		for (; i < length; i++)
-	 	   if (token[i] < '0' || token[i] > '9')
-	 	   {
-	 	   	 isInt = false;
-	 	   	 if (token[i] != '.' && token[i] != 'e' && token[i] != 'E' && token[i] != '+' && token[i] != '-')
-	 	   	 	isFloat = false;
-	 	   }
-	 	if (isInt)
+		union ValUnion *tmp = nodeRead(NULL, 0);
+
+		/* To forestall valgrind complaints, copy only the valid data */
+		switch (nodeTag(tmp))
 		{
-			local_node->val.type = T_Integer;
-			local_node->val.val.ival = atol(token);
-		}
-		else if (isFloat)
-		{
-			local_node->val.type = T_Float;
-			local_node->val.val.str = palloc(length + 1);
-			strcpy(local_node->val.val.str , token);
-		}
-		else
-		{
-			elog(ERROR,"Deserialization problem:  A_Const not string, bitstring, float, or int");
-			local_node->val.val.str = palloc(length + 1);
-			strcpy(local_node->val.val.str , token);
+			case T_Integer:
+				memcpy(&local_node->val, tmp, sizeof(Integer));
+				break;
+			case T_Float:
+				memcpy(&local_node->val, tmp, sizeof(Float));
+				break;
+			case T_Boolean:
+				memcpy(&local_node->val, tmp, sizeof(Boolean));
+				break;
+			case T_String:
+				memcpy(&local_node->val, tmp, sizeof(String));
+				break;
+			case T_BitString:
+				memcpy(&local_node->val, tmp, sizeof(BitString));
+				break;
+			default:
+				elog(ERROR, "unrecognized node type: %d",
+					 (int) nodeTag(tmp));
+				break;
 		}
 	}
 
-    /* CDB: 'location' field is not serialized */
-    local_node->location = -1;
+	READ_LOCATION_FIELD(location);
 
 	READ_DONE();
 }
@@ -363,9 +338,9 @@ _readAlterPublicationStmt()
 
 	READ_STRING_FIELD(pubname);
 	READ_NODE_FIELD(options);
-	READ_NODE_FIELD(tables);
+	READ_NODE_FIELD(pubobjects);
 	READ_BOOL_FIELD(for_all_tables);
-	READ_ENUM_FIELD(tableAction, DefElemAction);
+	READ_ENUM_FIELD(action, AlterPublicationAction);
 
 	READ_DONE();
 }
@@ -903,7 +878,7 @@ _readCreatePublicationStmt()
 
 	READ_STRING_FIELD(pubname);
 	READ_NODE_FIELD(options);
-	READ_NODE_FIELD(tables);
+	READ_NODE_FIELD(pubobjects);
 	READ_BOOL_FIELD(for_all_tables);
 
 	READ_DONE();
@@ -1260,7 +1235,7 @@ _readGrantRoleStmt(void)
 	READ_NODE_FIELD(granted_roles);
 	READ_NODE_FIELD(grantee_roles);
 	READ_BOOL_FIELD(is_grant);
-	READ_BOOL_FIELD(admin_opt);
+	READ_NODE_FIELD(opt);
 	READ_NODE_FIELD(grantor);
 	READ_ENUM_FIELD(behavior, DropBehavior);
     Assert(local_node->behavior <= DROP_CASCADE);
@@ -1346,10 +1321,11 @@ _readIndexStmt(void)
 	READ_NODE_FIELD(excludeOpNames);
 	READ_STRING_FIELD(idxcomment);
 	READ_OID_FIELD(indexOid);
-	READ_OID_FIELD(oldNode);
+	READ_OID_FIELD(oldNumber);
 	READ_UINT_FIELD(oldCreateSubid);
-	READ_UINT_FIELD(oldFirstRelfilenodeSubid);
+	READ_UINT_FIELD(oldFirstRelfilelocatorSubid);
 	READ_BOOL_FIELD(unique);
+	READ_BOOL_FIELD(nulls_not_distinct);
 	READ_BOOL_FIELD(primary);
 	READ_BOOL_FIELD(isconstraint);
 	READ_BOOL_FIELD(deferrable);
@@ -1472,7 +1448,7 @@ _readPartitionSpec(void)
 {
 	READ_LOCALS(PartitionSpec);
 
-	READ_STRING_FIELD(strategy);
+	READ_ENUM_FIELD(strategy, PartitionStrategy);
 	READ_NODE_FIELD(partParams);
 	READ_LOCATION_FIELD(location);
 
@@ -1568,7 +1544,7 @@ _readRestrictInfo(void)
 	READ_BOOL_FIELD(leakproof);
 	READ_ENUM_FIELD(has_volatile, VolatileFunctionStatus);
 	READ_UINT_FIELD(security_level);
-	WRITE_INT_FIELD(num_base_rels);
+	READ_INT_FIELD(num_base_rels);
 	READ_BOOL_FIELD(contain_outer_query_references);
 	READ_BITMAPSET_FIELD(clause_relids);
 	READ_BITMAPSET_FIELD(required_relids);

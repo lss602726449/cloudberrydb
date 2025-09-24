@@ -216,6 +216,11 @@ outToken(StringInfo str, const char *s)
 		appendStringInfoString(str, "<>");
 		return;
 	}
+	if (*s == '\0')
+	{
+		appendStringInfoString(str, "\"\"");
+		return;
+	}
 
 	/*
 	 * Look for characters or patterns that are treated specially by read.c
@@ -249,6 +254,13 @@ outChar(StringInfo str, char c)
 {
 	char		in[2];
 
+	/* Traditionally, we've represented \0 as <>, so keep doing that */
+	if (c == '\0')
+	{
+		appendStringInfoString(str, "<>");
+		return;
+	}
+
 	in[0] = c;
 	in[1] = '\0';
 
@@ -261,7 +273,7 @@ outChar(StringInfo str, char c)
 static void
 outDouble(StringInfo str, double d)
 {
-	char            buf[DOUBLE_SHORTEST_DECIMAL_LEN];
+	char		buf[DOUBLE_SHORTEST_DECIMAL_LEN];
 
 	double_to_shortest_decimal_buf(d, buf);
 	appendStringInfoString(str, buf);
@@ -278,6 +290,8 @@ _outList(StringInfo str, const List *node)
 		appendStringInfoChar(str, 'i');
 	else if (IsA(node, OidList))
 		appendStringInfoChar(str, 'o');
+	else if (IsA(node, XidList))
+		appendStringInfoChar(str, 'x');
 
 	foreach(lc, node)
 	{
@@ -296,6 +310,8 @@ _outList(StringInfo str, const List *node)
 			appendStringInfo(str, " %d", lfirst_int(lc));
 		else if (IsA(node, OidList))
 			appendStringInfo(str, " %u", lfirst_oid(lc));
+		else if (IsA(node, XidList))
+			appendStringInfo(str, " %u", lfirst_xid(lc));
 		else
 			elog(ERROR, "unrecognized list node type: %d",
 				 (int) node->type);
@@ -3850,46 +3866,6 @@ _outAExpr(StringInfo str, const A_Expr *node)
 	WRITE_LOCATION_FIELD(location);
 }
 
-static void
-_outValue(StringInfo str, const Value *value)
-{
-	switch (value->type)
-	{
-		case T_Integer:
-			appendStringInfo(str, "%d", value->val.ival);
-			break;
-		case T_Float:
-
-			/*
-			 * We assume the value is a valid numeric literal and so does not
-			 * need quoting.
-			 */
-			appendStringInfoString(str, value->val.str);
-			break;
-		case T_String:
-
-			/*
-			 * We use outToken to provide escaping of the string's content,
-			 * but we don't want it to do anything with an empty string.
-			 */
-			appendStringInfoChar(str, '"');
-			if (value->val.str[0] != '\0')
-				outToken(str, value->val.str);
-			appendStringInfoChar(str, '"');
-			break;
-		case T_BitString:
-			/* internal representation already has leading 'b' */
-			appendStringInfoString(str, value->val.str);
-			break;
-		case T_Null:
-			/* this is seen only within A_Const, not in transformed trees */
-			appendStringInfoString(str, "NULL");
-			break;
-		default:
-			elog(ERROR, "unrecognized node type: %d", (int) value->type);
-			break;
-	}
-}
 #endif /* COMPILING_BINARY_FUNCS */
 
 static void
@@ -3925,6 +3901,56 @@ _outRawStmt(StringInfo str, const RawStmt *node)
 }
 
 #ifndef COMPILING_BINARY_FUNCS
+
+
+static void
+_outInteger(StringInfo str, const Integer *node)
+{
+	appendStringInfo(str, "%d", node->ival);
+}
+
+static void
+_outFloat(StringInfo str, const Float *node)
+{
+	/*
+	 * We assume the value is a valid numeric literal and so does not need
+	 * quoting.
+	 */
+	appendStringInfoString(str, node->fval);
+}
+
+static void
+_outBoolean(StringInfo str, const Boolean *node)
+{
+	appendStringInfoString(str, node->boolval ? "true" : "false");
+}
+
+static void
+_outString(StringInfo str, const String *node)
+{
+	/*
+	 * We use outToken to provide escaping of the string's content, but we
+	 * don't want it to convert an empty string to '""', because we're putting
+	 * double quotes around the string already.
+	 */
+	appendStringInfoChar(str, '"');
+	if (node->sval[0] != '\0')
+		outToken(str, node->sval);
+	appendStringInfoChar(str, '"');
+}
+
+static void
+_outBitString(StringInfo str, const BitString *node)
+{
+	/*
+	 * The lexer will always produce a string starting with 'b' or 'x'.  There
+	 * might be characters following that that need escaping, but outToken
+	 * won't escape the 'b' or 'x'.  This is relied on by nodeTokenType.
+	 */
+	Assert(node->bsval[0] == 'b' || node->bsval[0] == 'x');
+	outToken(str, node->bsval);
+}
+
 static void
 _outAConst(StringInfo str, const A_Const *node)
 {
@@ -4259,16 +4285,22 @@ outNode(StringInfo str, const void *obj)
 
 	if (obj == NULL)
 		appendStringInfoString(str, "<>");
-	else if (IsA(obj, List) || IsA(obj, IntList) || IsA(obj, OidList))
+	else if (IsA(obj, List) || IsA(obj, IntList) || IsA(obj, OidList) ||
+			 IsA(obj, XidList))
 		_outList(str, obj);
-	else if (IsA(obj, Integer) ||
-			 IsA(obj, Float) ||
-			 IsA(obj, String) ||
-			 IsA(obj, BitString))
-	{
-		/* nodeRead does not want to see { } around these! */
-		_outValue(str, obj);
-	}
+	/* nodeRead does not want to see { } around these! */
+	else if (IsA(obj, Integer))
+		_outInteger(str, (Integer *) obj);
+	else if (IsA(obj, Float))
+		_outFloat(str, (Float *) obj);
+	else if (IsA(obj, Boolean))
+		_outBoolean(str, (Boolean *) obj);
+	else if (IsA(obj, String))
+		_outString(str, (String *) obj);
+	else if (IsA(obj, BitString))
+		_outBitString(str, (BitString *) obj);
+	else if (IsA(obj, Bitmapset))
+		outBitmapset(str, (Bitmapset *) obj);
 	else
 	{
 		appendStringInfoChar(str, '{');

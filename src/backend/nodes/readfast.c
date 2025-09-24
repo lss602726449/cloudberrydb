@@ -463,15 +463,38 @@ _readAConst(void)
 {
 	READ_LOCALS(A_Const);
 
-	READ_ENUM_FIELD(val.type, NodeTag);
+	READ_ENUM_FIELD(val.node.type, NodeTag);
 
-	switch (local_node->val.type)
+	switch (local_node->val.node.type)
 	{
 		case T_Integer:
-			memcpy(&local_node->val.val.ival, read_str_ptr, sizeof(long)); read_str_ptr+=sizeof(long);
+			memcpy(&local_node->val.ival.ival, read_str_ptr, sizeof(long)); read_str_ptr+=sizeof(long);
+			break;
+		case T_Boolean:
+			memcpy(&local_node->val.boolval.boolval, read_str_ptr, sizeof(long)); read_str_ptr+=sizeof(long);
 			break;
 		case T_Float:
+		{
+			int slen; char * nn;
+			memcpy(&slen, read_str_ptr, sizeof(int));
+			read_str_ptr+=sizeof(int);
+			nn = palloc(slen+1);
+			memcpy(nn,read_str_ptr,slen);
+			nn[slen] = '\0';
+			local_node->val.fval.fval = nn; read_str_ptr+=slen;
+		}
+			break;
 		case T_String:
+		{
+			int slen; char * nn;
+			memcpy(&slen, read_str_ptr, sizeof(int));
+			read_str_ptr+=sizeof(int);
+			nn = palloc(slen+1);
+			memcpy(nn,read_str_ptr,slen);
+			nn[slen] = '\0';
+			local_node->val.sval.sval = nn; read_str_ptr+=slen;
+		}
+			break;
 		case T_BitString:
 		{
 			int slen; char * nn;
@@ -480,7 +503,7 @@ _readAConst(void)
 			nn = palloc(slen+1);
 			memcpy(nn,read_str_ptr,slen);
 			nn[slen] = '\0';
-			local_node->val.val.str = nn; read_str_ptr+=slen;
+			local_node->val.bsval.bsval = nn; read_str_ptr+=slen;
 		}
 			break;
 	 	case T_Null:
@@ -935,7 +958,7 @@ _readDynamicSeqScan(void)
 {
 	READ_LOCALS(DynamicSeqScan);
 
-	ReadCommonScan(&local_node->seqscan);
+	ReadCommonScan(&local_node->seqscan.scan);
 	READ_NODE_FIELD(partOids);
 	READ_NODE_FIELD(part_prune_info);
 	READ_NODE_FIELD(join_prune_paramids);

@@ -101,7 +101,7 @@
 #define READ_UINT64_FIELD(fldname) \
 	token = pg_strtok(&length);		/* skip :fldname */ \
 	token = pg_strtok(&length);		/* get field value */ \
-	local_node->fldname = pg_strtouint64(token, NULL, 10)
+	local_node->fldname = strtou64(token, NULL, 10)
 
 /* Read a long integer field (anything written as ":fldname %ld") */
 #define READ_LONG_FIELD(fldname) \
@@ -1453,10 +1453,15 @@ _readRangeTblEntry(void)
 			READ_CHAR_FIELD(relkind);
 			READ_INT_FIELD(rellockmode);
 			READ_NODE_FIELD(tablesample);
+			READ_UINT_FIELD(perminfoindex);
 			break;
 		case RTE_SUBQUERY:
 			READ_NODE_FIELD(subquery);
 			READ_BOOL_FIELD(security_barrier);
+			READ_OID_FIELD(relid);
+			READ_CHAR_FIELD(relkind);
+			READ_INT_FIELD(rellockmode);
+			READ_UINT_FIELD(perminfoindex);
 			break;
 		case RTE_JOIN:
 			READ_ENUM_FIELD(jointype, JoinType);
@@ -1523,12 +1528,6 @@ _readRangeTblEntry(void)
 	READ_BOOL_FIELD(lateral);
 	READ_BOOL_FIELD(inh);
 	READ_BOOL_FIELD(inFromCl);
-	READ_UINT_FIELD(requiredPerms);
-	READ_OID_FIELD(checkAsUser);
-	READ_BITMAPSET_FIELD(selectedCols);
-	READ_BITMAPSET_FIELD(insertedCols);
-	READ_BITMAPSET_FIELD(updatedCols);
-	READ_BITMAPSET_FIELD(extraUpdatedCols);
 	READ_NODE_FIELD(securityQuals);
 
 	READ_BOOL_FIELD(forceDistRandom);
@@ -1911,7 +1910,7 @@ _readSeqScan(void)
 {
 	READ_LOCALS_NO_FIELDS(SeqScan);
 
-	ReadCommonScan(local_node);
+	ReadCommonScan(&local_node->scan);
 
 	READ_DONE();
 }
