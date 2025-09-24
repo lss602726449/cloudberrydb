@@ -1561,21 +1561,26 @@ _readRestrictInfo(void)
 	/* NB: this isn't a complete set of fields */
 	READ_NODE_FIELD(clause);
 	READ_BOOL_FIELD(is_pushed_down);
-	READ_BOOL_FIELD(outerjoin_delayed);
 	READ_BOOL_FIELD(can_join);
 	READ_BOOL_FIELD(pseudoconstant);
+	READ_BOOL_FIELD(has_clone);
+	READ_BOOL_FIELD(is_clone);
 	READ_BOOL_FIELD(leakproof);
 	READ_ENUM_FIELD(has_volatile, VolatileFunctionStatus);
 	READ_UINT_FIELD(security_level);
+	WRITE_INT_FIELD(num_base_rels);
 	READ_BOOL_FIELD(contain_outer_query_references);
 	READ_BITMAPSET_FIELD(clause_relids);
 	READ_BITMAPSET_FIELD(required_relids);
+	READ_BITMAPSET_FIELD(incompatible_relids);
 	READ_BITMAPSET_FIELD(outer_relids);
-	READ_BITMAPSET_FIELD(nullable_relids);
 	READ_BITMAPSET_FIELD(left_relids);
 	READ_BITMAPSET_FIELD(right_relids);
 	READ_NODE_FIELD(orclause);
 
+	READ_INT_FIELD(rinfo_serial);
+	READ_FLOAT_FIELD(eval_cost.startup);
+	READ_FLOAT_FIELD(eval_cost.per_tuple);
 	READ_FLOAT_FIELD(norm_selec);
 	READ_FLOAT_FIELD(outer_selec);
 	READ_NODE_FIELD(mergeopfamilies);
@@ -1584,6 +1589,11 @@ _readRestrictInfo(void)
 	READ_NODE_FIELD(right_em);
 	READ_BOOL_FIELD(outer_is_left);
 	READ_OID_FIELD(hashjoinoperator);
+	READ_FLOAT_FIELD(left_bucketsize);
+	READ_FLOAT_FIELD(left_mcvfreq);
+	READ_FLOAT_FIELD(right_mcvfreq);
+	READ_OID_FIELD(left_hasheqoperator);
+	READ_OID_FIELD(right_hasheqoperator);
 	READ_OID_FIELD(hasheqoperator);
 
 	READ_DONE();
