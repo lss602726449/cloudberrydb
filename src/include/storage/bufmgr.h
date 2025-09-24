@@ -271,17 +271,6 @@ extern int	GetAccessStrategyBufferCount(BufferAccessStrategy strategy);
 extern void FreeAccessStrategy(BufferAccessStrategy strategy);
 
 
-/* inline functions */
-
-/*
- * Although this header file is nominally backend-only, certain frontend
- * programs like pg_waldump include it.  For compilers that emit static
- * inline functions even when they're unused, that leads to unsatisfied
- * external references; hence hide these with #ifndef FRONTEND.
- */
-
-#ifndef FRONTEND
-
 /*
  * BufferIsValid
  *		True iff the given buffer number is valid (either as a shared
@@ -367,15 +356,10 @@ extern PrefetchBufferResult PrefetchSharedBuffer(struct SMgrRelationData *smgr_r
 												 BlockNumber blockNum);
 extern PrefetchBufferResult PrefetchBuffer(Relation reln, ForkNumber forkNum,
 										   BlockNumber blockNum);
-extern bool ReadRecentBuffer(RelFileNode rnode, ForkNumber forkNum,
-							 BlockNumber blockNum, Buffer recent_buffer);
 extern Buffer ReadBuffer(Relation reln, BlockNumber blockNum);
 extern Buffer ReadBufferExtended(Relation reln, ForkNumber forkNum,
 								 BlockNumber blockNum, ReadBufferMode mode,
 								 BufferAccessStrategy strategy);
-extern Buffer ReadBufferWithoutRelcache(RelFileNode rnode,
-										ForkNumber forkNum, BlockNumber blockNum,
-										ReadBufferMode mode, BufferAccessStrategy strategy);
 extern void ReleaseBuffer(Buffer buffer);
 extern void UnlockReleaseBuffer(Buffer buffer);
 extern void MarkBufferDirty(Buffer buffer);
@@ -427,8 +411,6 @@ extern XLogRecPtr BufferGetLSNAtomic(Buffer buffer);
 extern void PrintPinnedBufs(void);
 #endif
 extern Size BufferShmemSize(void);
-extern void BufferGetTag(Buffer buffer, RelFileNode *rnode,
-						 ForkNumber *forknum, BlockNumber *blknum);
 
 extern void MarkBufferDirtyHint(Buffer buffer, bool buffer_std);
 
@@ -439,8 +421,6 @@ extern void LockBufferForCleanup(Buffer buffer);
 extern bool ConditionalLockBufferForCleanup(Buffer buffer);
 extern bool IsBufferCleanupOK(Buffer buffer);
 extern bool HoldingBufferPinThatDelaysRecovery(void);
-
-extern void AbortBufferIO(void);
 
 extern void BufmgrCommit(void);
 extern bool BgBufferSync(struct WritebackContext *wb_context);
