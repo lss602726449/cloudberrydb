@@ -44,6 +44,5 @@ extern char *simple_prompt_extended(const char *prompt, bool echo,
 
 /* functions in src/common/pg_get_line.c */
 extern bool pg_get_line_buf(FILE *stream, struct StringInfoData *buf);
-extern bool pg_get_line_append(FILE *stream, struct StringInfoData *buf);
 
 #endif							/* COMMON_STRING_H */

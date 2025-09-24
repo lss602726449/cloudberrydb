@@ -576,7 +576,7 @@ extern int	xactGetCommittedChildren(TransactionId **ptr);
 extern XLogRecPtr XactLogCommitRecord(TimestampTz commit_time,
 									  Oid tablespace_oid_to_delete_on_commit,
 									  int nsubxacts, TransactionId *subxacts,
-									  int nrels, RelFileNodePendingDelete *rels, RelFileLocator *rels,
+									  int nrels, RelFileNodePendingDelete *rels,
 									  int ndroppedstats,
 									  xl_xact_stats_item *droppedstats,
 									  int nmsgs, SharedInvalidationMessage *msgs,
