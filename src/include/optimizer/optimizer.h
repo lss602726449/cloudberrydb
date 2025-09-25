@@ -94,7 +94,6 @@ extern PGDLLIMPORT double parallel_setup_cost;
 extern PGDLLIMPORT double recursive_worktable_factor;
 extern PGDLLIMPORT int effective_cache_size;
 
-extern double clamp_row_est(double nrows);
 extern long clamp_cardinality_to_long(Cardinality x);
 
 /* in path/indxpath.c: */

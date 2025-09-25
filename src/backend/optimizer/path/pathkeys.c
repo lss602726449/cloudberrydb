@@ -174,12 +174,13 @@ gen_implied_qual(PlannerInfo *root,
 	new_rinfo = make_restrictinfo(root,
 								  (Expr *) new_clause,
 								  old_rinfo->is_pushed_down,
-								  old_rinfo->outerjoin_delayed,
+								  old_rinfo->has_clone,
+								  old_rinfo->is_clone,
 								  old_rinfo->pseudoconstant,
 								  old_rinfo->security_level,
 								  new_qualscope,
-								  old_rinfo->outer_relids,
-								  old_rinfo->nullable_relids);
+								  old_rinfo->incompatible_relids,
+								  old_rinfo->outer_relids);
 	check_mergejoinable(new_rinfo);
 	check_hashjoinable(new_rinfo);
 
@@ -195,7 +196,7 @@ gen_implied_qual(PlannerInfo *root,
 										   PVC_RECURSE_AGGREGATES |
 										   PVC_INCLUDE_PLACEHOLDERS);
 
-		add_vars_to_targetlist(root, vars, new_qualscope, false);
+		add_vars_to_targetlist(root, vars, new_qualscope);
 		list_free(vars);
 	}
 
@@ -1509,7 +1510,6 @@ cdb_make_distkey_for_expr(PlannerInfo *root,
 	 * used for DistributionKey, so it would not participate in qual deduction.
 	 */
 	eclass = get_eclass_for_sort_expr(root, (Expr *) expr,
-									  NULL,
 									  mergeopfamilies,
 									  lefttype,
 									  exprCollation(expr),
@@ -1625,7 +1625,6 @@ cdb_pull_up_eclass(PlannerInfo *root,
 	 */
 	outer_ec = get_eclass_for_sort_expr(root,
 										newexpr,
-										NULL,
 										eclass->ec_opfamilies,
 										exprType((Node *) newexpr),
 										exprCollation((Node *) newexpr),
@@ -1782,7 +1781,6 @@ make_distribution_exprs_for_groupclause(PlannerInfo *root, List *groupclause, Li
 
 		pathkey = make_pathkey_from_sortop(root,
 										   expr,
-										   root->nullable_baserels,
 										   sortcl->sortop,
 										   sortcl->nulls_first,
 										   sortcl->tleSortGroupRef,

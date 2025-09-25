@@ -354,6 +354,7 @@ typedef enum NodeTag
 	T_IndexClause,
 	T_PlaceHolderVar,
 	T_SpecialJoinInfo,
+	T_OuterJoinClauseInfo,
 	T_AppendRelInfo,
 	T_RowIdentityVarInfo,
 	T_PlaceHolderInfo,
@@ -361,9 +362,12 @@ typedef enum NodeTag
 	T_MinMaxAggInfo,
 	T_SegfileMapNode,
 	T_PlannerParamItem,
+	T_AggInfo,
+	T_AggTransInfo,
 	T_RollupData,
 	T_GroupingSetData,
 	T_StatisticExtInfo,
+	T_JoinDomain,
 
     /* Tags for MPP planner nodes (relation.h) */
     T_CdbMotionPath = 580,

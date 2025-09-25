@@ -138,8 +138,6 @@ static void distribute_qual_to_rels(PlannerInfo *root, Node *clause,
 									List **postponed_oj_qual_list);
 static bool check_redundant_nullability_qual(PlannerInfo *root, Node *clause);
 static Relids get_join_domain_min_rels(PlannerInfo *root, Relids domain_relids);
-static void check_mergejoinable(RestrictInfo *restrictinfo);
-static void check_hashjoinable(RestrictInfo *restrictinfo);
 static void check_memoizable(RestrictInfo *restrictinfo);
 
 
@@ -287,7 +285,7 @@ build_base_rel_tlists(PlannerInfo *root, List *final_tlist)
 		if (window_vars != NIL)
 		{
 			add_vars_to_targetlist(root, window_vars,
-								   bms_make_singleton(0), true);
+								   bms_make_singleton(0));
 			list_free(window_vars);
 		}
 	}
@@ -307,7 +305,7 @@ build_base_rel_tlists(PlannerInfo *root, List *final_tlist)
  */
 void
 add_vars_to_targetlist_x(PlannerInfo *root, List *vars,
-						 Relids where_needed, bool create_new_ph, bool force)
+						 Relids where_needed, bool force)
 {
 	ListCell   *temp;
 
@@ -357,10 +355,9 @@ add_vars_to_targetlist_x(PlannerInfo *root, List *vars,
 	}
 }
 void
-add_vars_to_targetlist(PlannerInfo *root, List *vars, Bitmapset *where_needed,
-					   bool create_new_ph)
+add_vars_to_targetlist(PlannerInfo *root, List *vars, Bitmapset *where_needed)
 {
-	add_vars_to_targetlist_x(root, vars, where_needed, create_new_ph, false);
+	add_vars_to_targetlist_x(root, vars, where_needed, false);
 }
 
 /*
@@ -2992,7 +2989,6 @@ distribute_restrictinfo_to_rels(PlannerInfo *root,
 												   PVC_RECURSE_PLACEHOLDERS);
 
 				add_vars_to_targetlist_x(root, vars, relids,
-										 false, /* create_new_ph */
 										 true /* force */);
 				list_free(vars);
 

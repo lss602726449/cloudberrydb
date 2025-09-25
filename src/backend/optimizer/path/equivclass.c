@@ -732,7 +732,6 @@ get_eclass_for_sort_expr(PlannerInfo *root,
 			}
 
 			Assert(rel->reloptkind == RELOPT_BASEREL ||
-				   rel->reloptkind == RELOPT_DEADREL ||
 				   rel->reloptkind == RELOPT_OTHER_MEMBER_REL);
 
 			rel->eclass_indexes = bms_add_member(rel->eclass_indexes,
@@ -3263,7 +3262,7 @@ translate_expr_to_rel_vars(PlannerInfo *root, GroupedVarInfo *gvi,
 		ListCell   *l2;
 
 		/* These EC kind should be ignored. */
-		if (ec->ec_has_volatile || ec->ec_below_outer_join || ec->ec_broken)
+		if (ec->ec_has_volatile || ec->ec_broken)
 			continue;
 
 		/* Single-element EC can hardly help in translations. */

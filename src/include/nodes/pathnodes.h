@@ -1747,7 +1747,7 @@ typedef struct DistributionKey
  * This is copied from MUST_BE_REDUNDANT in pathkeys.c
  */
 #define CdbEquivClassIsConstant(eclass)						\
-	((eclass)->ec_has_const && !(eclass)->ec_below_outer_join)
+	((eclass)->ec_has_const)
 
 /*
  * VolatileFunctionStatus -- allows nodes to cache their

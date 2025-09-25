@@ -261,7 +261,6 @@ extern List *build_partition_pathkeys(PlannerInfo *root, RelOptInfo *partrel,
 									  ScanDirection scandir, bool *partialkeys);
 extern PathKey *make_pathkey_from_sortop(PlannerInfo *root,
 										 Expr *expr,
-										 Relids nullable_relids,
 										 Oid ordering_op,
 										 bool nulls_first,
 										 Index sortref,
