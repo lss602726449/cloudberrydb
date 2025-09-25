@@ -209,7 +209,7 @@ typedef enum VacuumOption
 	VACOPT_ROOTONLY = 1 << 10,
 	VACOPT_FULLSCAN = 1 << 11,
 	VACOPT_SKIP_DATABASE_STATS = 1 << 12,
-	VACOPT_ONLY_DATABASE_STATS = 1 << 13
+	VACOPT_ONLY_DATABASE_STATS = 1 << 13,
 
 	/* AO vacuum phases. Mutually exclusive */
 	VACOPT_AO_PRE_CLEANUP_PHASE = 1 << 14,

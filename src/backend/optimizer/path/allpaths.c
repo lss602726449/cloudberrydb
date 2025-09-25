@@ -3083,7 +3083,7 @@ set_subquery_pathlist(PlannerInfo *root, RelOptInfo *rel,
 											 subpath->pathkeys,
 											 make_tlist_from_pathtarget(subpath->pathtarget));
 
-		path = (Path *) create_subqueryscan_path(root, rel, subpath,
+		path = (Path *) create_subqueryscan_path(root, rel, subpath, trivial_pathtarget,
 												 pathkeys, locus, required_outer);
 
 		/*
@@ -3598,7 +3598,6 @@ set_cte_pathlist(PlannerInfo *root, RelOptInfo *rel, RangeTblEntry *rte)
 	foreach(lc, sub_final_rel->pathlist)
 	{
 		Path	   *subpath = (Path *) lfirst(lc);
-		List	   *pathkeys;
 		CdbPathLocus locus;
 
 		locus = cdbpathlocus_from_subquery(root, rel, subpath);
@@ -4383,8 +4382,8 @@ push_down_restrict(PlannerInfo *root, RelOptInfo *rel,
 	 * unsafe to use in a pushed-down qual.
 	 */
 	memset(&safetyInfo, 0, sizeof(safetyInfo));
-	safetyInfo.unsafeColumns = (bool *)
-		palloc0((list_length(subquery->targetList) + 1) * sizeof(bool));
+	safetyInfo.unsafeFlags = (unsigned char *)
+		palloc0((list_length(subquery->targetList) + 1) * sizeof(unsigned char));
 
 	/*
 	 * If the subquery has the "security_barrier" flag, it means the subquery
@@ -4422,7 +4421,7 @@ push_down_restrict(PlannerInfo *root, RelOptInfo *rel,
 		/* We don't bother recomputing baserestrict_min_security */
 	}
 
-	pfree(safetyInfo.unsafeColumns);
+	pfree(safetyInfo.unsafeFlags);
 
 	return subquery;
 }
@@ -4688,7 +4687,8 @@ check_output_expressions(Query *subquery, pushdown_safety_info *safetyInfo)
 		/* Refuse subplans */
 		if (contain_subplans((Node *) tle->expr))
 		{
-			safetyInfo->unsafeColumns[tle->resno] = true;
+			/*.MERGE16_FIXME: should we add a new unsafe type? */
+			safetyInfo->unsafeFlags[tle->resno] |= UNSAFE_NOTIN_PARTITIONBY_CLAUSE;
 			continue;
 		}
 	}

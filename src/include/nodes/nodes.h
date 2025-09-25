@@ -690,9 +690,10 @@ typedef enum NodeTag
 	T_SupportRequestSelectivity,	/* in nodes/supportnodes.h */
 	T_SupportRequestCost,		/* in nodes/supportnodes.h */
 	T_SupportRequestRows,		/* in nodes/supportnodes.h */
-	T_SupportRequestIndexCondition	/* in nodes/supportnodes.h */
+	T_SupportRequestIndexCondition,	/* in nodes/supportnodes.h */
+	T_SupportRequestWFuncMonotonic,
+	T_SupportRequestOptimizeWindowClause,
 
-	,
     T_StreamBitmap,             /* in nodes/tidbitmap.h */
 	T_FormatterData,            /* in access/formatter.h */
 	T_ExtProtocolData,          /* in access/extprotocol.h */
@@ -1055,7 +1056,7 @@ typedef enum JoinType
 	   (1 << JOIN_FULL) | \
 	   (1 << JOIN_RIGHT) | \
 	   (1 << JOIN_ANTI) | \
-	   (1 << JOIN_LASJ_NOTIN))) != 0) | \
+	   (1 << JOIN_LASJ_NOTIN) | \
 	   (1 << JOIN_RIGHT_ANTI))) != 0)
 
 /*
