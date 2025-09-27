@@ -904,8 +904,8 @@ typedef NameData *Name;
 #define AssertPointerAlignment(ptr, bndr)	((void)true)
 #define AssertImply(condition1, condition2)	((void)true)
 #define AssertEquivalent(cond1, cond2)	((void)true)
-#define Trap(condition, errorType)	((void)true)
-#define TrapMacro(condition, errorType) (true)
+#define Trap(condition)	((void)true)
+#define TrapMacro(condition) (true)
 
 #elif defined(FRONTEND)
 
@@ -914,6 +914,29 @@ typedef NameData *Name;
 #define AssertMacro(p)	((void) assert(p))
 
 #else							/* USE_ASSERT_CHECKING && !FRONTEND */
+
+/*
+ * Trap
+ *		Generates an exception if the given condition is true.
+ */
+#define Trap(condition) \
+	do { \
+		if (condition) \
+			ExceptionalCondition(#condition, \
+								 __FILE__, __LINE__); \
+	} while (0)
+
+/*
+ *	TrapMacro is the same as Trap but it's intended for use in macros:
+ *
+ *		#define foo(x) (AssertMacro(x != 0), bar(x))
+ *
+ *	Isn't CPP fun?
+ */
+#define TrapMacro(condition) \
+	((bool) (! (condition) || \
+			 (ExceptionalCondition(#condition, \
+								   __FILE__, __LINE__), 0)))
 
 /*
  * Assert
@@ -935,19 +958,35 @@ typedef NameData *Name;
 	((void) ((condition) || \
 			 (ExceptionalCondition(#condition, __FILE__, __LINE__), 0)))
 
-#endif							/* USE_ASSERT_CHECKING && !FRONTEND */
-
 #define AssertImply(cond1, cond2) \
-		Trap(!(!(cond1) || (cond2)), "AssertImply failed")
+		Trap(!(!(cond1) || (cond2)))
 
 #define AssertEquivalent(cond1, cond2) \
-		Trap(!((bool)(cond1) == (bool)(cond2)), "AssertEquivalent failed")
+		Trap(!((bool)(cond1) == (bool)(cond2)))
+
+
+#define AssertArg(condition) \
+	do { \
+		if (!(condition)) \
+			ExceptionalCondition(#condition, \
+								 __FILE__, __LINE__); \
+	} while (0)
+
+#define AssertState(condition) \
+	do { \
+		if (!(condition)) \
+			ExceptionalCondition(#condition, \
+								 __FILE__, __LINE__); \
+	} while (0)
+
 
 /*
  * Check that `ptr' is `bndr' aligned.
  */
 #define AssertPointerAlignment(ptr, bndr) \
 	Assert(TYPEALIGN(bndr, (uintptr_t)(ptr)) == (uintptr_t)(ptr))
+#endif							/* USE_ASSERT_CHECKING && !FRONTEND */
+
 
 /*
  * ExceptionalCondition is compiled into the backend whether or not

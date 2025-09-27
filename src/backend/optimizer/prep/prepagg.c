@@ -578,9 +578,16 @@ get_agg_clause_costs(PlannerInfo *root, AggSplit aggsplit, AggClauseCosts *costs
 	foreach(lc, root->agginfos)
 	{
 		AggInfo    *agginfo = (AggInfo *) lfirst(lc);
-		Aggref	   *aggref = agginfo->representative_aggref;
-		if (aggref->aggdistinct != NIL)
-			costs->distinctAggrefs = lappend(costs->distinctAggrefs, aggref);
+		List 	   *aggrefs = agginfo->aggrefs;
+		ListCell   *lc2;
+
+		foreach(lc2, aggrefs)
+		{
+			Aggref *aggref = lfirst(lc2);
+
+			if (aggref->aggdistinct != NIL)
+				costs->distinctAggrefs = lappend(costs->distinctAggrefs, aggref);
+		}
 	}
 }
 

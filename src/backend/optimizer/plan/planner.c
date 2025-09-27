@@ -42,7 +42,6 @@
 #include "nodes/makefuncs.h"
 #include "nodes/nodeFuncs.h"
 #include "nodes/print.h"
-#endif
 #include "nodes/supportnodes.h"
 #include "optimizer/appendinfo.h"
 #include "optimizer/clauses.h"
@@ -1888,7 +1887,6 @@ grouping_planner(PlannerInfo *root, double tuple_fraction)
 			 */
 			if (target->sortgrouprefs)
 			{
-				ListCell *lc;
 				int			idx;
 
 				idx = 0;
@@ -5680,6 +5678,7 @@ create_partial_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 										 cheapest_partial_path->pathtarget,
 										 AGG_HASHED,
 										 AGGSPLIT_SIMPLE,
+										 false,
 										 root->processed_distinctClause,
 										 NIL,
 										 NULL,
@@ -5735,7 +5734,6 @@ create_final_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 	bool		allow_hash;
 	double		numDistinctRowsTotal;
 	double		numInputRowsTotal;
-	bool		allow_hash;
 	Path	   *path;
 	ListCell   *lc;
 
@@ -5779,8 +5777,6 @@ create_final_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 	 */
 	if (grouping_is_sortable(root->processed_distinctClause))
 	{
-		double		numDistinctRows;
-
 		/*
 		 * Firstly, if we have any adequately-presorted paths, just stick a
 		 * Unique node on those.  We also, consider doing an explicit sort of
@@ -5796,7 +5792,6 @@ create_final_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 		 * the other.)
 		 */
 		List	   *needed_pathkeys;
-		ListCell   *lc;
 		double		limittuples = root->distinct_pathkeys == NIL ? 1.0 : -1.0;
 
 		if (parse->hasDistinctOn &&
@@ -5881,7 +5876,7 @@ create_final_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 				add_path(distinct_rel, (Path *)
 						 create_limit_path(root, distinct_rel, sorted_path,
 										   NULL, limitCount,
-										   LIMIT_OPTION_COUNT, 0, 1));
+										   LIMIT_OPTION_COUNT, 0, 1), root);
 			}
 			else
 			{
@@ -5980,7 +5975,6 @@ create_final_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 	if (allow_hash && grouping_is_hashable(root->processed_distinctClause))
 	{
 		/* Generate hashed aggregate path --- no sort needed */
-		double		numDistinctRows;
 		Size		hashentrysize;
 
 		path = cdb_prepare_path_for_hashed_agg(root,
@@ -6131,7 +6125,7 @@ create_ordered_paths(PlannerInfo *root,
 			sorted_path = apply_projection_to_path(root, ordered_rel,
 												   sorted_path, target);
 
-		add_path(ordered_rel, sorted_path);
+		add_path(ordered_rel, sorted_path, root);
 	}
 
 	/*
@@ -6208,7 +6202,6 @@ create_ordered_paths(PlannerInfo *root,
 			foreach(lc, input_rel->partial_pathlist)
 			{
 				Path	   *input_path = (Path *) lfirst(lc);
-				Path	   *sorted_path;
 				bool		is_sorted;
 				int			presorted_keys;
 #if 0
@@ -8106,7 +8099,7 @@ add_paths_to_grouping_rel(PlannerInfo *root, RelOptInfo *input_rel,
 										 root->processed_groupClause,
 										 havingQual,
 										 agg_costs,
-										 dNumGroups));
+										 dNumGroups), root);
 			}
 #if 0
 			else if (parse->groupClause)
@@ -8128,8 +8121,8 @@ add_paths_to_grouping_rel(PlannerInfo *root, RelOptInfo *input_rel,
 				/* Other cases should have been handled above */
 				Assert(false);
 			}
-		}
 #endif
+		}
 		if (grouped_rel->consider_parallel)
 		{
 			foreach(lc, input_rel->partial_pathlist)
@@ -8274,7 +8267,7 @@ add_paths_to_grouping_rel(PlannerInfo *root, RelOptInfo *input_rel,
 											 root->processed_groupClause,
 											 havingQual,
 											 agg_final_costs,
-											 dNumGroups));
+											 dNumGroups), root);
 #if 0
 				else
 					add_path(grouped_rel, (Path *)
@@ -8363,9 +8356,6 @@ add_paths_to_grouping_rel(PlannerInfo *root, RelOptInfo *input_rel,
 			}
 			if (input_rel->partial_pathlist && grouped_rel->consider_parallel)
 			{
-				Path	   *path = linitial(input_rel->partial_pathlist);
-				double		dNumGroups;
-
 				path = cdb_prepare_path_for_hashed_agg(root,
 														path,
 														path->pathtarget,
@@ -8518,7 +8508,6 @@ add_paths_to_grouping_rel(PlannerInfo *root, RelOptInfo *input_rel,
 
 		if (gp_eager_two_phase_agg)
 		{
-			ListCell *lc;
 			foreach(lc, grouped_rel->pathlist)
 			{
 				Path *path = (Path *) lfirst(lc);
@@ -8825,10 +8814,11 @@ create_partial_grouping_paths(PlannerInfo *root,
 										 partially_grouped_rel->reltarget,
 										 parse->groupClause ? AGG_SORTED : AGG_PLAIN,
 										 AGGSPLIT_INITIAL_SERIAL,
+										 false,
 										 root->processed_groupClause,
 										 NIL,
 										 agg_partial_costs,
-										 dNumPartialGroups));
+										 dNumPartialGroups), root);
 			else
 				add_path(partially_grouped_rel, (Path *)
 						 create_group_path(root,
@@ -8836,7 +8826,7 @@ create_partial_grouping_paths(PlannerInfo *root,
 										   path,
 										   root->processed_groupClause,
 										   NIL,
-										   dNumPartialGroups));
+										   dNumPartialGroups), root);
 		}
 	}
 
@@ -8913,9 +8903,6 @@ create_partial_grouping_paths(PlannerInfo *root,
 			 */
 			if (is_sorted || !enable_incremental_sort)
 				continue;
-
-			/* Restore the input path (we might have added Sort on top). */
-			path = path_original;
 
 			/* no shared prefix, not point in building incremental sort */
 			if (presorted_keys == 0)

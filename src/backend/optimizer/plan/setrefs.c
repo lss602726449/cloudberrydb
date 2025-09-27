@@ -779,8 +779,8 @@ set_plan_refs(PlannerInfo *root, Plan *plan, int rtoffset)
 
 				/* If the scan appears below a shareinput, we hit this assert. */
 #ifdef USE_ASSERT_CHECKING
-				Assert(splan->scanrelid <= list_length(root->glob->finalrtable) && "Scan node's relid is outside the finalrtable!");
-				RangeTblEntry *rte = rt_fetch(splan->scanrelid, root->glob->finalrtable);
+				Assert(splan->scan.scanrelid <= list_length(root->glob->finalrtable) && "Scan node's relid is outside the finalrtable!");
+				RangeTblEntry *rte = rt_fetch(splan->scan.scanrelid, root->glob->finalrtable);
 				Assert((rte->rtekind == RTE_RELATION || rte->rtekind == RTE_CTE) && "Scan plan should refer to a scan relation");
 #endif
 				splan->scan.plan.targetlist =
@@ -1153,10 +1153,10 @@ set_plan_refs(PlannerInfo *root, Plan *plan, int rtoffset)
 
 							pinfo->initial_pruning_steps = (List *)
 								fix_upper_expr(root, (Node *) pinfo->initial_pruning_steps,
-											   childplan_itlist, OUTER_VAR, rtoffset, 1);
+											   childplan_itlist, OUTER_VAR, rtoffset, NRM_EQUAL, 1);
 							pinfo->exec_pruning_steps = (List *)
 								fix_upper_expr(root, (Node *) pinfo->exec_pruning_steps,
-											   childplan_itlist, OUTER_VAR, rtoffset,
+											   childplan_itlist, OUTER_VAR, rtoffset, NRM_EQUAL,
 											   NUM_EXEC_QUAL(plan));
 						}
 					}
@@ -1262,6 +1262,7 @@ set_plan_refs(PlannerInfo *root, Plan *plan, int rtoffset)
 																 subplan_itlist,
 																 OUTER_VAR,
 																 rtoffset,
+																 NRM_EQUAL,
 																 NUM_EXEC_QUAL(plan));
 
 					lfirst(lc) = dqaExpr;
@@ -1304,10 +1305,10 @@ set_plan_refs(PlannerInfo *root, Plan *plan, int rtoffset)
 
 					wplan->startOffset =
 						fix_upper_expr(root, wplan->startOffset,
-									   subplan_itlist, OUTER_VAR, rtoffset, 1);
+									   subplan_itlist, OUTER_VAR, rtoffset, NRM_EQUAL, 1);
 					wplan->endOffset =
 						fix_upper_expr(root, wplan->endOffset,
-									   subplan_itlist, OUTER_VAR, rtoffset, 1);
+									   subplan_itlist, OUTER_VAR, rtoffset, NRM_EQUAL, 1);
 					pfree(subplan_itlist);
 				}
 				wplan->runCondition = fix_scan_list(root,
@@ -1601,7 +1602,7 @@ set_plan_refs(PlannerInfo *root, Plan *plan, int rtoffset)
 				motion->hashExprs = (List *)
 					fix_upper_expr(root, (Node*) motion->hashExprs,
 								   childplan_itlist,  OUTER_VAR,
-								   rtoffset, NUM_EXEC_QUAL(plan));
+								   rtoffset, NRM_EQUAL, NUM_EXEC_QUAL(plan));
 
 				/* no need to fix targetlist and qual */
 				Assert(plan->qual == NIL);
@@ -1700,6 +1701,7 @@ set_indexonlyscan_references(PlannerInfo *root,
 					   index_itlist,
 					   INDEX_VAR,
 					   rtoffset,
+					   NRM_EQUAL,
 					   NUM_EXEC_QUAL((Plan *) plan));
 
 	plan->indexqual = fix_scan_list(root, plan->indexqual,
@@ -2756,7 +2758,6 @@ set_join_references(PlannerInfo *root, Join *join, int rtoffset)
 										inner_itlist,
 										(Index) 0,
 										rtoffset,
-										NRM_EQUAL,
 										NUM_EXEC_QUAL((Plan *) join));
 
 		hj->hashqualclauses = fix_join_expr(root,
@@ -2765,6 +2766,7 @@ set_join_references(PlannerInfo *root, Join *join, int rtoffset)
 											inner_itlist,
 											(Index) 0,
 											rtoffset,
+											NRM_EQUAL,
 											NUM_EXEC_QUAL((Plan *) join));
 		/*
 		 * HashJoin's hashkeys are used to look for matching tuples from its

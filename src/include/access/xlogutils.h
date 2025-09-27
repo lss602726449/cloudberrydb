@@ -121,9 +121,6 @@ extern void XLogReadDetermineTimeline(XLogReaderState *state,
 
 extern void XLogAOSegmentFile(RelFileNode rnode, uint32 segmentFileNum);
 
-extern void XLogReadDetermineTimeline(XLogReaderState *state,
-					XLogRecPtr wantPage, uint32 wantLength);
-
 extern void WALReadRaiseError(WALReadError *errinfo);
 
 #endif

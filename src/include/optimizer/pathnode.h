@@ -367,8 +367,8 @@ extern RelOptInfo *build_join_rel(PlannerInfo *root,
 								  RelOptInfo *outer_rel,
 								  RelOptInfo *inner_rel,
 								  SpecialJoinInfo *sjinfo,
-								  List *pushed_down_joins,
 								  List **restrictlist_ptr,
+								  List *pushed_down_joins,
 								  RelAggInfo *agg_info);
 extern RelOptInfo *build_base_grouped_rel(PlannerInfo *root, RelOptInfo *rel,
 											RelAggInfo **agg_info_p);

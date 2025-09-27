@@ -138,7 +138,7 @@ preprocess_targetlist(PlannerInfo *root)
 				target_rte->relkind != RELKIND_PARTITIONED_TABLE)
 				ereport(ERROR, (errmsg("can't split update for inherit table: %s",
 								RelationGetRelationName(target_relation))));
-			tlist = expand_insert_targetlist(tlist, target_relation, result_relation);
+			tlist = expand_insert_targetlist(root, tlist, target_relation, result_relation);
 		}
 	}
 
@@ -190,10 +190,11 @@ preprocess_targetlist(PlannerInfo *root)
 			if (action->commandType == CMD_INSERT)
 				action->targetList = expand_insert_targetlist(root,
 															  action->targetList,
-															  target_relation);
+															  target_relation,
+															  result_relation);
 			else if (action->commandType == CMD_UPDATE)
 				action->updateColnos =
-					extract_update_targetlist_colnos(action->targetList);
+					extract_update_targetlist_colnos(action->targetList, false);
 
 			/*
 			 * Add resjunk entries for any Vars and PlaceHolderVars used in
@@ -457,6 +458,8 @@ expand_insert_targetlist(PlannerInfo *root, List *tlist, Relation rel, Index spl
 			 * Again, code comparing the finished plan to the target relation
 			 * must account for this.
 			 */
+			Oid			atttype = att_tup->atttypid;
+			Oid			attcollation = att_tup->attcollation;
 			Node	   *new_expr;
 
 			if (!att_tup->attisdropped)
@@ -488,7 +491,7 @@ expand_insert_targetlist(PlannerInfo *root, List *tlist, Relation rel, Index spl
 											false);
 				}
 			}
-			else
+			else if (att_tup->attgenerated)
 			{
 				/* Insert NULL for dropped column */
 				new_expr = (Node *) makeConst(INT4OID,

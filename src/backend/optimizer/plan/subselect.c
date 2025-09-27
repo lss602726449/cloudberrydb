@@ -2766,7 +2766,7 @@ finalize_plan(PlannerInfo *root, Plan *plan,
 			}
 
 			upperset = bms_difference(extset, parentset);
-			while ((paramid = bms_first_member(upperset)) >= 0)
+			while ((paramid = bms_next_member(upperset, -1)) >= 0)
 				initsubplan->extParam = lappend_int(initsubplan->extParam, paramid);
 		}
 	}
@@ -3293,7 +3293,6 @@ finalize_plan(PlannerInfo *root, Plan *plan,
 			break;
 
 		case T_ProjectSet:
-		case T_Hash:
 		case T_RuntimeFilter:
 		case T_Material:
 		case T_Sort:

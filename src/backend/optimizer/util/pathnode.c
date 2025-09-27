@@ -2089,7 +2089,8 @@ set_append_path_locus(PlannerInfo *root, Path *pathnode, RelOptInfo *rel,
 												  (Expr *) makeSegmentFilterExpr(
 													  gp_session_id % numsegments),
 												  true,		/* is_pushed_down */
-												  false,	/* outerjoin_delayed */
+												  false,	/* has_clone */
+												  false,	/*.is_clone */
 												  true,		/* pseudoconstant */
 												  0,		/* security_level */
 												  NULL,		/* required_relids */
@@ -5107,7 +5108,7 @@ create_agg_path(PlannerInfo *root,
 	}
 	else
 		pathnode->path.pathkeys = NIL;	/* output is unordered */
-	pathnode->path.barrierHazard = subpath->barrierHazard;9
+	pathnode->path.barrierHazard = subpath->barrierHazard;
 	pathnode->subpath = subpath;
 	pathnode->streaming = streaming;
 
