@@ -78,15 +78,6 @@ void		sqlprint(void);
 
 /* dynamic SQL */
 
-<<<<<<< HEAD
-bool		ECPGdo_descriptor(int, const char *, const char *, const char *);
-bool		ECPGdeallocate_desc(int, const char *);
-bool		ECPGallocate_desc(int, const char *);
-bool		ECPGget_desc_header(int, const char *, int *);
-bool		ECPGget_desc(int, const char *, int, ...);
-bool		ECPGset_desc_header(int, const char *, int);
-bool		ECPGset_desc(int, const char *, int, ...);
-=======
 bool		ECPGdo_descriptor(int line, const char *connection,
 							  const char *descriptor, const char *query);
 bool		ECPGdeallocate_desc(int line, const char *name);
@@ -95,7 +86,6 @@ bool		ECPGget_desc_header(int lineno, const char *desc_name, int *count);
 bool		ECPGget_desc(int lineno, const char *desc_name, int index,...);
 bool		ECPGset_desc_header(int lineno, const char *desc_name, int count);
 bool		ECPGset_desc(int lineno, const char *desc_name, int index,...);
->>>>>>> REL_16_9
 
 void		ECPGset_noind_null(enum ECPGttype type, void *ptr);
 bool		ECPGis_noind_null(enum ECPGttype type, const void *ptr);

@@ -9,12 +9,8 @@
  *	  more likely to break across PostgreSQL releases than code that uses
  *	  only the official API.
  *
-<<<<<<< HEAD
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
- * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
-=======
  * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/interfaces/libpq/libpq-int.h
@@ -754,11 +750,7 @@ extern pgthreadlock_t pg_g_threadlock;
 
 /* === in fe-exec.c === */
 
-<<<<<<< HEAD
-extern void pqSetResultError(PGresult *res, PQExpBuffer errorMessage);
-=======
 extern void pqSetResultError(PGresult *res, PQExpBuffer errorMessage, int offset);
->>>>>>> REL_16_9
 extern void *pqResultAlloc(PGresult *res, size_t nBytes, bool isBinary);
 extern char *pqResultStrdup(PGresult *res, const char *str);
 extern void pqClearAsyncResult(PGconn *conn);
@@ -770,7 +762,6 @@ extern void pqSaveMessageField(PGresult *res, char code,
 extern void pqSaveParameterStatus(PGconn *conn, const char *name,
 								  const char *value);
 extern int	pqRowProcessor(PGconn *conn, const char **errmsgp);
-<<<<<<< HEAD
 
 extern bool PQsendQueryStart(PGconn *conn, bool newQuery);
 
@@ -791,10 +782,6 @@ extern PGresult *pqFunctionCall2(PGconn *conn, Oid fnid,
 								 const PQArgBlock *args, int nargs);
 
 extern void pqCommandQueueAdvance(PGconn *conn);
-=======
-extern void pqCommandQueueAdvance(PGconn *conn, bool isReadyForQuery,
-								  bool gotSync);
->>>>>>> REL_16_9
 extern int	PQsendQueryContinue(PGconn *conn, const char *query);
 
 
