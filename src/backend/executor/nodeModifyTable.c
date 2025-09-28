@@ -825,11 +825,9 @@ static TupleTableSlot *
 ExecInsert(ModifyTableContext *context,
 		   ResultRelInfo *resultRelInfo,
 		   TupleTableSlot *slot,
-		   TupleTableSlot *planSlot,
-		   EState *estate,
 		   bool canSetTag,
 		   TupleTableSlot **inserted_tuple,
-		   ResultRelInfo **insert_destrel
+		   ResultRelInfo **insert_destrel,
 		   bool splitUpdate)
 {
 	ModifyTableState *mtstate = context->mtstate;
@@ -1875,9 +1873,9 @@ ldelete:
 	if (resultRelationDesc->rd_rel->relispartition)
 	{
 
-		mtstate->mt_leaf_relids_deleted =
-			bms_add_member(mtstate->mt_leaf_relids_deleted, RelationGetRelid(resultRelationDesc));
-		mtstate->has_leaf_changed = true;
+		context->mtstate->mt_leaf_relids_deleted =
+			bms_add_member(context->mtstate->mt_leaf_relids_deleted, RelationGetRelid(resultRelationDesc));
+		context->mtstate->has_leaf_changed = true;
 	}
 
 	/* Tell caller that the delete actually happened. */
@@ -2126,20 +2124,6 @@ ExecUpdatePrologue(ModifyTableContext *context, ResultRelInfo *resultRelInfo,
 	if (result)
 		*result = TM_Ok;
 
-	/*
-	 * Sanity check the distribution of the tuple to prevent
-	 * potential data corruption in case users manipulate data
-	 * incorrectly (e.g. insert data on incorrect segment through
-	 * utility mode) or there is bug in code, etc.
-	 */
-	if (segid != GpIdentity.segindex)
-		elog(ERROR,
-			 "distribution key of the tuple (%u, %u) doesn't belong to "
-			 "current segment (actually from seg%d)",
-			 BlockIdGetBlockNumber(&(tupleid->ip_blkid)),
-			 tupleid->ip_posid,
-			 segid);
-
 	ExecMaterializeSlot(slot);
 
 	/*
@@ -2272,7 +2256,7 @@ lreplace:
 		 * if the tuple has been concurrently updated, a retry is needed.
 		 */
 		if (ExecCrossPartitionUpdate(context, resultRelInfo,
-									 tupleid, oldtuple, slot, segid
+									 tupleid, oldtuple, slot, segid,
 									 canSetTag, updateCxt,
 									 &result,
 									 &retry_slot,
@@ -2742,9 +2726,9 @@ redo_act:
 
 	if (resultRelationDesc->rd_rel->relispartition)
 	{
-		mtstate->mt_leaf_relids_updated =
-			bms_add_member(mtstate->mt_leaf_relids_updated, RelationGetRelid(resultRelationDesc));
-		mtstate->has_leaf_changed = true;
+		context->mtstate->mt_leaf_relids_updated =
+			bms_add_member(context->mtstate->mt_leaf_relids_updated, RelationGetRelid(resultRelationDesc));
+		context->mtstate->has_leaf_changed = true;
 	}
 
 	ExecUpdateEpilogue(context, &updateCxt, resultRelInfo, tupleid, oldtuple,
@@ -3195,7 +3179,7 @@ lmerge_matched:
 					break;		/* concurrent update/delete */
 				}
 				result = ExecUpdateAct(context, resultRelInfo, tupleid, NULL,
-									   newslot, canSetTag, &updateCxt);
+									   newslot, canSetTag, &updateCxt, GpIdentity.segindex);
 
 				/*
 				 * As in ExecUpdate(), if ExecUpdateAct() reports that a
@@ -3221,7 +3205,7 @@ lmerge_matched:
 			case CMD_DELETE:
 				context->relaction = relaction;
 				if (!ExecDeletePrologue(context, resultRelInfo, tupleid,
-										NULL, NULL, &result))
+										NULL, NULL, &result, false))
 				{
 					if (result == TM_Ok)
 						goto out;	/* "do nothing" */
@@ -3231,7 +3215,7 @@ lmerge_matched:
 				if (result == TM_Ok)
 				{
 					ExecDeleteEpilogue(context, resultRelInfo, tupleid, NULL,
-									   false);
+									   false, false);
 					mtstate->mt_merge_deleted += 1;
 				}
 				break;
@@ -3528,7 +3512,7 @@ ExecMergeNotMatched(ModifyTableContext *context, ResultRelInfo *resultRelInfo,
 				context->relaction = action;
 
 				(void) ExecInsert(context, mtstate->rootResultRelInfo, newslot,
-								  canSetTag, NULL, NULL);
+								  canSetTag, NULL, NULL, false);
 				mtstate->mt_merge_inserted += 1;
 				break;
 			case CMD_NOTHING:
@@ -3911,7 +3895,9 @@ ExecModifyTable(PlanState *pstate)
 	HeapTupleData oldtupdata;
 	HeapTuple	oldtuple;
 	ItemPointer tupleid;
-	bool		tuplock;
+	List	   *relinfos = NIL;
+	ListCell   *lc;
+	PartitionTupleRouting *proute = node->mt_partition_tuple_routing;
 
 	CHECK_FOR_INTERRUPTS();
 
@@ -4265,7 +4251,7 @@ ExecModifyTable(PlanState *pstate)
 														   oldSlot))
 							elog(ERROR, "failed to fetch tuple being updated");
 					}
-					slot = ExecGetUpdateNewTuple(resultRelInfo, planSlot,
+					slot = ExecGetUpdateNewTuple(resultRelInfo, context.planSlot,
 												 oldSlot);
 
 					/* Now apply the update. */
@@ -4280,8 +4266,8 @@ ExecModifyTable(PlanState *pstate)
 					if (unlikely(!resultRelInfo->ri_projectNewInfoValid))
 						ExecInitInsertProjection(node, resultRelInfo);
 					slot = ExecGetInsertNewTuple(resultRelInfo, context.planSlot);
-					slot = ExecInsert(&context, resultRelInfo, slot, context.planSlot,
-									  estate, node->canSetTag, NULL, NULL, true/* splitUpdate */);
+					slot = ExecInsert(&context, resultRelInfo, slot,
+									  node->canSetTag, NULL, NULL, true/* splitUpdate */);
 					resultRelInfo = old;
 				}
 				else if (action == DML_DELETE)

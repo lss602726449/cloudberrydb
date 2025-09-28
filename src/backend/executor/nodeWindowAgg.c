@@ -711,7 +711,7 @@ perform_distinct_windowaggregate(WindowAggState *winstate,
 #endif
 
 	/* load the first tuple from spool */
-	if (tuplesort_getdatum(peraggstate->distinctSortState, true,
+	if (tuplesort_getdatum(peraggstate->distinctSortState, true, false,
 						   &fcinfo->args[1].value, &fcinfo->args[1].isnull, NULL))
 	{
 		call_transfunc(winstate, perfuncstate, peraggstate, fcinfo);
@@ -719,7 +719,7 @@ perform_distinct_windowaggregate(WindowAggState *winstate,
 		prevNull = fcinfo->args[1].isnull;
 
 		/* continue loading more tuples */
-		while (tuplesort_getdatum(peraggstate->distinctSortState, true,
+		while (tuplesort_getdatum(peraggstate->distinctSortState, true, false,
 								  &fcinfo->args[1].value, &fcinfo->args[1].isnull, NULL))
 		{
 			int		cmp;
@@ -2448,66 +2448,7 @@ ExecWindowAgg(PlanState *pstate)
 	/* We need to loop as the runCondition or qual may filter out tuples */
 	for (;;)
 	{
-		/* Initialize for first partition and set current row = 0 */
-		begin_partition(winstate);
-		/* If there are no input rows, we'll detect that and exit below */
-	}
-	else
-	{
-		/* Advance current row within partition */
-		winstate->currentpos++;
-		/* This might mean that the frame moves, too */
-		winstate->framehead_valid = false;
-		winstate->frametail_valid = false;
-		/* we don't need to invalidate grouptail here; see below */
-
-		if (!winstate->start_offset_var_free)
-			winstate->start_offset_valid = false;
-		if (!winstate->end_offset_var_free)
-			winstate->end_offset_valid = false;
-	}
-
-	/*
-	 * Spool all tuples up to and including the current row, if we haven't
-	 * already
-	 */
-	spool_tuples(winstate, winstate->currentpos);
-
-#ifdef FAULT_INJECTOR
-	/*
-	 * This routine is used for testing if we have allocated enough memory
-	 * for the tuplestore (winstate->buffer) in begin_partition(). If all
-	 * tuples of the current partition can be fitted in the memory, we
-	 * emit a notice saying 'fitted in memory'. If they cannot be fitted in
-	 * the memory, we emit a notice saying 'spilled to disk'. If there're
-	 * no input rows, we emit a notice saying 'no input rows'.
-	 *
-	 * NOTE: The fault-injector only triggers once, we emit the notice when
-	 * we finishes spooling all the tuples of the first partition.
-	 */
-	if (winstate->partition_spooled &&
-		winstate->currentpos >= winstate->spooled_rows &&
-		SIMPLE_FAULT_INJECTOR("winagg_after_spool_tuples") == FaultInjectorTypeSkip)
-	{
-		if (winstate->buffer)
-		{
-			if (tuplestore_in_memory(winstate->buffer))
-				ereport(NOTICE, (errmsg("winagg: tuplestore fitted in memory")));
-			else
-				ereport(NOTICE, (errmsg("winagg: tuplestore spilled to disk")));
-		}
-		else
-			ereport(NOTICE, (errmsg("winagg: no input rows")));
-	}
-#endif
-
-	/* Move to the next partition if we reached the end of this partition */
-	if (winstate->partition_spooled &&
-		winstate->currentpos >= winstate->spooled_rows)
-	{
-		release_partition(winstate);
-
-		if (winstate->more_partitions)
+		if (winstate->buffer == NULL)
 		{
 			/* Initialize for first partition and set current row = 0 */
 			begin_partition(winstate);
@@ -2521,6 +2462,11 @@ ExecWindowAgg(PlanState *pstate)
 			winstate->framehead_valid = false;
 			winstate->frametail_valid = false;
 			/* we don't need to invalidate grouptail here; see below */
+
+			if (!winstate->start_offset_var_free)
+				winstate->start_offset_valid = false;
+			if (!winstate->end_offset_var_free)
+				winstate->end_offset_valid = false;
 		}
 
 		/*

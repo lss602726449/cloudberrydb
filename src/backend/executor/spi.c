@@ -444,6 +444,7 @@ SPI_rollback_and_chain(void)
 	_SPI_rollback(true);
 }
 
+/*
  * Clean up SPI state at transaction commit or abort.
  */
 void
@@ -1768,8 +1769,6 @@ SPI_cursor_open_internal(const char *name, SPIPlanPtr plan,
 	 */
 	if (read_only)
 	{
-		ListCell   *lc;
-
 		foreach(lc, stmt_list)
 		{
 			PlannedStmt *pstmt = lfirst_node(PlannedStmt, lc);

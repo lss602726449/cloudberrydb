@@ -1141,6 +1141,7 @@ ExecSetParamPlan(SubPlanState *node, ExprContext *econtext, QueryDesc *queryDesc
 	TupleTableSlot *slot;
 	ListCell   *l;
 	bool		found = false;
+	ListCell   *pvar;
 	ArrayBuildState *astate pg_attribute_unused() = NULL;
 	Size		savepeakspace = MemoryContextGetPeakSpace(planstate->state->es_query_cxt);
 
@@ -1427,7 +1428,6 @@ PG_TRY();
 		ErrorData *qeError = NULL;
 		CdbDispatchResults *pr = NULL;
 		CdbDispatcherState *ds = queryDesc->estate->dispatcherState;
-		int	primaryWriterSliceIndex = PrimaryWriterSliceIndex(queryDesc->estate);
 
 		cdbdisp_checkDispatchResult(ds, DISPATCH_WAIT_NONE);
 		pr = cdbdisp_getDispatchResults(ds, &qeError);
@@ -1438,9 +1438,6 @@ PG_TRY();
 			FlushErrorState();
 			ThrowErrorData(qeError);
 		}
-
-		/* collect pgstat from QEs for current transaction level */
-		pgstat_combine_from_qe(pr, primaryWriterSliceIndex);
 
 		/* If EXPLAIN ANALYZE, collect execution stats from qExecs. */
 		if (planstate->instrument && planstate->instrument->need_cdb)
