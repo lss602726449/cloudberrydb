@@ -538,6 +538,14 @@ Float8GetDatum(float8 X)
 extern Datum Float8GetDatum(float8 X);
 #endif
 
+
+static inline bool IsAligned(void *p, int align)
+{
+	int64 i = (int64) PointerGetDatum(p);
+	return ((i & (align-1)) == 0);
+}
+
+
 /* ----------------------------------------------------------------
  *				Section 3:	exception handling backend support
  * ----------------------------------------------------------------

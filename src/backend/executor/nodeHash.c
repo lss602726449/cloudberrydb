@@ -1042,7 +1042,6 @@ ExecChooseHashTableSize(double ntuples, int tupwidth, bool useskew,
 		 * more buckets if we have memory to spare */
 		double		dbuckets_lower;
 		double		dbuckets_upper;
-		double		dbuckets;
 
 		/* divide our tuple row-count estimate by our the number of
 		 * tuples we'd like in a bucket: this produces a small bucket
@@ -1415,7 +1414,6 @@ ExecParallelHashIncreaseNumBatches(HashJoinTable hashtable)
 					double		dtuples;
 					double		dbuckets;
 					int			new_nbuckets;
-					uint32		max_buckets;
 
 					/*
 					 * We probably also need a smaller bucket array.  How many
@@ -4300,28 +4298,6 @@ ExecParallelHashTuplePrealloc(HashJoinTable hashtable, int batchno, size_t size)
  * Besides work_mem, Postgres also uses hash_mem_multiplier to increase the memory usage of hash table
  * to avoid spilling to disk.  Currently, it's used by get_hash_memory_limit to control the memory usage,
  * and no other places actually need it to multiply with work_mem.
- */
-size_t
-get_hash_memory_limit(void)
-{
-	double		mem_limit;
-
-	/* Do initial calculation in double arithmetic */
-	mem_limit = (double) work_mem * hash_mem_multiplier * 1024.0;
-
-	/* Clamp in case it doesn't fit in size_t */
-	mem_limit = Min(mem_limit, (double) SIZE_MAX);
-
-	return (size_t) mem_limit;
-}
-
-/*
- * Convert the hash memory limit to an integer number of kilobytes,
- * that is something comparable to work_mem.  Like work_mem, we clamp
- * the result to ensure that multiplying it by 1024 fits in a long int.
- *
- * This is deprecated since it may understate the actual memory limit.
- * It is unused in core and will eventually be removed.
  */
 size_t
 get_hash_memory_limit(void)

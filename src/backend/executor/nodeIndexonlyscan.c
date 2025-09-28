@@ -540,6 +540,7 @@ ExecInitIndexOnlyScanForPartition(IndexOnlyScan *node, EState *estate, int eflag
 {
 	IndexOnlyScanState *indexstate;
 	LOCKMODE	lockmode;
+	Relation	indexRelation;
 	TupleDesc	tupDesc;
 	int			indnkeyatts;
 	int			namecount;
@@ -610,7 +611,8 @@ ExecInitIndexOnlyScanForPartition(IndexOnlyScan *node, EState *estate, int eflag
 
 	/* Open the index relation. */
 	lockmode = exec_rt_fetch(node->scan.scanrelid, estate)->rellockmode;
-	indexstate->ioss_RelationDesc = index_open(indexid, lockmode);
+	indexRelation = index_open(indexid, lockmode);
+	indexstate->ioss_RelationDesc = indexRelation;
 
 	/*
 	 * Initialize index-specific scan state

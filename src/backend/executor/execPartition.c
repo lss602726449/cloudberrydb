@@ -1899,7 +1899,8 @@ ExecInitPartitionPruning(PlanState *planstate,
 	 * Perform an initial partition prune pass, if required.
 	 */
 	if (prunestate->do_initial_prune)
-		*initially_valid_subplans = ExecFindMatchingSubPlans(prunestate, true);
+		*initially_valid_subplans = ExecFindMatchingSubPlans(prunestate, true,
+															 NULL, -1, NULL);
 	else
 	{
 		/* No pruning, so we'll need to initialize all subplans */
@@ -2382,7 +2383,7 @@ ExecAddMatchingSubPlans(PartitionPruneState *prunestate, Bitmapset *result)
 {
 	Bitmapset *thisresult;
 
-	thisresult = ExecFindMatchingSubPlans(prunestate, NULL, -1, NIL);
+	thisresult = ExecFindMatchingSubPlans(prunestate, true, NULL, -1, NIL);
 
 	result = bms_add_members(result, thisresult);
 

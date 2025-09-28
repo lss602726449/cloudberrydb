@@ -563,6 +563,7 @@ choose_next_subplan_locally(AppendState *node)
 {
 	int			whichplan = node->as_whichplan;
 	int			nextplan;
+	Append 	   *plan = (Append *) node->ps.plan;
 
 	/* We should never be called when there are no subplans */
 	Assert(node->as_nplans > 0);
@@ -1114,6 +1115,12 @@ ExecAppendAsyncEventWait(AppendState *node)
 										 WAIT_EVENT_APPEND_READY);
 		}
 	}
+	PG_FINALLY();
+	{
+		FreeWaitEventSet(node->as_eventset);
+		node->as_eventset = NULL;
+	}
+	PG_END_TRY();
 
 	/*
 	 * No need for further processing if there are no configured events other

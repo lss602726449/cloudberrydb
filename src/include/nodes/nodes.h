@@ -616,6 +616,7 @@ typedef enum NodeTag
 	T_Constraint,
 	T_DefElem,
 	T_RangeTblEntry,
+	T_RTEPermissionInfo,
 	T_RangeTblFunction,
 	T_TableSampleClause,
 	T_WithCheckOption,

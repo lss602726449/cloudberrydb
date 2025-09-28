@@ -2144,9 +2144,6 @@ void mppExecutorFinishup(QueryDesc *queryDesc)
 		if (ProcessDispatchResult_hook)
 			ProcessDispatchResult_hook(ds);
 
-		/* collect pgstat from QEs for current transaction level */
-		pgstat_combine_from_qe(pr, primaryWriterSliceIndex);
-
 		/* get num of rows processed from writer QEs. */
 		estate->es_processed +=
 			cdbdisp_sumCmdTuples(pr, primaryWriterSliceIndex);
@@ -2221,9 +2218,6 @@ uint64 mppExecutorWait(QueryDesc *queryDesc)
 
 		if (ProcessDispatchResult_hook)
 			ProcessDispatchResult_hook(ds);
-
-		/* collect pgstat from QEs for current transaction level */
-		pgstat_combine_from_qe(pr, primaryWriterSliceIndex);
 
 		if (queryDesc->planstate->instrument && queryDesc->planstate->instrument->need_cdb)
 		{

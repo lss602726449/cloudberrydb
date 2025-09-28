@@ -1564,7 +1564,7 @@ ExecParallelHashJoinNewBatch(HashJoinState *hjstate)
 
 			if (hashtable->nbatch == 1 && batchno == 0 && ((HashJoin *)hjstate->js.ps.plan)->batch0_barrier)
 			{
-				Assert(phase == PHJ_BATCH_PROBING);
+				Assert(phase == PHJ_BATCH_PROBE);
 
 				batch0_barrier = &pstate->batch0_barrier;
 				BarrierArriveAndWait(batch0_barrier, WAIT_EVENT_PARALLEL_FINISH);
@@ -2303,6 +2303,7 @@ CreateRuntimeFilter(HashJoinState* hjstate)
 	HashState	*hstate;
 	AttrFilter	*attr_filter;
 	ListCell	*lc;
+	ListCell	*lc2;
 	List		*targets;
 
 	/*
@@ -2348,9 +2349,9 @@ CreateRuntimeFilter(HashJoinState* hjstate)
 		if (lattno == -1 || targets == NULL)
 			continue;
 
-		foreach(lc, targets)
+		foreach(lc2, targets)
 		{
-			PlanState *target = lfirst(lc);
+			PlanState *target = lfirst(lc2);
 			Assert(IsA(target, SeqScanState));
 
 			attr_filter = CreateAttrFilter(target, lattno, rattno,

@@ -136,6 +136,10 @@ static bool check_exclusion_or_unique_constraint(Relation heap, Relation index,
 static bool index_recheck_constraint(Relation index, Oid *constr_procs,
 									 Datum *existing_values, bool *existing_isnull,
 									 Datum *new_values);
+static bool index_unchanged_by_update(ResultRelInfo *resultRelInfo, EState *estate,
+									  IndexInfo *indexInfo, Relation indexRelation);
+static bool index_expression_changed_walker(Node *node,
+											Bitmapset *allUpdatedCols);
 
 /* ----------------------------------------------------------------
  *		ExecOpenIndices
@@ -431,7 +435,10 @@ ExecInsertIndexTuples(ResultRelInfo *resultRelInfo,
 		 * This is a workaround for a bug in PostgreSQL 14.  In practice this
 		 * won't make much difference for current users of the hint.
 		 */
-		indexUnchanged = update;
+		indexUnchanged = update && index_unchanged_by_update(resultRelInfo,
+															 estate,
+															 indexInfo,
+															 indexRelation);
 
 		satisfiesConstraint =
 			index_insert(indexRelation, /* index relation */

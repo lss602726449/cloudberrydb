@@ -122,11 +122,8 @@ pg_clock_gettime_ns(void)
 #define INSTR_TIME_SET_CURRENT(t) \
 	((t) = pg_clock_gettime_ns())
 
-#ifdef CLOCK_MONOTONIC_COARSE
-#define INSTR_TIME_SET_CURRENT_COARSE(t)	((void) clock_gettime(CLOCK_MONOTONIC_COARSE, &(t)))
-#else
 #define INSTR_TIME_SET_CURRENT_COARSE(t)	INSTR_TIME_SET_CURRENT(t)
-#endif
+
 
 #define INSTR_TIME_ASSIGN(x,y) ((x).tv_sec = (y).tv_sec, (x).tv_nsec = (y).tv_nsec)
 

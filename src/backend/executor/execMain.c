@@ -1742,9 +1742,6 @@ ExecCheckXactReadOnly(PlannedStmt *plannedstmt)
 			continue;
 
 		if (isTempNamespace(get_rel_namespace(perminfo->relid)))
-			continue;
-
-		if (isTempNamespace(get_rel_namespace(rte->relid)))
 		{
 			ExecutorMarkTransactionDoesWrites();
 			continue;
@@ -2842,7 +2839,6 @@ ExecutePlan(QueryDesc *queryDesc,
 {
 	EState	   *estate = queryDesc->estate;
 	PlanState  *planstate = queryDesc->planstate;
-	bool		use_parallel_mode;
 	TupleTableSlot *slot;
 	uint64		current_tuple_count;
 

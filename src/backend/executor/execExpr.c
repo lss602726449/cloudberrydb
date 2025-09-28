@@ -3727,7 +3727,7 @@ ExecBuildAggTrans(AggState *aggstate, AggStatePerPhase phase,
 	ExprState  *state = makeNode(ExprState);
 	PlanState  *parent = &aggstate->ss.ps;
 	ExprEvalStep scratch = {0};
-	LastAttnumInfo deform = {0, 0, 0};
+	ExprSetupInfo deform = {0, 0, 0, NIL};
 
 	state->expr = (Expr *) aggstate;
 	state->parent = parent;
@@ -3745,16 +3745,16 @@ ExecBuildAggTrans(AggState *aggstate, AggStatePerPhase phase,
 
 		if (!bms_is_member(transno, aggstate->aggs_used))
 			continue;
-		get_last_attnums_walker((Node *) pertrans->aggref->aggdirectargs,
-								&deform);
-		get_last_attnums_walker((Node *) pertrans->aggref->args,
-								&deform);
-		get_last_attnums_walker((Node *) pertrans->aggref->aggorder,
-								&deform);
-		get_last_attnums_walker((Node *) pertrans->aggref->aggdistinct,
-								&deform);
-		get_last_attnums_walker((Node *) pertrans->aggref->aggfilter,
-								&deform);
+		expr_setup_walker((Node *) pertrans->aggref->aggdirectargs,
+						  &deform);
+		expr_setup_walker((Node *) pertrans->aggref->args,
+						  &deform);
+		expr_setup_walker((Node *) pertrans->aggref->aggorder,
+						  &deform);
+		expr_setup_walker((Node *) pertrans->aggref->aggdistinct,
+						  &deform);
+		expr_setup_walker((Node *) pertrans->aggref->aggfilter,
+						  &deform);
 
 		if (aggstate->AggExprId_AttrNum > 0)
 			deform.last_outer = Max(deform.last_outer,

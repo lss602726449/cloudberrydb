@@ -248,7 +248,7 @@ MemoizeHash_equal(struct memoize_hash *tb, const MemoizeKey *key1,
 								attr->attbyval, attr->attlen))
 				return false;
 		}
-		return true
+		return true;
 	}
 	else
 	{

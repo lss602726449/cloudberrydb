@@ -91,6 +91,7 @@ extern void ExecHashAccumInstrumentation(HashInstrumentation *instrument,
 extern void ExecHashTableExplainInit(HashState *hashState, HashJoinState *hjstate,
                                      HashJoinTable  hashtable);
 extern void ExecHashTableExplainBatchEnd(HashState *hashState, HashJoinTable hashtable);
+extern void ExecHashTableReset(HashState *hashState, HashJoinTable hashtable);
 
 static inline int
 ExecHashRowSize(int tupwidth)
