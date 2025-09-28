@@ -492,6 +492,23 @@ Float4GetDatum(float4 X)
 }
 
 /*
+ * DatumGetFloat4
+ *		Returns 4-byte floating point value of a datum.
+ */
+static inline float4
+DatumGetFloat4(Datum X)
+{
+	union
+	{
+		int32		value;
+		float4		retval;
+	}			myunion;
+
+	myunion.value = DatumGetInt32(X);
+	return myunion.retval;
+}
+
+/*\
  * DatumGetFloat8
  *		Returns 8-byte floating point value of a datum.
  *
