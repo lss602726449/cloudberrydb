@@ -201,7 +201,7 @@ extern void AppendOnlyStorageRead_Init(AppendOnlyStorageRead *storageRead,
 						   int32 maxBufferLen,
 						   char *relationName, Oid reloid, char *title,
 						   AppendOnlyStorageAttributes *storageAttributes,
-						   RelFileNode *relFileNode, const struct f_smgr_ao *smgrAO);
+						   RelFileLocator *relFileNode, const struct f_smgr_ao *smgrAO);
 
 extern char *AppendOnlyStorageRead_RelationName(AppendOnlyStorageRead *storageRead);
 extern char *AppendOnlyStorageRead_SegmentFileName(AppendOnlyStorageRead *storageRead);

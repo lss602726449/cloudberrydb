@@ -258,7 +258,7 @@ mdcreate(SMgrRelation reln, ForkNumber forknum, bool isRedo)
  * If isRedo is true, it's okay for the file to exist already.
  */
 void
-mdcreate_ao(RelFileNodeBackend rnode, int32 segmentFileNum, bool isRedo)
+mdcreate_ao(RelFileLocatorBackend rnode, int32 segmentFileNum, bool isRedo)
 {
 	char	   *path;
 	File		fd;

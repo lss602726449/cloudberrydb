@@ -61,7 +61,7 @@ typedef struct FileTag
 ( \
 	memset(&(a), 0, sizeof(FileTag)), \
 	(a).handler = (xx_handler),	\
-	(a).rnode = (xx_rnode), \
+	(a).rlocator = (xx_rnode), \
 	(a).forknum = (xx_forknum), \
 	(a).segno = (xx_segno) \
 )

@@ -59,8 +59,7 @@ FOREIGN_KEY(attrelid REFERENCES pg_attribute(attrelid));
 typedef FormData_pg_attribute_encoding *Form_pg_attribute_encoding;
 DECLARE_TOAST(pg_attribute_encoding, 6412, 6427);
 
-DECLARE_UNIQUE_INDEX(pg_attribute_encoding_attrelid_filenum_index, 6238, on pg_attribute_encoding using btree(attrelid oid_ops, filenum int2_ops));
-#define AttributeEncodingAttrelidFilenumIndexId        6238
+DECLARE_UNIQUE_INDEX(pg_attribute_encoding_attrelid_filenum_index, 6453, AttributeEncodingAttrelidFilenumIndexId, on pg_attribute_encoding using btree(attrelid oid_ops, filenum int2_ops));
 
 extern PGFunction *get_funcs_for_compression(char *compresstype);
 extern StdRdOptions **RelationGetAttributeOptions(Relation rel);

@@ -73,7 +73,7 @@ typedef struct BufferedRead
 	/* current read position */
 	off_t				 fileOff;
 
-	RelFileNode 		relFileNode;
+	RelFileLocator		relFileNode;
 	/*
 	 * Temporary limit support for random reading.
 	 */
@@ -105,7 +105,7 @@ extern void BufferedReadInit(
     int32                maxBufferLen,
     int32                maxLargeReadLen,
     char				 *relationName,
-	RelFileNode 		 *file_node,
+	RelFileLocator 		 *file_node,
 	const struct f_smgr_ao       *smgr);
 
 /*

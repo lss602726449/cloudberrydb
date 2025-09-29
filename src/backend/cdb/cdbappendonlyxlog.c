@@ -117,7 +117,7 @@ ao_insert_replay(XLogReaderState *record)
 /*
  * AO/CO truncate xlog record insertion.
  */
-void xlog_ao_truncate(RelFileNode relFileNode, int32 segmentFileNum, int64 offset)
+void xlog_ao_truncate(RelFileLocator relFileNode, int32 segmentFileNum, int64 offset)
 {
 	xl_ao_truncate	xlaotruncate;
 

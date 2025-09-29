@@ -107,6 +107,6 @@ extern char *GetRelationPath(Oid dbOid, Oid spcOid, RelFileNumber relNumber,
 	relpathbackend((rlocator).locator, (rlocator).backend, forknum)
 
 #define aorelpath(rnode, segno) \
-		aorelpathbackend((rnode).node, (rnode).backend, (segno))
+		aorelpathbackend((rnode).locator, (rnode).backend, (segno))
 
 #endif							/* RELPATH_H */

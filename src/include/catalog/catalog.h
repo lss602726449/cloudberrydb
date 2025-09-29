@@ -16,6 +16,7 @@
 
 #include "catalog/pg_class.h"
 #include "storage/relfilenode.h"
+#include "storage/relfilelocator.h"
 #include "utils/relcache.h"
 
 /*
@@ -55,9 +56,9 @@ extern Oid GetNewOidWithIndex(Relation relation, Oid indexId,
 extern Oid GetNewRelFileNode(Oid reltablespace, Relation pg_class,
 							 char relpersistence);
 
-extern void reldir_and_filename(RelFileNode rnode, BackendId backend, ForkNumber forknum,
+extern void reldir_and_filename(RelFileLocator rnode, BackendId backend, ForkNumber forknum,
 					char **dir, char **filename);
-extern char *aorelpathbackend(RelFileNode node, BackendId backend, int32 segno);
+extern char *aorelpathbackend(RelFileLocator node, BackendId backend, int32 segno);
 
 extern bool system_relation_modified;
 

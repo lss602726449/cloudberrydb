@@ -262,7 +262,7 @@ AppendOnlyStorageWrite_FinishSession(AppendOnlyStorageWrite *storageWrite)
  */
 void
 AppendOnlyStorageWrite_TransactionCreateFile(AppendOnlyStorageWrite *storageWrite,
-											 RelFileNodeBackend *relFileNode,
+											 RelFileLocatorBackend *relFileNode,
 											 int32 segmentFileNum)
 {
 	Assert(segmentFileNum > 0);
@@ -301,7 +301,7 @@ AppendOnlyStorageWrite_OpenFile(AppendOnlyStorageWrite *storageWrite,
 								int version,
 								int64 logicalEof,
 								int64 fileLen_uncompressed,
-								RelFileNodeBackend *relFileNode,
+								RelFileLocatorBackend *relFileNode,
 								int32 segmentFileNum)
 {
 	File		file;

@@ -53,10 +53,10 @@ TruncateAOSegmentFile(File fd,
 extern void ao_truncate_one_rel(Relation rel);
 
 extern void
-mdunlink_ao(RelFileNodeBackend rnode, ForkNumber forkNumber, bool isRedo);
+mdunlink_ao(RelFileLocatorBackend rnode, ForkNumber forkNumber, bool isRedo);
 
 extern void
-copy_append_only_data(RelFileNode src, RelFileNode dst, 
+copy_append_only_data(RelFileLocator src, RelFileLocator dst,
 	SMgrRelation srcSMGR, SMgrRelation dstSMGR, BackendId backendid, char relpersistence);
 
 /*
