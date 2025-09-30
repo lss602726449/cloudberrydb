@@ -29,17 +29,6 @@ typedef enum CopySource
 } CopySource;
 
 /*
- *	Represents the end-of-line terminator type of the input
- */
-typedef enum EolType
-{
-	EOL_UNKNOWN,
-	EOL_NL,
-	EOL_CR,
-	EOL_CRNL
-} EolType;
-
-/*
  * Represents the insert method to be used during COPY FROM.
  */
 typedef enum CopyInsertMethod
