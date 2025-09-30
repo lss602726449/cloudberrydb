@@ -298,15 +298,11 @@ static int	compute_parallel_vacuum_workers(LVRelState *vacrel,
 											int nrequested,
 											bool *will_parallel_vacuum);
 #endif
-static void update_index_statistics(LVRelState *vacrel);
 #if 0
 static LVParallelState *begin_parallel_vacuum(LVRelState *vacrel,
 											  BlockNumber nblocks,
 											  int nrequested);
 #endif
-static void end_parallel_vacuum(LVRelState *vacrel);
-static LVSharedIndStats *parallel_stats_for_idx(LVShared *lvshared, int getidx);
-static bool parallel_processing_is_safe(Relation indrel, LVShared *lvshared);
 static void update_relstats_all_indexes(LVRelState *vacrel);
 static void vacuum_error_callback(void *arg);
 static void update_vacuum_error_info(LVRelState *vacrel,
@@ -363,30 +359,8 @@ heap_vacuum_rel(Relation rel, VacuumParams *params,
 		}
 	}
 
-	if (params->options & VACOPT_VERBOSE)
-		elevel = INFO;
-	else
-		elevel = DEBUG2;
-
-	if (Gp_role == GP_ROLE_DISPATCH)
-		elevel = DEBUG2; /* vacuum and analyze messages aren't interesting from the QD */
-
 	pgstat_progress_start_command(PROGRESS_COMMAND_VACUUM,
 								  RelationGetRelid(rel));
-
-	/*
-	 * MPP-23647.  Update xid limits for heap as well as appendonly
-	 * relations.  This allows setting relfrozenxid to correct value
-	 * for an appendonly (AO/CO) table.
-	 */
-
-	vacuum_set_xid_limits(rel,
-						  params->freeze_min_age,
-						  params->freeze_table_age,
-						  params->multixact_freeze_min_age,
-						  params->multixact_freeze_table_age,
-						  &OldestXmin, &FreezeLimit, &xidFullScanLimit,
-						  &MultiXactCutoff, &mxactFullScanLimit);
 
 	/*
 	 * Setup error traceback support for ereport() first.  The idea is to set
@@ -629,7 +603,7 @@ heap_vacuum_rel(Relation rel, VacuumParams *params,
 	vac_update_relstats(rel, new_rel_pages, vacrel->new_live_tuples,
 						new_rel_allvisible, vacrel->nindexes > 0,
 						vacrel->NewRelfrozenXid, vacrel->NewRelminMxid,
-						&frozenxid_updated, &minmulti_updated, false);
+						&frozenxid_updated, &minmulti_updated, false, true);
 
 	/*
 	 * Report results to the cumulative stats system, too.
@@ -2101,7 +2075,7 @@ lazy_scan_noprune(LVRelState *vacrel,
 		tuple.t_len = ItemIdGetLength(itemid);
 		tuple.t_tableOid = RelationGetRelid(vacrel->rel);
 
-		switch (HeapTupleSatisfiesVacuum(&tuple, vacrel->cutoffs.OldestXmin,
+		switch (HeapTupleSatisfiesVacuum(vacrel->rel, &tuple, vacrel->cutoffs.OldestXmin,
 										 buf))
 		{
 			case HEAPTUPLE_DELETE_IN_PROGRESS:
