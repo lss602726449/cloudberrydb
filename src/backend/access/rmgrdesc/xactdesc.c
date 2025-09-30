@@ -203,7 +203,7 @@ ParseAbortRecord(uint8 info, xl_xact_abort *xlrec, xl_xact_parsed_abort *parsed)
 		xl_xact_relfilelocators *xl_rellocator = (xl_xact_relfilelocators *) data;
 
 		parsed->nrels = xl_rellocator->nrels;
-		parsed->xlocators = xl_rellocator->xlocators;
+		parsed->xnodes = xl_rellocator->xlocators;
 
 		data += MinSizeOfXactRelfileLocators;
 		data += xl_rellocator->nrels * sizeof(RelFileNodePendingDelete);
@@ -291,11 +291,11 @@ ParsePrepareRecord(uint8 info, xl_xact_prepare *xlrec, xl_xact_parsed_prepare *p
 	parsed->subxacts = (TransactionId *) bufptr;
 	bufptr += MAXALIGN(xlrec->nsubxacts * sizeof(TransactionId));
 
-	parsed->xlocators = (RelFileLocator *) bufptr;
-	bufptr += MAXALIGN(xlrec->ncommitrels * sizeof(RelFileLocator));
+	parsed->xlocators = (RelFileNodePendingDelete *) bufptr;
+	bufptr += MAXALIGN(xlrec->ncommitrels * sizeof(RelFileNodePendingDelete));
 
-	parsed->abortlocators = (RelFileLocator *) bufptr;
-	bufptr += MAXALIGN(xlrec->nabortrels * sizeof(RelFileLocator));
+	parsed->abortlocators = (RelFileNodePendingDelete *) bufptr;
+	bufptr += MAXALIGN(xlrec->nabortrels * sizeof(RelFileNodePendingDelete));
 
 	parsed->stats = (xl_xact_stats_item *) bufptr;
 	bufptr += MAXALIGN(xlrec->ncommitstats * sizeof(xl_xact_stats_item));
@@ -448,7 +448,7 @@ xact_desc_abort(StringInfo buf, uint8 info, xl_xact_abort *xlrec, RepOriginId or
 
 	appendStringInfoString(buf, timestamptz_to_str(xlrec->xact_time));
 
-	xact_desc_relations(buf, "rels", parsed.nrels, parsed.xlocators);
+	xact_desc_relations(buf, "rels", parsed.nrels, parsed.xnodes);
 	xact_desc_subxacts(buf, parsed.nsubxacts, parsed.subxacts);
 
 	if (parsed.xinfo & XACT_XINFO_HAS_ORIGIN)
@@ -519,28 +519,6 @@ xact_desc_assignment(StringInfo buf, xl_xact_assignment *xlrec)
 
 	for (i = 0; i < xlrec->nsubxacts; i++)
 		appendStringInfo(buf, " %u", xlrec->xsub[i]);
-}
-
-static void
-xact_desc_prepare(StringInfo buf, uint8 info, TwoPhaseFileHeader *tpfh)
-{
-	const char *gid;
-	Assert(info == XLOG_XACT_PREPARE);
-
-	appendStringInfo(buf, "at = %s", timestamptz_to_str(tpfh->prepared_at));
-
-	if (tpfh->gidlen > 0)
-	{
-		gid = (const char *)tpfh + MAXALIGN(sizeof(*tpfh));
-		Assert(strlen(gid) == (tpfh->gidlen -1));
-
-		appendStringInfo(buf, "; gid = %*s", tpfh->gidlen - 1, gid);
-	}
-
-	if (tpfh->tablespace_oid_to_delete_on_commit != InvalidOid)
-		appendStringInfo(buf, "; tablespace_oid_to_delete_on_commit = %u", tpfh->tablespace_oid_to_delete_on_commit);
-	if (tpfh->tablespace_oid_to_delete_on_abort != InvalidOid)
-		appendStringInfo(buf, "; tablespace_oid_to_delete_on_abort = %u", tpfh->tablespace_oid_to_delete_on_abort);
 }
 
 void

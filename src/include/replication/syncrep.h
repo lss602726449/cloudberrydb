@@ -14,6 +14,7 @@
 #define _SYNCREP_H
 
 #include "access/xlogdefs.h"
+#include "utils/guc.h"
 
 #define SyncRepRequested() \
 	(max_wal_senders > 0 && synchronous_commit > SYNCHRONOUS_COMMIT_LOCAL_FLUSH)

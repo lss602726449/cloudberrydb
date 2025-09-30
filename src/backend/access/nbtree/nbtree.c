@@ -166,9 +166,11 @@ btbuildempty(Relation index)
 	 * when the index is large, but for an empty index, it's better to use the
 	 * buffer cache to avoid the smgrimmedsync().
 	 */
+
+	metabuf = ReadBufferExtended(index, INIT_FORKNUM, P_NEW, RBM_NORMAL, NULL);
+	metapage = BufferGetPage(metabuf);
 	PageEncryptInplace(metapage, INIT_FORKNUM,
 					   BTREE_METAPAGE);
-	metabuf = ReadBufferExtended(index, INIT_FORKNUM, P_NEW, RBM_NORMAL, NULL);
 	Assert(BufferGetBlockNumber(metabuf) == BTREE_METAPAGE);
 	_bt_lockbuf(index, metabuf, BT_WRITE);
 

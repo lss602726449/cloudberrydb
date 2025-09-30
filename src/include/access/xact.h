@@ -463,7 +463,6 @@ typedef struct xl_xact_parsed_abort
 
 	int			ndeldbs;
 	DbDirNode	*deldbs;
-	RelFileLocator *xlocators;
 
 	int			nstats;
 	xl_xact_stats_item *stats;

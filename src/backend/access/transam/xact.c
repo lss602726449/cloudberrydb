@@ -2112,7 +2112,6 @@ RecordTransactionAbort(bool isSubXact)
 	 * rels to delete (note that this routine is not responsible for actually
 	 * deleting 'em).  We cannot have any child XIDs, either.
 	 */
-	SetCurrentTransactionStopTimestamp();
 	if (!TransactionIdIsValid(xid))
 	{
 		/* Reset XactLastRecEnd until the next transaction writes something */
@@ -2215,7 +2214,7 @@ RecordTransactionAbort(bool isSubXact)
 		XactLastRecEnd = 0;
 
 	if (max_wal_senders > 0)
-		WalSndWakeup();
+		WalSndWakeup(true, true);
 
 	/* And clean up local data */
 	if (rels)
@@ -7194,6 +7193,7 @@ XactLogAbortRecord(TimestampTz abort_time,
 	xl_xact_twophase xl_twophase;
 	xl_xact_dbinfo xl_dbinfo;
 	xl_xact_origin xl_origin;
+	xl_xact_relfilelocators xl_relfilelocators;
 
 	uint8		info;
 
