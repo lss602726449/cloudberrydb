@@ -98,7 +98,7 @@ typedef struct AppendOnlyStorageWrite
 	 */
 	int64		startEof;
 
-	RelFileNodeBackend relFileNode;
+	RelFileLocatorBackend relFileNode;
 	int32		segmentFileNum;
 
 	/*

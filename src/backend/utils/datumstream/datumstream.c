@@ -496,7 +496,7 @@ create_datumstreamwrite(
 						Oid reloid,
 						char *title,
 						bool needsWAL,
-						RelFileNodeBackend *rnode,
+						RelFileLocatorBackend *rnode,
 						const struct f_smgr_ao *smgrAO)
 {
 	DatumStreamWrite *acc = palloc0(sizeof(DatumStreamWrite));
@@ -643,7 +643,7 @@ create_datumstreamread(
 					   char *relname,
 					   Oid reloid,
 					   char *title,
-					   RelFileNode *relFileNode, const struct f_smgr_ao *smgrAO)
+					   RelFileLocator *relFileNode, const struct f_smgr_ao *smgrAO)
 {
 	DatumStreamRead *acc = palloc0(sizeof(DatumStreamRead));
 
@@ -805,7 +805,7 @@ destroy_datumstreamread(DatumStreamRead * ds)
 
 void
 datumstreamwrite_open_file(DatumStreamWrite *ds, char *fn, int64 eof, int64 eofUncompressed,
-						   RelFileNodeBackend *relFileNode, int32 segmentFileNum, int version)
+						   RelFileLocatorBackend *relFileNode, int32 segmentFileNum, int version)
 {
 	ds->eof = eof;
 	ds->eofUncompress = eofUncompressed;
@@ -840,7 +840,7 @@ datumstreamwrite_open_file(DatumStreamWrite *ds, char *fn, int64 eof, int64 eofU
 }
 
 void
-datumstreamread_open_file(DatumStreamRead * ds, char *fn, int64 eof, int64 eofUncompressed, RelFileNode relFileNode, int32 segmentFileNum, int version)
+datumstreamread_open_file(DatumStreamRead * ds, char *fn, int64 eof, int64 eofUncompressed, int version)
 {
 	ds->eof = eof;
 	ds->eofUncompress = eofUncompressed;
