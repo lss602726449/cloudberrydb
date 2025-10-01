@@ -54,7 +54,7 @@ extern PGDLLIMPORT bool EnableHotStandby;
 
 extern PGDLLIMPORT bool fullPageWrites;
 extern PGDLLIMPORT bool wal_log_hints;
-extern PGDLLIMPORT bool wal_compression;
+extern PGDLLIMPORT int wal_compression;
 extern PGDLLIMPORT bool wal_init_zero;
 extern PGDLLIMPORT bool wal_recycle;
 extern PGDLLIMPORT bool *wal_consistency_checking;
@@ -310,7 +310,6 @@ extern void WakeupRecovery(void);
 extern void SetWalWriterSleeping(bool sleeping);
 
 extern void StartupRequestWalReceiverRestart(void);
-extern void XLogRequestWalReceiverReply(void);
 
 extern void assign_max_wal_size(int newval, void *extra);
 extern void assign_checkpoint_completion_target(double newval, void *extra);
@@ -369,7 +368,6 @@ extern SessionBackupState get_backup_status(void);
 /* Cloudberry additions */
 extern bool IsCrashRecoveryOnly(void);
 extern DBState GetCurrentDBState(void);
-extern XLogRecPtr last_xlog_replay_location(void);
 extern void wait_for_mirror(void);
 extern void wait_to_avoid_large_repl_lag(void);
 extern bool IsRoleMirror(void);

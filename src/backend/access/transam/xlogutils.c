@@ -386,8 +386,8 @@ XLogReadBufferForRedoExtended(XLogReaderState *record,
 	{
 	    if (mode == RBM_ZERO_AND_LOCK || mode == RBM_ZERO_AND_CLEANUP_LOCK)
 	    {
-	        *buf = ReadBufferWithoutRelcache(rnode, forknum,
-                                             blkno, mode, NULL);
+	        *buf = ReadBufferWithoutRelcache(rlocator, forknum,
+                                             blkno, mode, NULL, true);
 	        return BLK_DONE;
 	    }
 	    else
@@ -589,7 +589,7 @@ recent_buffer_fast_path:
  * invalid_page_tab entries that have the same relfilenode and fork number.
  */
 void
-XLogAOSegmentFile(RelFileNode rnode, uint32 segmentFileNum)
+XLogAOSegmentFile(RelFileLocator rnode, uint32 segmentFileNum)
 {
 	log_invalid_page(rnode, MAIN_FORKNUM, segmentFileNum, false);
 }

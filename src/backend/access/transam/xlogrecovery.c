@@ -42,6 +42,7 @@
 #include "access/xlogutils.h"
 #include "backup/basebackup.h"
 #include "catalog/pg_control.h"
+#include "cdb/cdbvars.h"
 #include "commands/tablespace.h"
 #include "common/file_utils.h"
 #include "miscadmin.h"
@@ -2385,7 +2386,8 @@ getRecordTimestamp(XLogReaderState *record, TimestampTz *recordXtime)
 		return true;
 	}
 	if (rmid == RM_XACT_ID && (xact_info == XLOG_XACT_COMMIT ||
-							   xact_info == XLOG_XACT_COMMIT_PREPARED))
+							   xact_info == XLOG_XACT_COMMIT_PREPARED ||
+							   xact_info == XLOG_XACT_DISTRIBUTED_COMMIT))
 	{
 		*recordXtime = ((xl_xact_commit *) XLogRecGetData(record))->xact_time;
 		return true;
@@ -2571,7 +2573,8 @@ recoveryStopsBefore(XLogReaderState *record)
 
 	xact_info = XLogRecGetInfo(record) & XLOG_XACT_OPMASK;
 
-	if (xact_info == XLOG_XACT_COMMIT)
+	if (xact_info == XLOG_XACT_COMMIT ||
+		xact_info == XLOG_XACT_DISTRIBUTED_COMMIT)
 	{
 		isCommit = true;
 		recordXid = XLogRecGetXid(record);
@@ -2741,7 +2744,8 @@ recoveryStopsAfter(XLogReaderState *record)
 	if (xact_info == XLOG_XACT_COMMIT ||
 		xact_info == XLOG_XACT_COMMIT_PREPARED ||
 		xact_info == XLOG_XACT_ABORT ||
-		xact_info == XLOG_XACT_ABORT_PREPARED)
+		xact_info == XLOG_XACT_ABORT_PREPARED ||
+		xact_info == XLOG_XACT_DISTRIBUTED_COMMIT)
 	{
 		TransactionId recordXid;
 
@@ -2792,7 +2796,8 @@ recoveryStopsAfter(XLogReaderState *record)
 			recoveryStopName[0] = '\0';
 
 			if (xact_info == XLOG_XACT_COMMIT ||
-				xact_info == XLOG_XACT_COMMIT_PREPARED)
+				xact_info == XLOG_XACT_COMMIT_PREPARED ||
+				xact_info == XLOG_XACT_DISTRIBUTED_COMMIT)
 			{
 				ereport(LOG,
 						(errmsg("recovery stopping after commit of transaction %u, time %s",
@@ -3113,7 +3118,7 @@ ReadRecord(XLogPrefetcher *xlogprefetcher, int emode,
 			 * complete record, so if we did this, we would later create an
 			 * overwrite contrecord in the wrong place, breaking everything.
 			 */
-			if (!ArchiveRecoveryRequested &&
+			if (!StandbyMode &&
 				!XLogRecPtrIsInvalid(xlogreader->abortedRecPtr))
 			{
 				abortedRecPtr = xlogreader->abortedRecPtr;
@@ -3994,6 +3999,33 @@ emode_for_corrupt_record(int emode, XLogRecPtr RecPtr)
 
 
 /*
+ * Process passed checkpoint record either during normal recovery or
+ * in standby mode.
+ *
+ * If in standby mode, master mirroring information stored by the checkpoint
+ * record is processed as well.
+ */
+static void
+XLogProcessCheckpointRecord(XLogReaderState *rec)
+{
+	CheckpointExtendedRecord ckptExtended;
+
+	UnpackCheckPointRecord(rec, &ckptExtended);
+
+	if (ckptExtended.dtxCheckpoint)
+	{
+		/* Handle the DTX information. */
+		redoDtxCheckPoint(ckptExtended.dtxCheckpoint);
+		/*
+		 * Avoid closing the file here as possibly the file was already open
+		 * and above call didn't really open it.  Hence closing the same here
+		 * is incorrect.
+		 */
+	}
+}
+
+
+/*
  * Subroutine to try to fetch and validate a prior checkpoint record.
  */
 static XLogRecord *
@@ -4052,7 +4084,7 @@ ReadCheckpointRecord(XLogPrefetcher *xlogprefetcher, XLogRecPtr RecPtr,
 	 * is useless and should be avoided for segments, or fatal may be thrown since
 	 * max_tm_gxacts is 0 in segments.
 	 */
-	if (report && IS_QUERY_DISPATCHER())
+	if (IS_QUERY_DISPATCHER())
 	{
 		CheckpointExtendedRecord ckptExtended;
 		UnpackCheckPointRecord(xlogreader, &ckptExtended);
@@ -4522,6 +4554,23 @@ GetXLogReplayRecPtr(TimeLineID *replayTLI)
 
 	if (replayTLI)
 		*replayTLI = tli;
+	return recptr;
+}
+
+
+/*
+ * Report the last WAL replay location
+ */
+XLogRecPtr
+last_xlog_replay_location(void)
+{
+	/* use volatile pointer to prevent code rearrangement */
+	XLogRecPtr	recptr;
+
+	SpinLockAcquire(&XLogRecoveryCtl->info_lck);
+	recptr = XLogRecoveryCtl->lastReplayedEndRecPtr;
+	SpinLockRelease(&XLogRecoveryCtl->info_lck);
+
 	return recptr;
 }
 

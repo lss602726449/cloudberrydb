@@ -1223,16 +1223,6 @@ struct config_bool ConfigureNamesBool[] =
 	},
 
 	{
-		{"wal_compression", PGC_SUSET, WAL_SETTINGS,
-			gettext_noop("Compresses full-page writes written in WAL file."),
-			NULL
-		},
-		&wal_compression,
-		true,
-		NULL, NULL, NULL
-	},
-
-	{
 		{"wal_init_zero", PGC_SUSET, WAL_SETTINGS,
 			gettext_noop("Writes zeroes to new WAL files before first use."),
 			NULL

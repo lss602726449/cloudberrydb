@@ -119,7 +119,7 @@ extern void XLogReadDetermineTimeline(XLogReaderState *state,
 									  uint32 wantLength,
 									  TimeLineID currTLI);
 
-extern void XLogAOSegmentFile(RelFileNode rnode, uint32 segmentFileNum);
+extern void XLogAOSegmentFile(RelFileLocator rnode, uint32 segmentFileNum);
 
 extern void WALReadRaiseError(WALReadError *errinfo);
 

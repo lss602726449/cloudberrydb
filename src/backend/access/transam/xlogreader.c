@@ -1371,13 +1371,6 @@ XLogReaderValidatePageHeader(XLogReaderState *state, XLogRecPtr recptr,
 }
 
 /*
- * In GPDB, this is used in the test in src/test/walrep, so we need it in the
- * backend, too.
- */
-/* #ifdef FRONTEND */
-#if 1
-
-/*
  * Forget about an error produced by XLogReaderValidatePageHeader().
  */
 void
@@ -2159,8 +2152,7 @@ RestoreBlockImage(XLogReaderState *record, uint8 block_id, char *page)
 		{
 			report_invalid_record(record, "could not restore image at %X/%X compressed with unknown method, block %d",
 								  LSN_FORMAT_ARGS(record->ReadRecPtr),
-								  block_id,
-								  errormessage);
+								  block_id);
 			return false;
 		}
 
