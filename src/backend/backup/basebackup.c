@@ -298,19 +298,6 @@ perform_base_backup(basebackup_options *opt, bbsink *sink)
 	state.startptr = backup_state->startpoint;
 	state.starttli = backup_state->starttli;
 
-	Assert(!XLogRecPtrIsInvalid(startptr));
-
-	elogif(!debug_basebackup, LOG,
-		   "basebackup perform -- "
-		   "Basebackup start xlog location = %X/%X",
-		   (uint32) (startptr >> 32), (uint32) startptr);
-
-	/*
-	 * Set xlogCleanUpTo so that checkpoint process knows
-	 * which old xlog files should not be cleaned
-	 */
-	WalSndSetXLogCleanUpTo(startptr);
-
 	SIMPLE_FAULT_INJECTOR("base_backup_post_create_checkpoint");
 
 	/*
@@ -1266,7 +1253,7 @@ sendTablespace(bbsink *sink, char *path, char *spcoid, bool sizeonly,
 		return 0;
 	}
 
-	size = _tarWriteHeader(sink, TABLESPACE_VERSION_DIRECTORY, NULL, &statbuf,
+	size = _tarWriteHeader(sink, GP_TABLESPACE_VERSION_DIRECTORY, NULL, &statbuf,
 						   sizeonly);
 
 	/* Send all the files in the tablespace version directory */
