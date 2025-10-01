@@ -289,8 +289,6 @@ BootstrapModeMain(int argc, char *argv[], bool check_only)
 				break;
  			case 'K':
  				{
- 					int i;
- 
  					/* method 0/disabled cannot be specified */
  					for (i = DISABLED_ENCRYPTION_METHOD + 1;
  						 i < NUM_ENCRYPTION_METHODS; i++)
