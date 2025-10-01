@@ -252,7 +252,7 @@ AppendOnlySegmentFileTruncateToEOF(Relation aorel, int segno, int64 segeof, AOVa
 		   get_namespace_name(RelationGetNamespace(aorel)),
 		   relname,
 		   aorel->rd_id,
-、		   aorel->rd_locator.relNumber,
+		   aorel->rd_locator.relNumber,
 		   segno,
 		   segeof);
 
