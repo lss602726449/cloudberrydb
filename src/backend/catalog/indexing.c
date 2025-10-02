@@ -382,6 +382,6 @@ CatalogTupleInsertFrozen(Relation heapRel, HeapTuple tup)
 
 	frozen_heap_insert(heapRel, tup);
 
-	CatalogIndexInsert(indstate, tup);
+	CatalogIndexInsert(indstate, tup, TU_All);
 	CatalogCloseIndexes(indstate);
 }

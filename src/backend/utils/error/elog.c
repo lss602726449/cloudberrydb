@@ -1434,7 +1434,7 @@ errmsg_plural(const char *fmt_singular, const char *fmt_plural,
 /*
  * errdetail --- add a detail error message text to the current error
  */
-void
+int
 errdetail(const char *fmt,...)
 {
 	ErrorData  *edata = &errordata[errordata_stack_depth];
@@ -1449,6 +1449,7 @@ errdetail(const char *fmt,...)
 	MemoryContextSwitchTo(oldcontext);
 	recursion_depth--;
 	errno = edata->saved_errno; /*CDB*/
+	return 0;
 }
 
 

@@ -460,15 +460,12 @@ heap_create(const char *relname,
 	 */
 	if (create_storage)
 	{
-		RelationOpenSmgr(rel);
-
-
 		if (RELKIND_HAS_TABLE_AM(rel->rd_rel->relkind))
 			table_relation_set_new_filelocator(rel, &rel->rd_locator,
 											   relpersistence,
 											   relfrozenxid, relminmxid);
 		else if (RELKIND_HAS_STORAGE(rel->rd_rel->relkind))
-			RelationCreateStorage(rel->rd_locator, relpersistence, true);
+			RelationCreateStorage(rel->rd_locator, relpersistence, true, SMGR_MD, rel);
 		else
 			Assert(false);
 

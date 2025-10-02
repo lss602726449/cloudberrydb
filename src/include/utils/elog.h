@@ -223,7 +223,7 @@ extern void errmsg_internal(const char *fmt,...) pg_attribute_printf(1, 2);
 extern void errmsg_plural(const char *fmt_singular, const char *fmt_plural,
 						  unsigned long n,...) pg_attribute_printf(1, 4) pg_attribute_printf(2, 4);
 
-extern void errdetail(const char *fmt,...) pg_attribute_printf(1, 2);
+extern int errdetail(const char *fmt,...) pg_attribute_printf(1, 2);
 extern void errdetail_internal(const char *fmt,...) pg_attribute_printf(1, 2);
 
 extern void errdetail_log(const char *fmt,...) pg_attribute_printf(1, 2);

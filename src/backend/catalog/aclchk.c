@@ -302,6 +302,7 @@ restrict_and_check_grant(bool is_grant, AclMode avail_goptions, bool all_privs,
 			break;
 		case OBJECT_EXTPROTOCOL:
 			whole_mask = ACL_ALL_RIGHTS_EXTPROTOCOL;
+			break;
 		case OBJECT_PARAMETER_ACL:
 			whole_mask = ACL_ALL_RIGHTS_PARAMETER_ACL;
 			break;
@@ -561,6 +562,7 @@ ExecuteGrantStmt(GrantStmt *stmt)
 		case OBJECT_EXTPROTOCOL:
 			all_privileges = ACL_ALL_RIGHTS_EXTPROTOCOL;
 			errormsg = gettext_noop("invalid privilege type %s for external protocol");
+			break;
 		case OBJECT_PARAMETER_ACL:
 			all_privileges = ACL_ALL_RIGHTS_PARAMETER_ACL;
 			errormsg = gettext_noop("invalid privilege type %s for parameter");
@@ -1691,6 +1693,7 @@ RemoveRoleFromObjectACL(Oid roleid, Oid classid, Oid objid)
 				break;
 			case ExtprotocolRelationId:
 				istmt.objtype = OBJECT_EXTPROTOCOL;
+				break;
 			case ParameterAclRelationId:
 				istmt.objtype = OBJECT_PARAMETER_ACL;
 				break;
@@ -3403,7 +3406,7 @@ pg_aclmask(ObjectType objtype, Oid object_oid, AttrNumber attnum, Oid roleid,
 		case OBJECT_TYPE:
 			return object_aclmask(TypeRelationId, object_oid, roleid, mask, how);
 		case OBJECT_EXTPROTOCOL:
-			return pg_extprotocol_aclmask(table_oid, roleid, mask, how);
+			return pg_extprotocol_aclmask(object_oid, roleid, mask, how);
 		default:
 			elog(ERROR, "unrecognized object type: %d",
 				 (int) objtype);
@@ -3953,7 +3956,7 @@ pg_largeobject_aclmask_snapshot(Oid lobj_oid, Oid roleid,
 /*
  * Routine for examining a user's privileges for a namespace
  */
-static AclMode
+AclMode
 pg_namespace_aclmask(Oid nsp_oid, Oid roleid,
 					 AclMode mask, AclMaskHow how)
 {
@@ -4039,65 +4042,6 @@ pg_namespace_aclmask(Oid nsp_oid, Oid roleid,
 		(has_privs_of_role(roleid, ROLE_PG_READ_ALL_DATA) ||
 		 has_privs_of_role(roleid, ROLE_PG_WRITE_ALL_DATA)))
 		result |= ACL_USAGE;
-	return result;
-}
-
-/*
- * Exported routine for examining a user's privileges for a storage
- * server.
- */
-AclMode
-gp_storage_server_aclmask(Oid srv_oid, Oid roleid,
-						AclMode mask, AclMaskHow how)
-{
-	AclMode		result;
-	HeapTuple	tuple;
-	Datum		aclDatum;
-	bool		isNull;
-	Acl		*acl;
-	Oid		ownerId;
-
-	Form_gp_storage_server srvForm;
-
-	/* Bypass permission checks for superusers */
-	if (superuser_arg(roleid))
-		return mask;
-
-	tuple = SearchSysCache1(STORAGESERVEROID, ObjectIdGetDatum(srv_oid));
-	if (!HeapTupleIsValid(tuple))
-		ereport(ERROR,
-				(errcode(ERRCODE_UNDEFINED_OBJECT),
-				 errmsg("storage server with OID %u does not exist",
-					    srv_oid)));
-	srvForm = (Form_gp_storage_server) GETSTRUCT(tuple);
-
-	/*
-	 * Normal case: get the storage server's ACL from gp_storage_server
-	 */
-	ownerId = srvForm->srvowner;
-
-	aclDatum = SysCacheGetAttr(STORAGESERVEROID, tuple,
-							   Anum_gp_storage_server_srvacl, &isNull);
-	if (isNull)
-	{
-		/* No ACL, so build default ACL */
-		acl = acldefault(OBJECT_STORAGE_SERVER, ownerId);
-		aclDatum = (Datum) 0;
-	}
-	else
-	{
-		/* detoast rel's ACL if necessary */
-		acl = DatumGetAclP(aclDatum);
-	}
-
-	result = aclmask(acl, roleid, ownerId, mask, how);
-
-	/* if we have a detoasted copy, free it */
-	if (acl && (Pointer) acl != DatumGetPointer(aclDatum))
-		pfree(acl);
-
-	ReleaseSysCache(tuple);
-
 	return result;
 }
 

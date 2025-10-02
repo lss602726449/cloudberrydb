@@ -87,10 +87,10 @@ StorageDoPendingRelDelete(PendingRelDelete *delete)
 	 * GPDB: backend can only be TempRelBackendId or InvalidBackendId for a
 	 * given relfile since we don't tie temp relations to their backends.
 	 */
-	srel = smgropen(delete->relnode.node,
-					delete->relnode.isTempRelation ?
+	srel = smgropen(delete->rlocator.node,
+					delete->rlocator.isTempRelation ?
 					TempRelBackendId : InvalidBackendId,
-					delete->relnode.smgr_which, NULL);
+					delete->rlocator.smgr_which, NULL);
 	smgrdounlinkall(&srel, 1, false);
 	smgrclose(srel);
 }
@@ -170,11 +170,11 @@ RelationCreateStorage(RelFileLocator rlocator, char relpersistence, bool registe
 			return NULL;		/* placate compiler */
 	}
 
-	srel = smgropen(rlocator, backend);
+	srel = smgropen(rlocator, backend, SMGR_MD, rel);
 	smgrcreate(srel, MAIN_FORKNUM, false);
 
 	if (needs_wal)
-		log_smgrcreate(&srel->smgr_rlocator.locator, MAIN_FORKNUM);
+		log_smgrcreate(&srel->smgr_rlocator.locator, MAIN_FORKNUM, SMGR_MD);
 
 	/*
 	 * Add the relation to the list of stuff to delete at abort, if we are
@@ -548,8 +548,8 @@ RelationCopyStorage(SMgrRelation src, SMgrRelation dst,
 					(errcode(ERRCODE_DATA_CORRUPTED),
 					 errmsg("invalid page in block %u of relation %s",
 							blkno,
-							relpathbackend(src->smgr_rnode.node,
-										   src->smgr_rnode.backend,
+							relpathbackend(src->smgr_rlocator.locator,
+										   src->smgr_rlocator.backend,
 										   forkNum))));
 		/*
 		 * WAL-log the copied page. Unfortunately we don't know what kind of a
@@ -652,7 +652,7 @@ SerializePendingSyncs(Size maxSize, char *startAddress)
 	{
 		Assert(delete->action);
 		if (delete->atCommit || !(delete->action->flags & PENDING_REL_DELETE_NEED_SYNC))
-			(void) hash_search(tmphash, (void *) &delete->relnode,
+			(void) hash_search(tmphash, (void *) &delete->rlocator,
 							   HASH_REMOVE, NULL);
 	}
 	hash_seq_init(&scan, tmphash);

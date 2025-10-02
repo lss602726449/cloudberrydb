@@ -2624,7 +2624,7 @@ check_object_ownership(Oid roleid, ObjectType objtype, ObjectAddress address,
 		case OBJECT_DOMAIN:
 		case OBJECT_ATTRIBUTE:
 			if (!object_ownercheck(address.classId, address.objectId, roleid))
-				aclcheck_error_type(ACLCHECK_NOT_OWNER, address.objectId);
+				aclcheck_error_type(ACLCHECK_NOT_OWNER, address.objectId);\
 			break;
 		case OBJECT_DOMCONSTRAINT:
 			{
@@ -2771,17 +2771,13 @@ check_object_ownership(Oid roleid, ObjectType objtype, ObjectAddress address,
 						(errcode(ERRCODE_INSUFFICIENT_PRIVILEGE),
 						 errmsg("must be superuser")));
 			break;
-		case OBJECT_STATISTIC_EXT:
-			if (!object_ownercheck(STATEXTOID, address.objectId, roleid))
-				aclcheck_error(ACLCHECK_NOT_OWNER, objtype,
-							   NameListToString(castNode(List, object)));
-			break;
 		case OBJECT_PROFILE:
 			/* We treat these object types as being owned by superusers */
 			if (!superuser_arg(roleid))
 				ereport(ERROR,
 						(errcode(ERRCODE_INSUFFICIENT_PRIVILEGE),
 						 errmsg("must be superuser")));
+			break;
 		case OBJECT_AMOP:
 		case OBJECT_AMPROC:
 		case OBJECT_DEFAULT:
@@ -2792,6 +2788,9 @@ check_object_ownership(Oid roleid, ObjectType objtype, ObjectAddress address,
 			/* These are currently not supported or don't make sense here. */
 			elog(ERROR, "unsupported object type: %d", (int) objtype);
 			break;
+		default:
+			elog(ERROR, "unrecognized object type: %d",
+				 (int) objtype);
 	}
 }
 

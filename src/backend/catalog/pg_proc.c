@@ -1080,6 +1080,7 @@ function_parse_error_transpose(const char *prosrc)
 {
 	int			origerrposition;
 	int			newerrposition;
+	const char *queryText;
 
 	/*
 	 * Nothing to do unless we are dealing with a syntax error that has a
@@ -1100,18 +1101,8 @@ function_parse_error_transpose(const char *prosrc)
 	/* Assert(ActivePortal && PortalGetStatus(ActivePortal) == PORTAL_ACTIVE); */
 	queryText = ActivePortal->sourceText;
 
-		/* Try to locate the prosrc in the original text */
-		newerrposition = match_prosrc_to_query(prosrc, queryText,
-											   origerrposition);
-	}
-	else
-	{
-		/*
-		 * Quietly give up if no ActivePortal.  This is an unusual situation
-		 * but it can happen in, e.g., logical replication workers.
-		 */
-		newerrposition = -1;
-	}
+	/* Try to locate the prosrc in the original text */
+	newerrposition = match_prosrc_to_query(prosrc, queryText, origerrposition);
 
 	if (newerrposition > 0)
 	{

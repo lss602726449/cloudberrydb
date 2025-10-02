@@ -973,7 +973,7 @@ GetNewRelFileNumber(Oid reltablespace, Relation pg_class, char relpersistence)
 
 		collides = GpCheckRelFileCollision(rlocator);
 
-		if (!collides && rnode.node.spcNode != GLOBALTABLESPACE_OID)
+		if (!collides && rlocator.locator.spcOid != GLOBALTABLESPACE_OID)
 		{
 			/*
 			 * GPDB_91_MERGE_FIXME: check again for a collision with a temp
@@ -986,9 +986,9 @@ GetNewRelFileNumber(Oid reltablespace, Relation pg_class, char relpersistence)
 			 * buffers at all. We have to make this additional check to make
 			 * sure of that.
 			 */
-			rnode.backend = (backend == InvalidBackendId) ? TempRelBackendId
+			rlocator.backend = (backend == InvalidBackendId) ? TempRelBackendId
 														  : InvalidBackendId;
-			collides = GpCheckRelFileCollision(rnode);
+			collides = GpCheckRelFileCollision(rlocator);
 		}
 	} while (collides);
 

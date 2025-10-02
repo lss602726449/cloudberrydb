@@ -792,7 +792,7 @@ index_create(Relation heapRelation,
                                       indexRelationId,
                                       parentIndexRelid,
                                       parentConstraintId,
-                                      relFileNode,
+									  relFileNumber,
                                       indexInfo,
                                       indexColNames,
                                       accessMethodObjectId,
@@ -812,7 +812,7 @@ index_create(Relation heapRelation,
                                       indexRelationId,
                                       parentIndexRelid,
                                       parentConstraintId,
-                                      relFileNode,
+									  relFileNumber,
                                       indexInfo,
                                       indexColNames,
                                       accessMethodObjectId,
@@ -834,7 +834,7 @@ index_create_internal(Relation heapRelation,
                       Oid indexRelationId,
                       Oid parentIndexRelid,
                       Oid parentConstraintId,
-                      Oid relFileNode,
+                      Oid relFileNumber,
                       IndexInfo *indexInfo,
                       List *indexColNames,
                       Oid accessMethodObjectId,
@@ -3057,9 +3057,6 @@ index_update_stats(Relation rel,
 
 	if (reltuples >= 0 && Gp_role != GP_ROLE_DISPATCH)
 	{
-		BlockNumber relpages;
-		BlockNumber relallvisible;
-
 		relpages = RelationGetNumberOfBlocks(rel);
 
 		/*
@@ -3231,7 +3228,7 @@ index_build(Relation heapRelation,
 		!smgrexists(RelationGetSmgr(indexRelation), INIT_FORKNUM))
 	{
 		smgrcreate(RelationGetSmgr(indexRelation), INIT_FORKNUM, false);
-		log_smgrcreate(&indexRelation->rd_locator, INIT_FORKNUM);
+		log_smgrcreate(&indexRelation->rd_locator, INIT_FORKNUM, SMGR_MD);
 		indexRelation->rd_indam->ambuildempty(indexRelation);
 	}
 
