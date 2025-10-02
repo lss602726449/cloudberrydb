@@ -622,9 +622,6 @@ create_shareinput_producer_rte(ApplyShareInputContext *ctxt, int share_id,
 	rte->inh = false;
 	rte->inFromCl = false;
 
-	rte->requiredPerms = 0;
-	rte->checkAsUser = InvalidOid;
-
 	return rte;
 }
 
@@ -1208,7 +1205,6 @@ param_walker(Node *node, ParamWalkerContext *context)
 				list_length(aggref->args) == 1)
 			{
 				TargetEntry *curTarget = (TargetEntry *) linitial(aggref->args);
-				ListCell   *lc;
 
 				foreach(lc, root->minmax_aggs)
 				{
@@ -1232,7 +1228,6 @@ param_walker(Node *node, ParamWalkerContext *context)
 
 		case T_SubPlan:
 			{
-				PlannerInfo *root = (PlannerInfo *) context->base.node;
 				SubPlan	   *spexpr = (SubPlan *) node;
 				Plan	   *subplan_plan = planner_subplan_get_plan(root, spexpr);
 				PlannerInfo *subplan_root = planner_subplan_get_root(root, spexpr);
@@ -1857,7 +1852,7 @@ cdbpathtoplan_create_sri_plan(RangeTblEntry *rte, PlannerInfo *subroot, Path *su
 										  targetPolicy->nattrs,
 										  targetPolicy->attrs);
 	hashOpfamilies = NIL;
-	for (int i = 0; i < targetPolicy->nattrs; i++)
+	for (i = 0; i < targetPolicy->nattrs; i++)
 	{
 		Oid			opfamily = get_opclass_family(targetPolicy->opclasses[i]);
 

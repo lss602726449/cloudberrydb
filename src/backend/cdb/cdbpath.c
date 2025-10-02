@@ -579,6 +579,7 @@ cdbpath_create_motion_path(PlannerInfo *root,
         newSubqueryScanPath = create_subqueryscan_path(root,
                                                        subqueryScanPath->path.parent,
                                                        motionPath,
+													   false,
                                                        subqueryScanPath->path.pathkeys,
                                                        locus,
                                                        subqueryScanPath->required_outer);
@@ -1107,11 +1108,11 @@ cdbpath_match_preds_to_both_distkeys(PlannerInfo *root,
 			/* Skip predicate if neither side matches inner distkey item. */
 			if (inner_dk != outer_dk)
 			{
-				ListCell   *i;
+				ListCell   *k;
 
-				foreach(i, inner_dk->dk_eclasses)
+				foreach(k, inner_dk->dk_eclasses)
 				{
-					EquivalenceClass *inner_ec = (EquivalenceClass *) lfirst(i);
+					EquivalenceClass *inner_ec = (EquivalenceClass *) lfirst(k);
 
 					if (inner_ec != rinfo->left_ec && inner_ec != rinfo->right_ec)
 					{
@@ -2246,7 +2247,7 @@ cdbpath_motion_for_join(PlannerInfo *root,
 		 * only if there is no wts on either rels*/
 		else if (!outer.has_wts && !inner.has_wts)
 		{
-			int numsegments = CdbPathLocus_CommonSegments(outer.locus,
+			numsegments = CdbPathLocus_CommonSegments(outer.locus,
 														  inner.locus);
 			CdbPathLocus_MakeSingleQE(&outer.move_to, numsegments);
 			CdbPathLocus_MakeSingleQE(&inner.move_to, numsegments);

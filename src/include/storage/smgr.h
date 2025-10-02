@@ -162,7 +162,7 @@ typedef struct f_smgr_ao {
 	void			(*smgr_FileClose) (File file);
 	int				(*smgr_FileTruncate) (File file, int64 offset, uint32 wait_event_info);
 	File			(*smgr_AORelOpenSegFile) (Oid reloid, const char *filePath, int fileFlags);
-	File			(*smgr_AORelOpenSegFileXlog) (RelFileNode node, int32 segmentFileNum, int fileFlags);
+	File			(*smgr_AORelOpenSegFileXlog) (RelFileLocator node, int32 segmentFileNum, int fileFlags);
 	int				(*smgr_FileWrite) (File file, char *buffer, int amount, off_t offset, uint32 wait_event_info);
 	int				(*smgr_FileRead) (File file, char *buffer, int amount, off_t offset, uint32 wait_event_info);
 	off_t			(*smgr_FileSize) (File file);

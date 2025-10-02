@@ -111,17 +111,17 @@ static File	AORelOpenSegFile(__attribute__((unused))Oid reloid, const char *file
 	return PathNameOpenFile(filePath, fileFlags);
 }
 
-static File	AORelOpenSegFileXlog(RelFileNode node, int32 segmentFileNum, int fileFlags)
+static File	AORelOpenSegFileXlog(RelFileLocator node, int32 segmentFileNum, int fileFlags)
 {
 	char	   *dbPath;
 	char		path[MAXPGPATH];
-	dbPath = GetDatabasePath(node.dbNode,
-							 node.spcNode);
+	dbPath = GetDatabasePath(node.dbOid,
+							 node.spcOid);
 
 	if (segmentFileNum == 0)
-		snprintf(path, MAXPGPATH, "%s/%u", dbPath, node.relNode);
+		snprintf(path, MAXPGPATH, "%s/%u", dbPath, node.relNumber);
 	else
-		snprintf(path, MAXPGPATH, "%s/%u.%u", dbPath, node.relNode, segmentFileNum);
+		snprintf(path, MAXPGPATH, "%s/%u.%u", dbPath, node.relNumber, segmentFileNum);
 	pfree(dbPath);
 
 	return PathNameOpenFile(path, fileFlags);

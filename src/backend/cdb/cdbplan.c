@@ -1153,7 +1153,7 @@ get_function_name(Oid proid, const char *dflt)
 }
 
 /* Utility to get a name for a tle to use as an eref. */
-Value *
+String *
 get_tle_name(TargetEntry *tle, List *rtable, const char *default_name)
 {
 	char *name = NULL;
