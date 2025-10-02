@@ -281,7 +281,7 @@ AppendOnlyStorageWrite_TransactionCreateFile(AppendOnlyStorageWrite *storageWrit
 	 * a file exists in master but not in mirror, even if it's empty.
 	 */
 	if (storageWrite->needsWAL)
-		xlog_ao_insert(relFileNode->node, segmentFileNum, 0, NULL, 0);
+		xlog_ao_insert(relFileNode->locator, segmentFileNum, 0, NULL, 0);
 }
 
 /*

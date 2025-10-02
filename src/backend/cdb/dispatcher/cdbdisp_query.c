@@ -526,9 +526,6 @@ cdbdisp_dispatchCommandInternal(DispatchCommandQueryParms *pQueryParms,
 		ThrowErrorData(qeError);
 	}
 
-	/* collect pgstat from QEs for current transaction level */
-	pgstat_combine_from_qe(pr, -1);
-
 	cdbdisp_returnResults(pr, cdb_pgresults);
 
 	cdbdisp_destroyDispatcherState(ds);

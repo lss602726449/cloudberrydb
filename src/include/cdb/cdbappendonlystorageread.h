@@ -174,7 +174,7 @@ typedef struct AppendOnlyStorageRead
 	 */
 	char	   *segmentFileName;
 
-	RelFileNode relFileNode;
+	RelFileLocator relFileNode;
 
 	/*
 	 * The number of blocks read since the beginning of the segment file.

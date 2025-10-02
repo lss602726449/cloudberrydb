@@ -240,33 +240,10 @@ extern void ExecAlterDefaultPrivilegesStmt(ParseState *pstate, AlterDefaultPrivi
 
 extern void RemoveRoleFromObjectACL(Oid roleid, Oid classid, Oid objid);
 
-extern AclMode pg_class_aclmask(Oid table_oid, Oid roleid,
-								AclMode mask, AclMaskHow how);
-extern AclMode pg_class_aclmask_ext(Oid table_oid, Oid roleid,
-									AclMode mask, AclMaskHow how,
-									bool *is_missing);
-extern AclMode pg_database_aclmask(Oid db_oid, Oid roleid,
-								   AclMode mask, AclMaskHow how);
-extern AclMode pg_proc_aclmask(Oid proc_oid, Oid roleid,
-							   AclMode mask, AclMaskHow how);
-extern AclMode pg_language_aclmask(Oid lang_oid, Oid roleid,
-								   AclMode mask, AclMaskHow how);
-extern AclMode pg_largeobject_aclmask_snapshot(Oid lobj_oid, Oid roleid,
-											   AclMode mask, AclMaskHow how, Snapshot snapshot);
 extern AclMode pg_namespace_aclmask(Oid nsp_oid, Oid roleid,
 									AclMode mask, AclMaskHow how);
-extern AclMode pg_tablespace_aclmask(Oid spc_oid, Oid roleid,
-									 AclMode mask, AclMaskHow how);
-extern AclMode pg_foreign_data_wrapper_aclmask(Oid fdw_oid, Oid roleid,
-											   AclMode mask, AclMaskHow how);
-extern AclMode pg_foreign_server_aclmask(Oid srv_oid, Oid roleid,
-										 AclMode mask, AclMaskHow how);
-extern AclMode gp_storage_server_aclmask(Oid srv_oid, Oid roleid,
-										 AclMode mask, AclMaskHow how);
 extern AclMode pg_extprotocol_aclmask(Oid ptc_oid, Oid roleid,
 									  AclMode mask, AclMaskHow how);
-extern AclMode pg_type_aclmask(Oid type_oid, Oid roleid,
-							   AclMode mask, AclMaskHow how);
 
 /* generic function */
 extern AclResult object_aclcheck(Oid classid, Oid objectid, Oid roleid, AclMode mode);
@@ -288,11 +265,8 @@ extern AclResult pg_largeobject_aclcheck_snapshot(Oid lobj_oid, Oid roleid,
 												  AclMode mode, Snapshot snapshot);
 extern AclResult pg_namespace_aclcheck(Oid nsp_oid, Oid roleid, AclMode mode);
 extern AclResult pg_tablespace_aclcheck(Oid spc_oid, Oid roleid, AclMode mode);
-extern AclResult pg_foreign_data_wrapper_aclcheck(Oid fdw_oid, Oid roleid, AclMode mode);
-extern AclResult pg_foreign_server_aclcheck(Oid srv_oid, Oid roleid, AclMode mode);
 extern AclResult gp_storage_server_aclcheck(Oid srv_oid, Oid roleid, AclMode mode);
 extern AclResult pg_extprotocol_aclcheck(Oid ptc_oid, Oid roleid, AclMode mode);
-extern AclResult pg_type_aclcheck(Oid type_oid, Oid roleid, AclMode mode);
 
 extern void aclcheck_error(AclResult aclerr, ObjectType objtype,
 						   const char *objectname);
@@ -301,7 +275,8 @@ extern void aclcheck_error_col(AclResult aclerr, ObjectType objtype,
 							   const char *objectname, const char *colname);
 
 extern void aclcheck_error_type(AclResult aclerr, Oid typeOid);
-
+extern AclMode pg_class_aclmask(Oid table_oid, Oid roleid,
+								AclMode mask, AclMaskHow how);
 extern void recordExtObjInitPriv(Oid objoid, Oid classoid);
 extern void removeExtObjInitPriv(Oid objoid, Oid classoid);
 

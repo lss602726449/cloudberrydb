@@ -172,8 +172,6 @@ static AclMode pg_parameter_acl_aclmask(Oid acl_oid, Oid roleid,
 										AclMode mask, AclMaskHow how);
 static AclMode pg_largeobject_aclmask_snapshot(Oid lobj_oid, Oid roleid,
 											   AclMode mask, AclMaskHow how, Snapshot snapshot);
-static AclMode pg_namespace_aclmask(Oid nsp_oid, Oid roleid,
-									AclMode mask, AclMaskHow how);
 static AclMode pg_type_aclmask(Oid type_oid, Oid roleid,
 							   AclMode mask, AclMaskHow how);
 static void recordExtensionInitPriv(Oid objoid, Oid classoid, int objsubid,
@@ -914,10 +912,12 @@ objectNamesToOids(ObjectType objtype, List *objnames, bool is_grant)
 		case OBJECT_EXTPROTOCOL:
 			foreach(cell, objnames)
 			{
-				char	   *ptcname = strVal(lfirst(cell));
-				Oid			ptcid = get_extprotocol_oid(ptcname, false);
+				char *ptcname = strVal(lfirst(cell));
+				Oid ptcid = get_extprotocol_oid(ptcname, false);
 
 				objects = lappend_oid(objects, ptcid);
+			}
+			break;
 		case OBJECT_PARAMETER_ACL:
 			foreach(cell, objnames)
 			{
@@ -2412,15 +2412,6 @@ ExecGrant_common(InternalGrant *istmt, Oid classid, AclMode default_privs,
 
 		/* Update initial privileges for extensions */
 		recordExtensionInitPriv(objectid, classid, 0, new_acl);
-
-		/* MPP-6929: metadata tracking */
-		if (Gp_role == GP_ROLE_DISPATCH)
-			MetaTrackUpdObject(DatabaseRelationId,
-							   datId,
-							   GetUserId(), /* not grantorId, */
-							   "PRIVILEGE", 
-							   (istmt->is_grant) ? "GRANT" : "REVOKE"
-					);
 
 		/* Update the shared dependency ACL info */
 		updateAclDependencies(classid,

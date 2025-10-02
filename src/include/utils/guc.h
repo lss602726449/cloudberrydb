@@ -744,6 +744,7 @@ extern void MarkGUCPrefixReserved(const char *className);
 /* old name for MarkGUCPrefixReserved, for backwards compatibility: */
 #define EmitWarningsOnPlaceholders(className) MarkGUCPrefixReserved(className)
 
+extern struct config_generic **get_guc_variables(void);
 extern const char *GetConfigOption(const char *name, bool missing_ok,
 								   bool restrict_privileged);
 extern const char *GetConfigOptionResetString(const char *name);
