@@ -224,7 +224,7 @@ EncryptAOBLock(unsigned char *data_buf, const int buf_len,
 /* Decrypt the given page with the relation key */
 void
 DecryptAOBlock(unsigned char *data_buf, const int buf_len,
-				  RelFileNode *file_node)
+			   RelFileLocator *file_node)
 {
 	int			enclen;
 	Assert(BufDecCtx != NULL);
