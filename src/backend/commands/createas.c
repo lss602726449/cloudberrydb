@@ -1614,9 +1614,9 @@ CreateIndexOnIMMV(Query *query, Relation matviewRel)
 	index->excludeOpNames = NIL;
 	index->idxcomment = NULL;
 	index->indexOid = InvalidOid;
-	index->oldNode = InvalidOid;
+	index->oldNumber = InvalidOid;
 	index->oldCreateSubid = InvalidSubTransactionId;
-	index->oldFirstRelfilenodeSubid = InvalidSubTransactionId;
+	index->oldFirstRelfilelocatorSubid = InvalidSubTransactionId;
 	index->transformed = true;
 	index->concurrent = false;
 	index->if_not_exists = false;
@@ -1733,6 +1733,7 @@ CreateIndexOnIMMV(Query *query, Relation matviewRel)
 						  InvalidOid,
 						  InvalidOid,
 						  InvalidOid,
+						  -1,
 						  false, true, false, false, true);
 
 	ereport(NOTICE,
@@ -1844,7 +1845,7 @@ get_primary_key_attnos_from_query(Query *query, List **constraintList)
 	}
 
 	/* Collect RTE indexes of relations appearing in the FROM clause */
-	rels_in_from = get_relids_in_jointree((Node *) query->jointree, false);
+	rels_in_from = get_relids_in_jointree((Node *) query->jointree, false, false);
 
 	/*
 	 * Check if all key attributes of relations in FROM are appearing in the target

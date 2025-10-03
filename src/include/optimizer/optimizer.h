@@ -204,7 +204,7 @@ extern bool contain_vars_of_level(Node *node, int levelsup);
 extern bool contain_vars_of_level_or_above(Node *node, int levelsup);
 extern int	locate_var_of_level(Node *node, int levelsup);
 extern List *pull_var_clause(Node *node, int flags);
-extern Node *flatten_join_alias_vars(PlannerInfo *root, Query *query, Node *node);
+extern Node *flatten_join_alias_vars(Query *query, Node *node);
 
 extern bool contain_ctid_var_reference(Scan *scan);
 

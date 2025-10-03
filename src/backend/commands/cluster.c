@@ -90,7 +90,7 @@ typedef struct
 } RelToCluster;
 
 
-static void cluster_multiple_rels(List *rtcs, ClusterParams *params, RangeVar *relation);
+static void cluster_multiple_rels(ClusterStmt *stmt, List *rtcs, ClusterParams *params, RangeVar *relation);
 static void rebuild_relation(Relation OldHeap, Oid indexOid, bool verbose);
 static void copy_table_data(Oid OIDNewHeap, Oid OIDOldHeap, Oid OIDOldIndex,
 							bool verbose, bool *pSwapToastByContent,
@@ -291,7 +291,7 @@ cluster(ParseState *pstate, ClusterStmt *stmt, bool isTopLevel)
 	}
 
 	/* Do the job. */
-	cluster_multiple_rels(rtcs, &params, stmt->relation);
+	cluster_multiple_rels(stmt, rtcs, &params, stmt->relation);
 
 	/* Start a new transaction for the cleanup work. */
 	StartTransactionCommand();
@@ -308,7 +308,7 @@ cluster(ParseState *pstate, ClusterStmt *stmt, bool isTopLevel)
  * return.
  */
 static void
-cluster_multiple_rels(List *rtcs, ClusterParams *params, RangeVar *relation)
+cluster_multiple_rels(ClusterStmt *stmt, List *rtcs, ClusterParams *params, RangeVar *relation)
 {
 	ListCell   *lc;
 
@@ -345,7 +345,7 @@ cluster_multiple_rels(List *rtcs, ClusterParams *params, RangeVar *relation)
 		}
 		/* See comments above. */
 		if (IS_QD_OR_SINGLENODE())
-			SetRelativeMatviewAuxStatus(rvtc->tableOid,
+			SetRelativeMatviewAuxStatus(rtc->tableOid,
 										MV_DATA_STATUS_UP_REORGANIZED,
 										MV_DATA_STATUS_TRANSFER_DIRECTION_ALL);
 

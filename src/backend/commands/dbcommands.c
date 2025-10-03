@@ -156,7 +156,7 @@ static int	errdetail_busy_db(int notherbackends, int npreparedxacts);
 static void CreateDatabaseUsingWalLog(Oid src_dboid, Oid dst_dboid, Oid src_tsid,
 									  Oid dst_tsid);
 static List *ScanSourceDatabasePgClass(Oid tbid, Oid dbid, char *srcpath);
-static List *ScanSourceDatabasePgClassPage(Page page, Buffer buf, Oid tbid,
+static List *ScanSourceDatabasePgClassPage(Relation rel, Page page, Buffer buf, Oid tbid,
 										   Oid dbid, char *srcpath,
 										   List *rlocatorlist, Snapshot snapshot);
 static CreateDBRelInfo *ScanSourceDatabasePgClassTuple(HeapTupleData *tuple,
@@ -289,6 +289,7 @@ ScanSourceDatabasePgClass(Oid tbid, Oid dbid, char *srcpath)
 	Snapshot	snapshot;
 	SMgrRelation smgr;
 	BufferAccessStrategy bstrategy;
+	Relation rel;
 
 	/* Get pg_class relfilenumber. */
 	relfilenumber = RelationMapOidToFilenumberForDatabase(srcpath,
@@ -304,7 +305,8 @@ ScanSourceDatabasePgClass(Oid tbid, Oid dbid, char *srcpath)
 	rlocator.dbOid = dbid;
 	rlocator.relNumber = relfilenumber;
 
-	smgr = smgropen(rlocator, InvalidBackendId);
+	rel = relation_open(RelationRelationId, AccessShareLock);
+	smgr = smgropen(rlocator, InvalidBackendId, SMGR_MD, rel);
 	nblocks = smgrnblocks(smgr, MAIN_FORKNUM);
 	smgrclose(smgr);
 
@@ -336,13 +338,14 @@ ScanSourceDatabasePgClass(Oid tbid, Oid dbid, char *srcpath)
 		}
 
 		/* Append relevant pg_class tuples for current page to rlocatorlist. */
-		rlocatorlist = ScanSourceDatabasePgClassPage(page, buf, tbid, dbid,
+		rlocatorlist = ScanSourceDatabasePgClassPage(rel, page, buf, tbid, dbid,
 													 srcpath, rlocatorlist,
 													 snapshot);
 
 		UnlockReleaseBuffer(buf);
 	}
 
+	relation_close(rel, AccessShareLock);
 	/* Release relation lock. */
 	UnlockRelationId(&relid, AccessShareLock);
 
@@ -354,7 +357,7 @@ ScanSourceDatabasePgClass(Oid tbid, Oid dbid, char *srcpath)
  * entries to rlocatorlist. The return value is the updated list.
  */
 static List *
-ScanSourceDatabasePgClassPage(Page page, Buffer buf, Oid tbid, Oid dbid,
+ScanSourceDatabasePgClassPage(Relation rel, Page page, Buffer buf, Oid tbid, Oid dbid,
 							  char *srcpath, List *rlocatorlist,
 							  Snapshot snapshot)
 {
@@ -388,7 +391,7 @@ ScanSourceDatabasePgClassPage(Page page, Buffer buf, Oid tbid, Oid dbid,
 		tuple.t_tableOid = RelationRelationId;
 
 		/* Skip tuples that are not visible to this snapshot. */
-		if (HeapTupleSatisfiesVisibility(&tuple, snapshot, buf))
+		if (HeapTupleSatisfiesVisibility(rel, &tuple, snapshot, buf))
 		{
 			CreateDBRelInfo *relinfo;
 
@@ -1678,7 +1681,6 @@ dropdb(const char *dbname, bool missing_ok, bool force)
 {
 	Oid			db_id = InvalidOid;
 	bool		db_istemplate = true;
-	Oid			defaultTablespace = InvalidOid;
 	Relation	pgdbrel;
 	HeapTuple	tup;
 	ScanKeyData scankey;

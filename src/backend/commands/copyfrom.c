@@ -924,7 +924,7 @@ CopyFromDirectoryTable(CopyFromState cstate)
 	 * index-entry-making machinery.  (There used to be a huge amount of code
 	 * here that basically duplicated execUtils.c ...)
 	 */
-	ExecInitRangeTable(estate, cstate->range_table);
+	ExecInitRangeTable(estate, cstate->range_table, cstate->rteperminfos);
 	resultRelInfo = target_resultRelInfo = makeNode(ResultRelInfo);
 	ExecInitResultRelation(estate, resultRelInfo, 1);
 
@@ -1112,7 +1112,7 @@ CopyFromDirectoryTable(CopyFromState cstate)
 		CommandId	mycid = GetCurrentCommandId(true);
 		MemoryContext oldcontext = CurrentMemoryContext;
 		bool		has_tuple = false;
-		bool		update_indexes;
+		TU_UpdateIndexes 		update_indexes;
 
 		econtext = GetPerTupleExprContext(estate);
 
@@ -1159,7 +1159,8 @@ CopyFromDirectoryTable(CopyFromState cstate)
 												   false,
 												   false,
 												   NULL,
-												   NIL);
+												   NIL,
+												   false);
 
 			/* AFTER ROW INSERT Triggers */
 			ExecARInsertTriggers(estate, resultRelInfo, myslot,
@@ -1291,7 +1292,7 @@ CopyFromDirectoryTable(CopyFromState cstate)
 	{
 		List	   *recheckIndexes = NIL;
 		CommandId	mycid = GetCurrentCommandId(true);
-		bool		update_indexes;
+		TU_UpdateIndexes 		update_indexes;
 
 		formDirTableSlot(cstate,
 						 dirTable->spcId,
@@ -1313,7 +1314,8 @@ CopyFromDirectoryTable(CopyFromState cstate)
 											   false,
 											   false,
 											   NULL,
-											   NIL);
+											   NIL,
+											   false);
 
 		/* AFTER ROW INSERT Triggers */
 		ExecARInsertTriggers(estate, resultRelInfo, myslot,

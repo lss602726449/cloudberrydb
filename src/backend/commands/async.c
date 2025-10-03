@@ -1237,20 +1237,6 @@ Exec_UnlistenAllCommit(void)
 }
 
 /*
- * ProcessCompletedNotifies --- nowadays this does nothing
- *
- * This routine used to send signals and handle self-notifies,
- * but that functionality has been moved elsewhere.
- * We'd delete it entirely, except that the documentation used to instruct
- * background-worker authors to call it.  To avoid an ABI break in stable
- * branches, keep it as a no-op routine.
- */
-void
-ProcessCompletedNotifies(void)
-{
-}
-
-/*
  * Test whether we are actively listening on the given channel name.
  *
  * Note: this function is executed for every notification found in the queue.
@@ -2253,6 +2239,7 @@ static void
 ProcessIncomingNotify(bool flush)
 {
 	bool		client_wait_timeout_enabled;
+	MemoryContext oldcontext;
 
 	/* We *must* reset the flag */
 	notifyInterruptPending = false;

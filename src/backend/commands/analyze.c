@@ -187,17 +187,10 @@ static VacAttrStats *examine_attribute(Relation onerel, int attnum,
 static int acquire_sample_rows_dispatcher(Relation onerel, bool inh, int elevel,
 										  HeapTuple *rows, int targrows,
 										  double *totalrows, double *totaldeadrows);
-static int	acquire_sample_rows(Relation onerel, int elevel,
-								HeapTuple *rows, int targrows,
-								double *totalrows, double *totaldeadrows);
 static int	compare_rows(const void *a, const void *b, void *arg);
-static int	acquire_inherited_sample_rows(Relation onerel, int elevel,
-										  HeapTuple *rows, int targrows,
-										  double *totalrows, double *totaldeadrows);
 static BlockNumber acquire_index_number_of_blocks(Relation indexrel, Relation tablerel);
 
 static void gp_acquire_correlations_dispatcher(Oid relOid, bool inh, float4 *correlations, bool *correlationsIsNull);
-static int	compare_rows(const void *a, const void *b);
 static void update_attstats(Oid relid, bool inh,
 							int natts, VacAttrStats **vacattrstats);
 static Datum std_fetch_func(VacAttrStatsP stats, int rownum, bool *isNull);
@@ -845,7 +838,6 @@ do_analyze_rel(Relation onerel, VacuumParams *params,
 		HeapTuple *validRows = (HeapTuple *) palloc(numrows * sizeof(HeapTuple));
 		MemoryContext col_context,
 					old_context;
-		bool		build_ext_stats;
 
 		pgstat_progress_update_param(PROGRESS_ANALYZE_PHASE,
 									 PROGRESS_ANALYZE_PHASE_COMPUTE_STATS);
@@ -943,7 +935,6 @@ do_analyze_rel(Relation onerel, VacuumParams *params,
 				 */
 				if (onerel->rd_rel->relkind == RELKIND_RELATION && onerel->rd_rel->relispartition)
 				{
-					MemoryContext old_context;
 					Datum *hll_values;
 
 					old_context = MemoryContextSwitchTo(stats->anl_context);
@@ -2308,7 +2299,7 @@ acquire_hll_by_query(Relation onerel, int nattrs, VacAttrStats **attrstats, int 
 			bool typbyval;
 			get_typlenbyval(SPI_tuptable->tupdesc->tdtypeid, &typlen, &typbyval);
 			int hll_length = datumGetSize(vals[tupattnum-1], typbyval, typlen);
-			attrstats[j]->stahll_full = (bytea *)datumCopy(PointerGetDatum(vals[tupattnum - 1]), false, hll_length);
+			attrstats[j]->stahll_full = (bytea *)datumCopy(vals[tupattnum - 1], false, hll_length);
 		}
 	}
 
@@ -2647,7 +2638,7 @@ static QueryDesc *build_querydesc(Portal portal, char *sql)
 	Assert(list_length(raw_parsetree_list) == 1);
 	parsetree = (RawStmt *) linitial(raw_parsetree_list);
 
-	querytree_list = pg_analyze_and_rewrite(parsetree,
+	querytree_list = pg_analyze_and_rewrite_fixedparams(parsetree,
 											sql,
 											NULL,
 											0,

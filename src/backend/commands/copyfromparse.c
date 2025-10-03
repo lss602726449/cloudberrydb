@@ -792,9 +792,9 @@ NextCopyFromRawFields(CopyFromState cstate, char ***fields, int *nfields)
 			int			fldnum;
 
 			if (cstate->opts.csv_mode)
-				fldct = CopyReadAttributesCSV(cstate);
+				fldct = CopyReadAttributesCSV(cstate, -1);
 			else
-				fldct = CopyReadAttributesText(cstate);
+				fldct = CopyReadAttributesText(cstate, -1);
 
 			if (fldct != list_length(cstate->attnumlist))
 				ereport(ERROR,
@@ -847,9 +847,9 @@ NextCopyFromRawFields(CopyFromState cstate, char ***fields, int *nfields)
 
 	/* Parse the line into de-escaped field values */
 	if (cstate->opts.csv_mode)
-		fldct = CopyReadAttributesCSV(cstate);
+		fldct = CopyReadAttributesCSV(cstate, -1);
 	else
-		fldct = CopyReadAttributesText(cstate);
+		fldct = CopyReadAttributesText(cstate, -1);
 
 	*fields = cstate->raw_fields;
 	*nfields = fldct;

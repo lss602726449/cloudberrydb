@@ -635,8 +635,8 @@ DispatchCollationCreate(char *alias, char *locale, Oid nspid, char* provider)
 	Assert(Gp_role == GP_ROLE_DISPATCH);
 
 	List *names = NIL;
-	Value *schemaname = makeString(get_namespace_name(nspid));
-	Value *relname = makeString(alias);
+	String *schemaname = makeString(get_namespace_name(nspid));
+	String *relname = makeString(alias);
 
 	names = lappend(names, schemaname);
 	names = lappend(names, relname);
@@ -1029,6 +1029,7 @@ pg_import_system_collations(PG_FUNCTION_ARGS)
 			const char *name;
 			char	   *langtag;
 			char	   *icucomment;
+			const char *collcollate;
 			char	   *collname;
 			Oid			collid;
 
@@ -1038,6 +1039,7 @@ pg_import_system_collations(PG_FUNCTION_ARGS)
 				name = uloc_getAvailable(i);
 
 			langtag = icu_language_tag(name, ERROR);
+			collcollate = U_ICU_VERSION_MAJOR_NUM >= 54 ? langtag : name;
 
 			/*
 			 * Be paranoid about not allowing any non-ASCII strings into

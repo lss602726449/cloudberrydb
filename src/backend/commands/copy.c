@@ -180,6 +180,7 @@ DoCopy(ParseState *pstate, const CopyStmt *stmt,
 	if (stmt->relation)
 	{
 		ParseNamespaceItem *nsitem;
+		RangeTblEntry *rte;
 		RTEPermissionInfo *perminfo;
 		TupleDesc	tupDesc;
 		List	   *attnums;
@@ -200,7 +201,7 @@ DoCopy(ParseState *pstate, const CopyStmt *stmt,
 
 		nsitem = addRangeTableEntryForRelation(pstate, rel, lockmode,
 											   NULL, false, false);
-
+		rte = nsitem->p_rte;
 		perminfo = nsitem->p_perminfo;
 		perminfo->requiredPerms = (is_from ? ACL_INSERT : ACL_SELECT);
 
