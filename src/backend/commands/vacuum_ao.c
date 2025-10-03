@@ -306,6 +306,8 @@ ao_vacuum_rel_post_cleanup(Relation onerel, VacuumParams *params, BufferAccessSt
 						relhasindex,
 						FreezeLimit,
 						MultiXactCutoff,
+						NULL,
+						NULL,
 						false,
 						true /* isvacuum */);
 
@@ -667,6 +669,8 @@ vacuum_appendonly_index(Relation indexRelation,
 							false,
 							InvalidTransactionId,
 							InvalidMultiXactId,
+							NULL,
+							NULL,
 							false,
 							true /* isvacuum */);
 
@@ -830,6 +834,8 @@ scan_index(Relation indrel, Relation aorel, int elevel, BufferAccessStrategy vac
 							false,
 							InvalidTransactionId,
 							InvalidMultiXactId,
+							NULL,
+							NULL,
 							false,
 							true /* isvacuum */);
 

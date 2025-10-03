@@ -792,7 +792,6 @@ CreateRole(ParseState *pstate, CreateRoleStmt *stmt)
 		/* Scan the pg_profile relation to be certain the profile exists. */
 		Relation	pg_profile_rel;
 		TupleDesc	pg_profile_dsc;
-		HeapTuple	tuple;
 		Form_pg_profile	profileform;
 		Oid		profileid;
 
@@ -1458,12 +1457,12 @@ AlterRole(ParseState *pstate, AlterRoleStmt *stmt)
 			 * change the default resource group accordingly: admin_group
 			 * for superuser and default_group for non-superuser
 			 */
-			if (issuper == 0 && roleResgroup == ADMINRESGROUP_OID)
+			if (should_be_super == 0 && roleResgroup == ADMINRESGROUP_OID)
 			{
 				new_record[Anum_pg_authid_rolresgroup - 1] = ObjectIdGetDatum(DEFAULTRESGROUP_OID);
 				new_record_repl[Anum_pg_authid_rolresgroup - 1] = true;
 			}
-			else if (issuper > 0 && roleResgroup == DEFAULTRESGROUP_OID)
+			else if (should_be_super > 0 && roleResgroup == DEFAULTRESGROUP_OID)
 			{
 				new_record[Anum_pg_authid_rolresgroup - 1] = ObjectIdGetDatum(ADMINRESGROUP_OID);
 				new_record_repl[Anum_pg_authid_rolresgroup - 1] = true;
@@ -1471,7 +1470,7 @@ AlterRole(ParseState *pstate, AlterRoleStmt *stmt)
 		}
 
 		/* get current superuser status */
-		bWas_super = (issuper > 0);
+		bWas_super = should_be_super;
 	}
 
 	if (dinherit)
@@ -1588,7 +1587,7 @@ AlterRole(ParseState *pstate, AlterRoleStmt *stmt)
 		int32		profile_reuse_max = 0;
 		SysScanDesc	password_history_scan;
 		HeapTuple	profiletuple;
-		char	   *logdetail;
+		const char	   *logdetail;
 		bool		ignore_password_history = false;
 
 		pg_profile_rel = table_open(ProfileRelationId, AccessShareLock);
@@ -1744,7 +1743,7 @@ AlterRole(ParseState *pstate, AlterRoleStmt *stmt)
 		profileform = (Form_pg_profile) GETSTRUCT(profile_tuple);
 		profileid = profileform->oid;
 
-		new_record[Anum_pg_authid_rolprofile - 1] = PointerGetDatum(profileid);
+		new_record[Anum_pg_authid_rolprofile - 1] = profileid;
 		new_record_repl[Anum_pg_authid_rolprofile - 1] = true;
 
 		ReleaseSysCache(profile_tuple);
@@ -1919,23 +1918,14 @@ AlterRole(ParseState *pstate, AlterRoleStmt *stmt)
 
 		CommandCounterIncrement();
 
-	if (stmt->action == +1)		/* add members to role */
-	{
-		if (rolemembers)
-			alter_subtype = "ADD USER";
-
-		AddRoleMems(currentUserId, rolename, roleid,
-					rolemembers, roleSpecsToIds(rolemembers),
-					InvalidOid, &popt);
-	}
-	else if (stmt->action == -1)	/* drop members from role */
-	{
-		if (rolemembers)
-			alter_subtype = "DROP USER";
-
-		DelRoleMems(currentUserId, rolename, roleid,
-					rolemembers, roleSpecsToIds(rolemembers),
-					InvalidOid, &popt, DROP_RESTRICT);
+		if (stmt->action == +1) /* add members to role */
+			AddRoleMems(currentUserId, rolename, roleid,
+						rolemembers, roleSpecsToIds(rolemembers),
+						InvalidOid, &popt);
+		else if (stmt->action == -1)	/* drop members from role */
+			DelRoleMems(currentUserId, rolename, roleid,
+						rolemembers, roleSpecsToIds(rolemembers),
+						InvalidOid, &popt, DROP_RESTRICT);
 	}
 
 	if (bWas_super)
@@ -2301,6 +2291,7 @@ DropRole(DropRoleStmt *stmt)
 		if (Gp_role == GP_ROLE_DISPATCH)
 			MetaTrackDropObject(AuthIdRelationId,
 								roleid);
+		/*
 		 * Advance command counter so that later iterations of this loop will
 		 * see the changes already made.  This is essential if, for example,
 		 * we are trying to drop both a role and one of its direct members ---

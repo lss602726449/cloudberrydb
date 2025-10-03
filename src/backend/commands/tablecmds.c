@@ -272,10 +272,9 @@ struct DropRelationCallbackState
 #define		ATT_COMPOSITE_TYPE		0x0010
 #define		ATT_FOREIGN_TABLE		0x0020
 #define		ATT_PARTITIONED_INDEX	0x0040
-#define		ATT_SEQUENCE			0x0080
+#define		ATT_DIRECTORY_TABLE		0x0080
 
-#define		ATT_DIRECTORY_TABLE		0x0100
-#define		ATT_SEQUENCE			0x0200
+#define		ATT_SEQUENCE			0x0100
 /*
  * ForeignTruncateInfo
  *
@@ -592,10 +591,7 @@ static void ATExecExpandTableCTAS(AlterTableCmd *rootCmd, Relation rel, AlterTab
 
 static void ATExecSetDistributedBy(Relation rel, Node *node,
 								   AlterTableCmd *cmd);
-static PartitionSpec *transformPartitionSpec(Relation rel, PartitionSpec *partspec, char *strategy);
-static void ComputePartitionAttrs(ParseState *pstate, Relation rel, List *partParams, AttrNumber *partattrs,
-								  List **partexprs, Oid *partopclass, Oid *partcollation,
-								  PartitionStrategy strategy);
+static PartitionSpec *transformPartitionSpec(Relation rel, PartitionSpec *partspec);
 static void CreateInheritance(Relation child_rel, Relation parent_rel);
 static void RemoveInheritance(Relation child_rel, Relation parent_rel,
 							  bool expect_detached);
@@ -2073,7 +2069,7 @@ relid_set_new_relfilenode(Oid relid)
 		Relation rel;
 
 		rel = relation_open(relid, AccessExclusiveLock);
-		RelationSetNewRelfilenode(rel, rel->rd_rel->relpersistence);
+		RelationSetNewRelfilenumber(rel, rel->rd_rel->relpersistence);
 		heap_close(rel, NoLock);
 	}
 }
@@ -2423,7 +2419,7 @@ ExecuteTruncateGuts(List *explicit_rels,
 					List *relids_logged,
 					DropBehavior behavior,
 					bool restart_seqs,
-					bool run_as_table_owner
+					bool run_as_table_owner,
 					TruncateStmt *stmt)
 {
 	List	   *rels;
@@ -5499,7 +5495,6 @@ ATController(AlterTableStmt *parsetree,
 			 * them here.
 			 */
 			AlteredTableInfo *tab = (AlteredTableInfo *) lfirst(lc);
-			Relation rel;
 
 			rel = relation_open(tab->relid, lockmode);
 			tab->oldDesc = CreateTupleDescCopyConstr(RelationGetDescr(rel));
@@ -5725,7 +5720,7 @@ ATPrepCmd(List **wqueue, Relation rel, AlterTableCmd *cmd,
 			/* Parent/Base CHECK constraints apply to child/part tables here.
 			 * No need for ATPartitionCheck
 			 */
-			ATSimplePermissions(rel, ATT_TABLE | ATT_FOREIGN_TABLE);
+			ATSimplePermissions(cmd->subtype, rel, ATT_TABLE | ATT_FOREIGN_TABLE);
 			pass = AT_PASS_ADD_CONSTR;
 			break;
 		case AT_AddIndexConstraint: /* ADD CONSTRAINT USING INDEX */
@@ -5776,7 +5771,7 @@ ATPrepCmd(List **wqueue, Relation rel, AlterTableCmd *cmd,
 			break;
 		case AT_SetLogged:		/* SET LOGGED */
 			ATSimplePermissions(cmd->subtype, rel, ATT_TABLE | ATT_SEQUENCE);
-			if (tab->chgPersistence, && Gp_role != GP_ROLE_EXECUTE)
+			if (tab->chgPersistence && Gp_role != GP_ROLE_EXECUTE)
 				ereport(ERROR,
 						(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
 						 errmsg("cannot change persistence setting twice")));
@@ -5852,7 +5847,7 @@ ATPrepCmd(List **wqueue, Relation rel, AlterTableCmd *cmd,
 				pass = AT_PASS_MISC;
 				break;
 			}
-			ATSimplePermissions(rel, ATT_TABLE | ATT_DIRECTORY_TABLE | ATT_FOREIGN_TABLE);
+			ATSimplePermissions(cmd->subtype, rel, ATT_TABLE | ATT_DIRECTORY_TABLE | ATT_FOREIGN_TABLE);
 
 			if (!recursing) /* MPP-5772, MPP-5784 */
 			{
@@ -5922,7 +5917,7 @@ ATPrepCmd(List **wqueue, Relation rel, AlterTableCmd *cmd,
 			pass = AT_PASS_MISC;
 			break;
 		case AT_ExpandTable:
-			ATSimplePermissions(rel, ATT_TABLE | ATT_FOREIGN_TABLE | ATT_MATVIEW);
+			ATSimplePermissions(cmd->subtype, rel, ATT_TABLE | ATT_FOREIGN_TABLE | ATT_MATVIEW);
 
 			/* ATTACH and DETACH will process in ATExecAttachPartition function */
 			if (!recursing)
@@ -5951,7 +5946,7 @@ ATPrepCmd(List **wqueue, Relation rel, AlterTableCmd *cmd,
 			break;
 
 		case AT_ExpandPartitionTablePrepare:
-			ATSimplePermissions(rel, ATT_TABLE | ATT_FOREIGN_TABLE | ATT_MATVIEW);
+			ATSimplePermissions(cmd->subtype, rel, ATT_TABLE | ATT_FOREIGN_TABLE | ATT_MATVIEW);
 
 			/* ATTACH and DETACH will process in ATExecAttachPartition function */
 			if (!recursing)
@@ -5990,7 +5985,7 @@ ATPrepCmd(List **wqueue, Relation rel, AlterTableCmd *cmd,
 			break;
 
 		case AT_ShrinkTable:
-			ATSimplePermissions(rel, ATT_TABLE | ATT_FOREIGN_TABLE | ATT_MATVIEW);
+			ATSimplePermissions(cmd->subtype, rel, ATT_TABLE | ATT_FOREIGN_TABLE | ATT_MATVIEW);
 
 			/* ATTACH and DETACH will process in ATExecAttachPartition function */
 			if (!recursing)
@@ -6107,13 +6102,13 @@ ATPrepCmd(List **wqueue, Relation rel, AlterTableCmd *cmd,
 		case AT_PartTruncate:
 		case AT_PartExchange:
 		case AT_PartSetTemplate:
-			ATSimplePermissions(rel, ATT_TABLE);
+			ATSimplePermissions(cmd->subtype, rel, ATT_TABLE);
 			/* No command-specific prep needed */
 			pass = AT_PASS_MISC;
 			break;
 		case AT_SetTags:
 		case AT_UnsetTags:
-			ATSimplePermissions(rel, ATT_TABLE | ATT_FOREIGN_TABLE | ATT_INDEX | ATT_SEQUENCE | ATT_VIEW | ATT_MATVIEW);
+			ATSimplePermissions(cmd->subtype, rel, ATT_TABLE | ATT_FOREIGN_TABLE | ATT_INDEX | ATT_SEQUENCE | ATT_VIEW | ATT_MATVIEW);
 			/* No command-specific prep needed */
 			pass = AT_PASS_MISC;
 			break;
@@ -7477,7 +7472,7 @@ ATAocsWriteNewColumns(AlteredTableInfo *tab)
      */
 
 	segInfos = GetAllAOCSFileSegInfo(rel, snapshot, &nseg, NULL);
-	basepath = relpathbackend(rel->rd_node, rel->rd_backend, MAIN_FORKNUM);
+	basepath = relpathbackend(rel->rd_locator, rel->rd_backend, MAIN_FORKNUM);
 	if (nseg > 0)
 	{
 		aocs_addcol_emptyvpe(rel, segInfos, nseg,
@@ -7553,9 +7548,9 @@ ATAocsWriteNewColumns(AlteredTableInfo *tab)
 			 * Create new segfiles for new columns for current
 			 * appendonly segment.
 			 */
-			RelFileNodeBackend rnode;
+			RelFileLocatorBackend rnode;
 
-			rnode.node = rel->rd_node;
+			rnode.locator = rel->rd_locator;
 			rnode.backend = rel->rd_backend;
 
 			aocs_addcol_newsegfile(idesc, segInfos[segi],
@@ -8004,6 +7999,7 @@ alter_table_type_to_string(AlterTableType cmdtype)
 	{
 		case AT_AddColumn:
 		case AT_AddColumnToView:
+		case AT_AddColumnRecurse:
 			return "ADD COLUMN";
 		case AT_ColumnDefault:
 		case AT_CookedColumnDefault:
@@ -8028,10 +8024,13 @@ alter_table_type_to_string(AlterTableType cmdtype)
 			return "ALTER COLUMN ... SET COMPRESSION";
 		case AT_DropColumn:
 			return "DROP COLUMN";
+		case AT_DropColumnRecurse:
+			return "DROP COLUMN RECURSE";
 		case AT_AddIndex:
 		case AT_ReAddIndex:
 			return NULL;		/* not real grammar */
 		case AT_AddConstraint:
+		case AT_AddConstraintRecurse:
 		case AT_ReAddConstraint:
 		case AT_ReAddDomainConstraint:
 		case AT_AddIndexConstraint:
@@ -8039,8 +8038,10 @@ alter_table_type_to_string(AlterTableType cmdtype)
 		case AT_AlterConstraint:
 			return "ALTER CONSTRAINT";
 		case AT_ValidateConstraint:
+		case AT_ValidateConstraintRecurse:
 			return "VALIDATE CONSTRAINT";
 		case AT_DropConstraint:
+		case AT_DropConstraintRecurse:
 			return "DROP CONSTRAINT";
 		case AT_ReAddComment:
 			return NULL;		/* not real grammar */
@@ -8126,6 +8127,26 @@ alter_table_type_to_string(AlterTableType cmdtype)
 			return "ALTER COLUMN ... SET";
 		case AT_DropIdentity:
 			return "ALTER COLUMN ... DROP IDENTITY";
+		case AT_SetDistributedBy:
+			return "ALTER COLUMN ... SET DISTRIBUTEBY";
+		case AT_ExpandTable:
+		case AT_ExpandPartitionTablePrepare:
+			return "ALTER COLUMN ... EXPAND TABLE";
+		case AT_ShrinkTable :
+			return "ALTER COLUMN ... SHRINK TABLE";
+		case AT_SetTags :
+			return "ALTER COLUMN ... SET TAG";
+		case AT_UnsetTags :
+			return "ALTER COLUMN ... UNSET TAG";
+		case AT_PartAdd :
+		case AT_PartAlter :
+		case AT_PartDrop :
+		case AT_PartExchange :
+		case AT_PartRename :
+		case AT_PartSetTemplate :
+		case AT_PartSplit :
+		case AT_PartTruncate :
+			return "ALTER PARTITION";
 		case AT_ReAddStatistics:
 			return NULL;		/* not real grammar */
 	}
@@ -8230,6 +8251,7 @@ ATSimplePermissions(AlterTableType cmdtype, Relation rel, int allowed_targets)
  * Throw an error when a relation has been determined to be of the wrong
  * type.
  */
+#if 0
 static void
 ATWrongRelkindError(Relation rel, int allowed_targets)
 {
@@ -8304,6 +8326,7 @@ ATWrongRelkindError(Relation rel, int allowed_targets)
 			(errcode(ERRCODE_WRONG_OBJECT_TYPE),
 			 errmsg(msg, RelationGetRelationName(rel))));
 }
+#endif
 
 /*
  * ATSimpleRecursion
@@ -9261,7 +9284,7 @@ ATExecAddColumn(List **wqueue, AlteredTableInfo *tab, Relation rel,
 			foreach (lc, all_inheritors)
 			{
 				Oid r = lfirst_oid(lc);
-				Relation rel = heap_open(r, NoLock);
+				rel = heap_open(r, NoLock);
 				AlteredTableInfo *childtab;
 				childtab = ATGetQueueEntry(wqueue, rel);
 
@@ -16001,7 +16024,6 @@ ATPostAlterTypeParse(Oid oldId, Oid oldRelId, Oid refRelId, char *cmd,
 	if (Gp_role == GP_ROLE_EXECUTE && context != NULL)
 	{
 		ListCell 		*lc;
-		Relation 		rel;
 		Relation 		irel = NULL;
 		AlteredTableInfo 	*tab;
 
@@ -16020,7 +16042,7 @@ ATPostAlterTypeParse(Oid oldId, Oid oldRelId, Oid refRelId, char *cmd,
 			stmt = (IndexStmt *) cmd->def;
 
 			/* if we are not reusing this index, continue */
-			if (!OidIsValid(stmt->oldNode))
+			if (!OidIsValid(stmt->oldNumber))
 				continue;
 
 			if (irel == NULL)
@@ -16046,7 +16068,7 @@ ATPostAlterTypeParse(Oid oldId, Oid oldRelId, Oid refRelId, char *cmd,
 
 			/* If it is for the current index, replace the relnode with my own. */
 			if (strcmp(stmt->idxname, irel->rd_rel->relname.data) == 0)
-				stmt->oldNode = irel->rd_node.relNode;
+				stmt->oldNumber = irel->rd_locator.relNumber;
 		}
 
 		if (irel != NULL)
@@ -16983,28 +17005,6 @@ ATExecDropCluster(Relation rel, LOCKMODE lockmode)
 						   GetUserId(),
 						   "ALTER", "SET WITHOUT CLUSTER"
 				);
-}
-
-/*
- * Preparation phase for SET ACCESS METHOD
- *
- * Check that access method exists.  If it is the same as the table's current
- * access method, it is a no-op.  Otherwise, a table rewrite is necessary.
- */
-static void
-ATPrepSetAccessMethod(AlteredTableInfo *tab, Relation rel, const char *amname)
-{
-	Oid			amoid;
-
-	/* Check that the table access method exists */
-	amoid = get_table_am_oid(amname, false);
-
-	if (rel->rd_rel->relam == amoid)
-		return;
-
-	/* Save info for Phase 3 to do the real work */
-	tab->rewrite |= AT_REWRITE_ACCESS_METHOD;
-	tab->newAccessMethod = amoid;
 }
 
 /*
@@ -18852,7 +18852,7 @@ build_ctas_with_dist(Relation rel, DistributedBy *dist_clause,
 		rawstmt->stmt_location = -1;
 		rawstmt->stmt_len = 0;
 
-		q_list = pg_analyze_and_rewrite(rawstmt, synthetic_sql, NULL, 0, NULL);
+		q_list = pg_analyze_and_rewrite_fixedparams(rawstmt, synthetic_sql, NULL, 0, NULL);
 		p_list = pg_plan_queries(q_list, synthetic_sql, 0, NULL);
 		pstmt = linitial_node(PlannedStmt, p_list);
 		ctas = castNode(CreateTableAsStmt, pstmt->utilityStmt);
@@ -18868,7 +18868,7 @@ build_ctas_with_dist(Relation rel, DistributedBy *dist_clause,
 		rawstmt->stmt_location = -1;
 		rawstmt->stmt_len = 0;
 
-		q = parse_analyze(rawstmt, synthetic_sql, NULL, 0, NULL);
+		q = parse_analyze_fixedparams(rawstmt, synthetic_sql, NULL, 0, NULL);
 	}
 	else
 		q = (Query *) n;
@@ -19151,7 +19151,7 @@ prebuild_temp_table(Relation rel, RangeVar *tmpname, DistributedBy *distro,
 		rawstmt->stmt_location = -1;
 		rawstmt->stmt_len = 0;
 
-		q = parse_analyze(rawstmt, synthetic_sql, NULL, 0, NULL);
+		q = parse_analyze_fixedparams(rawstmt, synthetic_sql, NULL, 0, NULL);
 
 		/* No planning needed, just make a wrapper PlannedStmt */
 		PlannedStmt *pstmt = makeNode(PlannedStmt);

@@ -177,8 +177,8 @@ TablespaceCreateDbspace(Oid spcOid, Oid dbOid, bool isRedo)
 	Assert(OidIsValid(spcOid));
 	Assert(OidIsValid(dbOid));
 
-	if (spcNode != DEFAULTTABLESPACE_OID && !isRedo)
-		TablespaceLockTuple(spcNode, AccessShareLock, true);
+	if (spcOid != DEFAULTTABLESPACE_OID && !isRedo)
+		TablespaceLockTuple(spcOid, AccessShareLock, true);
 
 	dir = GetDatabasePath(dbOid, spcOid);
 
@@ -273,6 +273,7 @@ CreateTableSpace(CreateTableSpaceStmt *stmt)
 	Datum		newOptions;
 	List       *nonContentOptions = NIL;
 	char       *fileHandler = NULL;
+	bool		in_place;
 
 	/* Must be superuser */
 	if (!superuser())
@@ -301,7 +302,8 @@ CreateTableSpace(CreateTableSpaceStmt *stmt)
 			if (strlen(defel->defname) > strlen("content") &&
 				strncmp(defel->defname, "content", strlen("content")) == 0)
 			{
-				int contentId = pg_atoi(defel->defname + strlen("content"), sizeof(int16), 0);
+				char	   *endp;
+				int contentId = strtol(defel->defname + strlen("content"), &endp, 10);
 
 				/*
 				 * The master validates the content ids are in [0, segCount)
@@ -845,6 +847,7 @@ create_tablespace_directories(const char *location, const Oid tablespaceoid)
 	location_with_dbid_dir = psprintf("%s/%d", location, GpIdentity.dbid);
 	location_with_version_dir = psprintf("%s/%s", location_with_dbid_dir,
 										 GP_TABLESPACE_VERSION_DIRECTORY);
+	in_place = strlen(location) == 0;
 
 	/*
 	 * Attempt to coerce target directory to safe permissions.  If this fails,

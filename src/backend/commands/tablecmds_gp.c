@@ -298,13 +298,13 @@ generatePartitionSpec(Relation rel)
 	switch (form->partstrat)
 	{
 		case PARTITION_STRATEGY_RANGE:
-			subpart->strategy = psprintf("range");
+			subpart->strategy = PARTITION_STRATEGY_RANGE;
 			break;
 		case PARTITION_STRATEGY_LIST:
-			subpart->strategy = psprintf("list");
+			subpart->strategy = PARTITION_STRATEGY_LIST;
 			break;
 		case PARTITION_STRATEGY_HASH:
-			subpart->strategy = psprintf("hash");
+			subpart->strategy = PARTITION_STRATEGY_HASH;
 			break;
 	}
 
@@ -1187,7 +1187,6 @@ ATExecGPPartCmds(Relation origrel, AlterTableCmd *cmd)
 			PartitionSpec			*subpart = NULL;
 			Relation 				temprel = rel;
 			PartitionSpec 			*tempsubpart = NULL;
-			ListCell 				*l;
 			List					*ancestors = get_partition_ancestors(RelationGetRelid(rel));
 			int						 level = list_length(ancestors) + 1;
 

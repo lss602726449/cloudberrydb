@@ -258,7 +258,7 @@ ExecVacuum(ParseState *pstate, VacuumStmt *vacstmt, bool isTopLevel, bool auto_s
 						(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
 						 errmsg("BUFFER_USAGE_LIMIT option must be 0 or between %d kB and %d kB",
 								MIN_BAS_VAC_RING_SIZE_KB, MAX_BAS_VAC_RING_SIZE_KB),
-						 hintmsg ? errhint("%s", _(hintmsg)) : 0));
+						 hintmsg ? errhint("%s", (hintmsg)) : 0));
 			}
 
 			ring_size = result;
@@ -369,7 +369,7 @@ ExecVacuum(ParseState *pstate, VacuumStmt *vacstmt, bool isTopLevel, bool auto_s
 		(process_main ? VACOPT_PROCESS_MAIN : 0) |
 		(process_toast ? VACOPT_PROCESS_TOAST : 0) |
 		(skip_database_stats ? VACOPT_SKIP_DATABASE_STATS : 0) |
-		(only_database_stats ? VACOPT_ONLY_DATABASE_STATS : 0);
+		(only_database_stats ? VACOPT_ONLY_DATABASE_STATS : 0) |
 		(update_datfrozenxid ? VACOPT_UPDATE_DATFROZENXID : 0);
 
 	if (rootonly)
@@ -2849,11 +2849,9 @@ vacuum_rel(Oid relid, RangeVar *relation, VacuumParams *params,
 	 * we're processing. Build a rangevar representing this partition, so that we
 	 * can dispatch it.
 	 */
-	MemoryContext oldcontext = MemoryContextSwitchTo(vac_context);
 	this_rangevar = makeRangeVar(get_namespace_name(rel->rd_rel->relnamespace),
 								 pstrdup(RelationGetRelationName(rel)),
 								 -1);
-	MemoryContextSwitchTo(oldcontext);
 
 	/*
 	 * Switch to the table owner's userid, so that any index functions are run
@@ -2961,18 +2959,18 @@ vacuum_rel(Oid relid, RangeVar *relation, VacuumParams *params,
 		 * transactions.
 		 */
 		params->options = orig_options | VACOPT_AO_PRE_CLEANUP_PHASE;
-		vacuum_rel(relid, this_rangevar, params, false);
+		vacuum_rel(relid, this_rangevar, params, bstrategy, false);
 
 		/* Compact. This runs in a distributed transaction.  */
 		params->options = orig_options | VACOPT_AO_COMPACT_PHASE;
-		vacuum_rel(relid, this_rangevar, params, false);
+		vacuum_rel(relid, this_rangevar, params, bstrategy, false);
 
 		/* 
 		 * Do a final round of cleanup. Hopefully, this can drop the segments
 		 * that were compacted in the previous phase.
 		 */
 		params->options = orig_options | VACOPT_AO_POST_CLEANUP_PHASE;
-		vacuum_rel(relid, this_rangevar, params, false);
+		vacuum_rel(relid, this_rangevar, params, bstrategy, false);
 
 		params->options = orig_options;
 	}
@@ -3010,20 +3008,20 @@ vacuum_rel(Oid relid, RangeVar *relation, VacuumParams *params,
 		memcpy(&toast_vacuum_params, params, sizeof(VacuumParams));
 		toast_vacuum_params.options |= VACOPT_PROCESS_MAIN;
 
-		vacuum_rel(toast_relid, NULL, &toast_vacuum_params, bstrategy);
+		vacuum_rel(toast_relid, NULL, &toast_vacuum_params, bstrategy, true);
 	}
 
 	/* do the same for an AO segments table, if any */
 	if (aoseg_relid != InvalidOid)
-		vacuum_rel(aoseg_relid, NULL , params, true);
+		vacuum_rel(aoseg_relid, NULL , params, bstrategy, true);
 
 	/* do the same for an AO block directory table, if any */
 	if (aoblkdir_relid != InvalidOid)
-		vacuum_rel(aoblkdir_relid, NULL, params, true);
+		vacuum_rel(aoblkdir_relid, NULL, params, bstrategy, true);
 
 	/* do the same for an AO visimap, if any */
 	if (aovisimap_relid != InvalidOid)
-		vacuum_rel(aovisimap_relid, NULL, params, true);
+		vacuum_rel(aovisimap_relid, NULL, params, bstrategy, true);
 	params->options = orig_option;
 
 	/*
@@ -3489,7 +3487,6 @@ static void
 vacuum_combine_stats(VacuumStatsContext *stats_context, CdbPgResults *cdb_pgresults)
 {
 	int			result_no;
-	MemoryContext old_context;
 
 	Assert(Gp_role == GP_ROLE_DISPATCH);
 
@@ -3547,14 +3544,12 @@ vacuum_combine_stats(VacuumStatsContext *stats_context, CdbPgResults *cdb_pgresu
 		{
 			Assert(pgresult->extraslen == sizeof(VPgClassStats));
 
-			old_context = MemoryContextSwitchTo(vac_context);
 			pgclass_stats_combo = palloc(sizeof(VPgClassStatsCombo));
 			memcpy(pgclass_stats_combo, pgresult->extras, pgresult->extraslen);
 			pgclass_stats_combo->count = 1;
 
 			stats_context->updated_stats =
 				lappend(stats_context->updated_stats, pgclass_stats_combo);
-			MemoryContextSwitchTo(old_context);
 		}
 	}
 }
@@ -3643,6 +3638,8 @@ vac_update_relstats_from_list(VacuumStatsContext *stats_context)
 								rel->rd_rel->relhasindex,
 								InvalidTransactionId,
 								InvalidMultiXactId,
+								NULL,
+								NULL,
 								false,
 								false /* isvacuum */);
 		}

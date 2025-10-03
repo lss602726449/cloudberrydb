@@ -4946,17 +4946,29 @@ SetTransitionTableName(Oid relid, CmdType cmdType, Oid mvoid)
 		table = (AfterTriggersTableData *) lfirst(lc);
 		if (table->relid == relid && table->cmdType == cmdType)
 		{
-			if (table->new_tuplestore)
+			if (table->new_ins_tuplestore)
 			{
 				char *name = MakeDeltaName("new", relid, gp_command_count);
-				tuplestore_set_sharedname(table->new_tuplestore, name);
-				tuplestore_set_tableid(table->new_tuplestore, relid);
+				tuplestore_set_sharedname(table->new_ins_tuplestore, name);
+				tuplestore_set_tableid(table->new_ins_tuplestore, relid);
 			}
-			if (table->old_tuplestore)
+			if (table->new_upd_tuplestore)
+			{
+				char *name = MakeDeltaName("new", relid, gp_command_count);
+				tuplestore_set_sharedname(table->new_upd_tuplestore, name);
+				tuplestore_set_tableid(table->new_upd_tuplestore, relid);
+			}
+			if (table->old_del_tuplestore)
 			{
 				char *name = MakeDeltaName("old", relid, gp_command_count);
-				tuplestore_set_sharedname(table->old_tuplestore, name);
-				tuplestore_set_tableid(table->old_tuplestore, relid);
+				tuplestore_set_sharedname(table->old_del_tuplestore, name);
+				tuplestore_set_tableid(table->old_del_tuplestore, relid);
+			}
+			if (table->old_upd_tuplestore)
+			{
+				char *name = MakeDeltaName("old", relid, gp_command_count);
+				tuplestore_set_sharedname(table->old_upd_tuplestore, name);
+				tuplestore_set_tableid(table->old_upd_tuplestore, relid);
 			}
 			found = true;
 		}
