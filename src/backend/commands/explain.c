@@ -306,7 +306,7 @@ ExplainQuery(ParseState *pstate, ExplainStmt *stmt,
 
 	query = castNode(Query, stmt->query);
 	if (IsQueryIdEnabled())
-		jstate = JumbleQuery(query);
+		jstate = JumbleQuery(query, pstate->p_sourcetext);
 
 	if (post_parse_analyze_hook)
 		(*post_parse_analyze_hook) (pstate, query, jstate);
@@ -2551,7 +2551,7 @@ ExplainNode(PlanState *planstate, List *ancestors,
 				char *buf;
 				Oid relid;
 				relid = rt_fetch(((DynamicSeqScan *)plan)
-							->seqscan.scanrelid,
+							->seqscan.scan.scanrelid,
 							es->rtable)->relid;
 				buf = psprintf("(out of %d)",  countLeafPartTables(relid));
 				ExplainPropertyInteger(
@@ -2788,6 +2788,7 @@ ExplainNode(PlanState *planstate, List *ancestors,
 										   planstate, es);
 			show_upper_qual(((WindowAgg *) plan)->runConditionOrig,
 							"Run Condition", planstate, ancestors, es);
+			show_windowagg_keys((WindowAggState *) planstate, ancestors, es);
 			break;
 #if 0 /* Group node has been disabled in GPDB */
 		case T_Group:
@@ -2798,9 +2799,6 @@ ExplainNode(PlanState *planstate, List *ancestors,
 										   planstate, es);
 			break;
 #endif
-		case T_WindowAgg:
-			show_windowagg_keys((WindowAggState *) planstate, ancestors, es);
-			break;
 		case T_TableFunctionScan:
 			show_scan_qual(plan->qual, "Filter", planstate, ancestors, es);
 			/* TODO: Partitioning and ordering information */

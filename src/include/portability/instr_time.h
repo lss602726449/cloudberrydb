@@ -125,7 +125,7 @@ pg_clock_gettime_ns(void)
 #define INSTR_TIME_SET_CURRENT_COARSE(t)	INSTR_TIME_SET_CURRENT(t)
 
 
-#define INSTR_TIME_ASSIGN(x,y) ((x).tv_sec = (y).tv_sec, (x).tv_nsec = (y).tv_nsec)
+#define INSTR_TIME_ASSIGN(x,y) ((x).ticks = (y).ticks)
 
 #define INSTR_TIME_GET_NANOSEC(t) \
 	((int64) (t).ticks)

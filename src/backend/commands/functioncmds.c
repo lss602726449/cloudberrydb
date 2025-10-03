@@ -668,6 +668,13 @@ compute_common_attribute(ParseState *pstate,
 	/* Recognized an option */
 	return true;
 
+duplicate_error:
+	ereport(ERROR,
+			(errcode(ERRCODE_SYNTAX_ERROR),
+			 errmsg("conflicting or redundant options"),
+					 parser_errposition(pstate, defel->location)));
+	return false;				/* keep compiler quiet */
+
 procedure_error:
 	ereport(ERROR,
 			(errcode(ERRCODE_INVALID_FUNCTION_DEFINITION),
@@ -1341,7 +1348,7 @@ validate_describe_callback(List *describeQualName,
 				 errmsg("describe function cannot be variadic")));
 
 	/* Check that the creator has permission to call the function */
-	aclresult = pg_proc_aclcheck(describeFuncOid, GetUserId(), ACL_EXECUTE);
+	aclresult = object_aclcheck(ProcedureRelationId, describeFuncOid, GetUserId(), ACL_EXECUTE);
 	if (aclresult != ACLCHECK_OK)
 		aclcheck_error(aclresult, OBJECT_PROCEDURE, get_func_name(describeFuncOid));
 
@@ -1879,7 +1886,6 @@ AlterFunction(ParseState *pstate, AlterFunctionStmt *stmt)
 	if (set_items)
 	{
 		Datum		datum;
-		bool		isnull;
 		ArrayType  *a;
 		Datum		repl_val[Natts_pg_proc];
 		bool		repl_null[Natts_pg_proc];
@@ -2661,7 +2667,7 @@ ExecuteDoStmt(ParseState *pstate, DoStmt *stmt, bool atomic)
 static void
 CheckForModifySystemFunc(Oid funcOid, List *funcName)
 {
-	if (!allowSystemTableMods && funcOid < FirstBootstrapObjectId)
+	if (!allowSystemTableMods && funcOid < FirstUnpinnedObjectId)
 		ereport(ERROR,
 				(errcode(ERRCODE_INSUFFICIENT_PRIVILEGE),
 				 errmsg("permission defined: \"%s\" is a system function",

@@ -751,11 +751,9 @@ DefineIndex(Oid relationId,
 	LockRelId	heaprelid;
 	LOCKTAG		heaplocktag;
 	LOCKMODE	lockmode;
-	Snapshot	snapshot;
 	Oid			root_save_userid;
 	int			root_save_sec_context;
 	int			root_save_nestlevel;
-	int			i;
 	bool		shouldDispatch;
 	Oid			blkdirrelid = InvalidOid;
 
@@ -1874,7 +1872,6 @@ DefineIndex(Oid relationId,
 					IndexStmt  *childStmt = copyObject(stmt);
 					bool		found_whole_row;
 					ListCell   *lc;
-					ObjectAddress childAddr;
 
 					/*
 					 * We can't use the same index name for the child index,
@@ -1980,7 +1977,7 @@ DefineIndex(Oid relationId,
 		if (shouldDispatch)
 		{
 			/* make sure the QE uses the same index name that we chose */
-			stmt->oldNode = InvalidOid;
+			stmt->oldNumber = InvalidOid;
 			Assert(stmt->relation != NULL);
 
 			stmt->tableSpace = get_tablespace_name(tablespaceId);
@@ -2019,7 +2016,7 @@ DefineIndex(Oid relationId,
 		if (!concurrent)
 			flags |= DF_NEED_TWO_PHASE;
 		/* make sure the QE uses the same index name that we chose */
-		stmt->oldNode = InvalidOid;
+		stmt->oldNumber = InvalidOid;
 		Assert(stmt->relation != NULL);
 		CdbDispatchUtilityStatement((Node *) stmt, flags,
 									GetAssignedOidsForDispatch(),

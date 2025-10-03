@@ -101,7 +101,7 @@ SeqTableKey;
  */
 typedef struct SeqTableData
 {
-	SeqTableKey	key;			/* sequence data hash key *//
+	SeqTableKey	key;			/* sequence data hash key */
 	RelFileNumber filenumber;	/* last seen relfilenumber of this sequence */
 	LocalTransactionId lxid;	/* xact in which we last did a seq op */
 	bool		last_valid;		/* do we have a valid "last" value? */
@@ -425,9 +425,9 @@ fill_seq_with_data(Relation rel, HeapTuple tuple)
 	{
 		SMgrRelation srel;
 
-		srel = smgropen(rel->rd_locator, InvalidBackendId);
+		srel = smgropen(rel->rd_locator, InvalidBackendId, SMGR_MD, rel);
 		smgrcreate(srel, INIT_FORKNUM, false);
-		log_smgrcreate(&rel->rd_locator, INIT_FORKNUM);
+		log_smgrcreate(&rel->rd_locator, INIT_FORKNUM, SMGR_MD);
 		fill_seq_fork_with_data(rel, tuple, INIT_FORKNUM);
 		FlushRelationBuffers(rel);
 		smgrclose(srel);
@@ -2135,7 +2135,7 @@ cdb_sequence_nextval_qe(Relation	seqrel,
 	char *current;
 	int *pint32;
 	StringInfoData buf;
-	Oid dbid = seqrel->rd_node.dbNode;
+	Oid dbid = seqrel->rd_locator.dbOid;
 	Oid seq_oid = seqrel->rd_id;
 
 	/*

@@ -65,7 +65,6 @@ PrepareQuery(ParseState *pstate, PrepareStmt *stmt,
 	int			nargs;
 	Query	   *query;
 	List	   *query_list;
- 	int			i;
 	NodeTag		srctag;  /* GPDB */
 
 	/*
@@ -120,12 +119,12 @@ PrepareQuery(ParseState *pstate, PrepareStmt *stmt,
 	 * Rewrite the query. The result could be 0, 1, or many queries.
 	 */
 	query = parse_analyze_varparams(rawstmt, pstate->p_sourcetext,
-									&argtypes, &nargs);
+									&argtypes, &nargs, NULL);
 
 	/*
 	 * Check that all parameter types were determined.
 	 */
-	for (i = 0; i < nargs; i++)
+	for (int i = 0; i < nargs; i++)
 	{
 		Oid			argtype = argtypes[i];
 
