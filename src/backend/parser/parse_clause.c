@@ -663,7 +663,7 @@ transformRangeFunction(ParseState *pstate, RangeFunction *r)
 					}
 
 					/* Build the RTE for the table. */
-					qualified_name_list = stringToQualifiedNameList(strVal(&arg_val->val));
+					qualified_name_list = stringToQualifiedNameList(strVal(&arg_val->val), NULL);
 					rel = makeRangeVarFromNameList(qualified_name_list);
 					rel->location = arg_val->location;
 

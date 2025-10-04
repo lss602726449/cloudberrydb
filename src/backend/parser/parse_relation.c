@@ -1957,7 +1957,6 @@ addRangeTableEntryForFunction(ParseState *pstate,
 		{
 			FuncExpr *func = (FuncExpr *) funcexpr;
 			Datum     d;
-			int       i;
 
 			Assert(TypeSupportsDescribe(funcrettype));
 

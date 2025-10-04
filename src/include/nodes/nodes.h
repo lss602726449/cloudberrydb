@@ -408,6 +408,7 @@ typedef enum NodeTag
 	 * TAGS FOR EXTENSIBLE NODES (extensible.h)
 	 */
 	T_ExtensibleNode,
+	T_ErrorSaveContext,
 
 	/*
 	 * TAGS FOR STATEMENT NODES (mostly in parsenodes.h)
@@ -488,6 +489,7 @@ typedef enum NodeTag
 	T_AlterTagStmt,
 	T_DropTagStmt,
 	T_AlterDatabaseStmt,
+	T_AlterDatabaseRefreshCollStmt,
 	T_AlterDatabaseSetStmt,
 	T_AlterRoleSetStmt,
 	T_CreateConversionStmt,
@@ -515,6 +517,7 @@ typedef enum NodeTag
 	T_AlterTSDictionaryStmt,
 	T_AlterTSConfigurationStmt,
 	T_PublicationTable,
+	T_PublicationObjSpec,
 	T_CreateFdwStmt,
 	T_AlterFdwStmt,
 	T_CreateForeignServerStmt,

@@ -1346,8 +1346,18 @@ transformTableLikeClause(CreateStmtContext *cxt, TableLikeClause *table_like_cla
 	{
 		List	   *parent_extstats;
 		ListCell   *l;
+		AttrMap    *attmap;
 
 		parent_extstats = RelationGetStatExtList(relation);
+
+		/*
+		 * Construct a map from the LIKE relation's attnos to the child rel's.
+		 * This re-checks type match etc, although it shouldn't be possible to
+		 * have a failure since both tables are locked.
+		 */
+		attmap = build_attrmap_by_name(RelationGetDescr(relation),
+									   tupleDesc,
+									   false);
 
 		foreach(l, parent_extstats)
 		{
@@ -1356,7 +1366,8 @@ transformTableLikeClause(CreateStmtContext *cxt, TableLikeClause *table_like_cla
 
 			stats_stmt = generateClonedExtStatsStmt(cxt->relation,
 													RelationGetRelid(relation),
-													parent_stat_oid);
+													parent_stat_oid,
+													attmap);
 
 			/* Copy comment on statistics object, if requested */
 			if (table_like_clause->options & CREATE_TABLE_LIKE_COMMENTS)
@@ -1369,8 +1380,6 @@ transformTableLikeClause(CreateStmtContext *cxt, TableLikeClause *table_like_cla
 				 */
 				stats_stmt->stxcomment = comment;
 			}
-
-			cxt->extstats = lappend(cxt->extstats, stats_stmt);
 		}
 
 		list_free(parent_extstats);
@@ -2189,7 +2198,6 @@ generateClonedExtStatsStmt(RangeVar *heapRel, Oid heapRelid,
 		exprs = (List *) stringToNode(exprsString);
 		foreach(lc, exprs)
 		{
-			Node	   *expr = (Node *) lfirst(lc);
 			StatsElem  *selem = makeNode(StatsElem);
 			selem->name = NULL;
 			selem->expr = (Node *) lfirst(lc);
@@ -4853,8 +4861,6 @@ transformAlterTableStmt(Oid relid, AlterTableStmt *stmt,
 		newcmds = lappend(newcmds, newcmd);
 	}
 
-	/* Append extended statistics objects */
-	transformExtendedStatistics(&cxt);
 	/* Close rel */
 	relation_close(rel, NoLock);
 

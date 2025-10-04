@@ -173,7 +173,7 @@ parse_analyze_fixedparams(RawStmt *parseTree, const char *sourceText,
 	query = transformTopLevelStmt(pstate, parseTree);
 
 	if (IsQueryIdEnabled())
-		jstate = JumbleQuery(query);
+		jstate = JumbleQuery(query, sourceText);
 
 	if (post_parse_analyze_hook)
 		(*post_parse_analyze_hook) (pstate, query, jstate);
@@ -215,7 +215,7 @@ parse_analyze_varparams(RawStmt *parseTree, const char *sourceText,
 	check_variable_parameters(pstate, query);
 
 	if (IsQueryIdEnabled())
-		jstate = JumbleQuery(query);
+		jstate = JumbleQuery(query, sourceText);
 
 	if (post_parse_analyze_hook)
 		(*post_parse_analyze_hook) (pstate, query, jstate);
@@ -252,7 +252,7 @@ parse_analyze_withcb(RawStmt *parseTree, const char *sourceText,
 	query = transformTopLevelStmt(pstate, parseTree);
 
 	if (IsQueryIdEnabled())
-		jstate = JumbleQuery(query);
+		jstate = JumbleQuery(query, sourceText);
 
 	if (post_parse_analyze_hook)
 		(*post_parse_analyze_hook) (pstate, query, jstate);
@@ -1111,7 +1111,7 @@ transformInsertStmt(ParseState *pstate, InsertStmt *stmt)
 	 * This fixes the github issue: https://github.com/greenplum-db/gpdb/issues/9444
 	 */
 	if (isOnConflictUpdate)
-		sanity_check_on_conflict_update(rte->relid,
+		sanity_check_on_conflict_update(pstate->p_target_nsitem->p_rte->relid,
 													qry->onConflict->onConflictSet,
 													qry->onConflict->onConflictWhere);
 
@@ -3914,7 +3914,7 @@ transformLockingClause(ParseState *pstate, Query *qry, LockingClause *lc,
 				/*
 				 * A join RTE without an alias is not visible as a relation
 				 * name and needs to be skipped (otherwise it might hide a
-				/*
+				 *
 				 * base relation with the same name), except if it has a USING
 				 * alias, which *is* visible.
 				 *

@@ -4506,7 +4506,6 @@ alter_table_partition_id_spec:
            | FOR '(' func_name '(' func_arg_list opt_sort_clause ')' ')'
 				{
 					Node		   *arg;
-					Value		   *val;
 					Node		   *fname;
 
                     /* allow RANK only */
@@ -4523,8 +4522,7 @@ alter_table_partition_id_spec:
 					arg = linitial($5);
 					if (!IsA(arg, A_Const))
 						parser_yyerror("syntax error");
-					val = &((A_Const *) arg)->val;
-					if (!IsA(val, Integer) && !IsA(val, Float))
+					if (!IsA(&((A_Const *) arg)->val, Integer) && !IsA(&((A_Const *) arg)->val, Float))
 						parser_yyerror("syntax error");
 
 					/* we don't want a sort clause */
@@ -6374,7 +6372,7 @@ OptSecondPartitionSpec:
 				{
 					PartitionSpec *n = makeNode(PartitionSpec);
 
-					n->strategy = $3;
+					n->strategy = parsePartitionStrategy($3);
 					n->partParams = $5;
 					n->gpPartDef = (GpPartitionDefinition *) $8;
 					n->subPartSpec = (PartitionSpec *) $7;
@@ -6970,7 +6968,7 @@ TabSubPartitionBy: SUBPARTITION BY
 				{
 					PartitionSpec *n = makeNode(PartitionSpec);
 
-					n->strategy = $3;
+					n->strategy =  parsePartitionStrategy($3);
 					n->partParams = $5;
 					n->location = @1;
 
@@ -19464,7 +19462,7 @@ func_expr_common_subexpr:
 
 					n = makeNode(FuncCall);
 					n->funcname = SystemFuncName("median");
-					n->args = list_make1(makeAConst(makeFloat(pstrdup("0.5")), @1));
+					n->args = list_make1(makeAConst((Node*) makeFloat(pstrdup("0.5")), @1));
 
 					sortby = makeNode(SortBy);
 					sortby->node = $3;

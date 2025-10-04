@@ -3,12 +3,8 @@
  * fe-protocol3.c
  *	  functions that are specific to frontend/backend protocol version 3
  *
-<<<<<<< HEAD
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
- * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
-=======
  * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -275,7 +271,7 @@ pqParseInput3(PGconn *conn)
 					else
 					{
 						/* Advance the command queue and set us idle */
-						pqCommandQueueAdvance(conn, true, false);
+						pqCommandQueueAdvance(conn);
 						conn->asyncStatus = PGASYNC_IDLE;
 					}
 					break;
@@ -1088,7 +1084,6 @@ pqGetErrorNotice3(PGconn *conn, bool isError)
 	 */
 	if (isError)
 	{
-<<<<<<< HEAD
 		if (res)
 			res->errMsg = pqResultStrdup(res, workBuf.data);
 
@@ -1114,9 +1109,6 @@ pqGetErrorNotice3(PGconn *conn, bool isError)
 			res->cdbstats = prev;
 		}
 
-
-=======
->>>>>>> REL_16_9
 		pqClearAsyncResult(conn);	/* redundant, but be safe */
 		if (res)
 		{
@@ -1130,12 +1122,7 @@ pqGetErrorNotice3(PGconn *conn, bool isError)
 		}
 
 		if (PQExpBufferDataBroken(workBuf))
-<<<<<<< HEAD
-			appendPQExpBufferStr(&conn->errorMessage,
-								 libpq_gettext("out of memory\n"));
-=======
 			libpq_append_conn_error(conn, "out of memory");
->>>>>>> REL_16_9
 		else
 			appendPQExpBufferStr(&conn->errorMessage, workBuf.data);
 	}

@@ -1245,7 +1245,7 @@ parseCheckAggregates(ParseState *pstate, Query *qry)
 	 * entries are RTE_JOIN kind.
 	 */
 	if (hasJoinRTEs)
-		groupClauses = (List *) flatten_join_alias_vars(NULL, qry,
+		groupClauses = (List *) flatten_join_alias_vars(qry,
 														(Node *) groupClauses);
 
 	/*
@@ -1289,7 +1289,7 @@ parseCheckAggregates(ParseState *pstate, Query *qry)
 							groupClauses, hasJoinRTEs,
 							have_non_var_grouping);
 	if (hasJoinRTEs)
-		clause = flatten_join_alias_vars(NULL, qry, clause);
+		clause = flatten_join_alias_vars(qry, clause);
 	check_ungrouped_columns(clause, pstate, qry,
 							groupClauses, groupClauseCommonVars,
 							have_non_var_grouping,
@@ -1300,7 +1300,7 @@ parseCheckAggregates(ParseState *pstate, Query *qry)
 							groupClauses, hasJoinRTEs,
 							have_non_var_grouping);
 	if (hasJoinRTEs)
-		clause = flatten_join_alias_vars(NULL, qry, clause);
+		clause = flatten_join_alias_vars(qry, clause);
 	check_ungrouped_columns(clause, pstate, qry,
 							groupClauses, groupClauseCommonVars,
 							have_non_var_grouping,
@@ -1639,7 +1639,7 @@ finalize_grouping_exprs_walker(Node *node,
 				Index		ref = 0;
 
 				if (context->hasJoinRTEs)
-					expr = flatten_join_alias_vars(NULL, context->qry, expr);
+					expr = flatten_join_alias_vars(context->qry, expr);
 
 				/*
 				 * Each expression must match a grouping entry at the current
