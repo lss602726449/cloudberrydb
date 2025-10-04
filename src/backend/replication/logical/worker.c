@@ -927,14 +927,6 @@ slot_modify_data(TupleTableSlot *slot, TupleTableSlot *srcslot,
 	memcpy(slot->tts_values, srcslot->tts_values, natts * sizeof(Datum));
 	memcpy(slot->tts_isnull, srcslot->tts_isnull, natts * sizeof(bool));
 
-	/* For error reporting, push callback + info on the error context stack */
-	errarg.rel = rel;
-	errarg.remote_attnum = -1;
-	errcallback.callback = slot_store_error_callback;
-	errcallback.arg = (void *) &errarg;
-	errcallback.previous = error_context_stack;
-	error_context_stack = &errcallback;
-
 	/* Call the "in" function for each replaced attribute */
 	Assert(natts == rel->attrmap->maplen);
 	for (i = 0; i < natts; i++)
@@ -1209,7 +1201,7 @@ apply_handle_commit_prepared(StringInfo s)
 	replorigin_session_origin_lsn = prepare_data.end_lsn;
 	replorigin_session_origin_timestamp = prepare_data.commit_time;
 
-	FinishPreparedTransaction(gid, true);
+	FinishPreparedTransaction(gid, true, true);
 	end_replication_step();
 	CommitTransactionCommand();
 	pgstat_report_stat(false);
@@ -1266,7 +1258,7 @@ apply_handle_rollback_prepared(StringInfo s)
 
 		/* There is no transaction when ABORT/ROLLBACK PREPARED is called */
 		begin_replication_step();
-		FinishPreparedTransaction(gid, false);
+		FinishPreparedTransaction(gid, false, true);
 		end_replication_step();
 		CommitTransactionCommand();
 

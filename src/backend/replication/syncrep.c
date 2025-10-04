@@ -924,7 +924,6 @@ SyncRepGetCandidateStandbys(SyncRepStandbyData **standbys)
 	if (IS_QUERY_DISPATCHER())
 	{
 		bool				syncStandbyPresent;
-		int					i;
 		SyncRepStandbyData	*stby;
 		volatile WalSnd		*walsnd;	/* Use volatile pointer to prevent code
 										 * rearrangement */
@@ -1145,7 +1144,7 @@ SyncRepWakeQueue(bool all, int mode)
 				"syncrep wakeup queue -- %d procid was removed from syncrep queue. "
 				"Its state is changed to 'Wait Complete' and "
 				"its latch is now set",
-				thisproc->pid);
+			   proc->pid);
 
 		numprocs++;
 	}

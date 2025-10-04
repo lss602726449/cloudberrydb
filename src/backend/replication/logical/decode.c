@@ -193,7 +193,6 @@ xlog_decode(LogicalDecodingContext *ctx, XLogRecordBuffer *buf)
 		case XLOG_OVERWRITE_CONTRECORD:
 		/* GPDB_14_MERGE_FIXME: see pg_control.h, Compatible, Figure out whether 0xC0 already used? */
 		case XLOG_NEXTRELFILENODE:
-		case XLOG_OVERWRITE_CONTRECORD:
 		case XLOG_ENCRYPTION_LSN:
 			break;
 		default:

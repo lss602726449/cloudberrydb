@@ -129,7 +129,7 @@ bool		am_cascading_walsender = false; /* Am I cascading WAL to another
 bool		am_db_walsender = false;	/* Connected to a database? */
 
 /* User-settable parameters for walsender */
-int			repl_catchup_within_range = 0*/
+int			repl_catchup_within_range = 0;
 int			max_wal_senders = 10;	/* the maximum number of concurrent
 									 * walsenders */
 int			wal_sender_timeout = 60 * 1000; /* maximum time to send one WAL
@@ -446,7 +446,7 @@ IdentifySystem(void)
 			"SysId = %s, "
 			"ThisTimelineID = %u, "
 			"XLog InsertRecPtr = %s will be sent.",
-			sysid, ThisTimeLineID, xloc);
+			sysid, currTLI, xloc);
 
 	if (MyDatabaseId != InvalidOid)
 	{

@@ -672,6 +672,7 @@ typedef enum NodeTag
 	T_CreateReplicationSlotCmd,
 	T_DropReplicationSlotCmd,
 	T_StartReplicationCmd,
+	T_ReadReplicationSlotCmd,
 	T_TimeLineHistoryCmd,
 	T_SQLCmd,
 
