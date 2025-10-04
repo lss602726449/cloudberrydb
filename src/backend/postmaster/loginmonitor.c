@@ -255,7 +255,7 @@ LoginMonitorLauncherMain(int argc, char *argv[]) {
 	InitProcess();
 #endif
 
-	InitPostgres(NULL, InvalidOid, NULL, InvalidOid, NULL, false);
+	InitPostgres(NULL, InvalidOid, NULL, InvalidOid, false, false, NULL);
 
 	SetProcessingMode(NormalProcessing);
 
@@ -303,7 +303,6 @@ LoginMonitorLauncherMain(int argc, char *argv[]) {
 		 * transaction.
 		 */
 		LWLockReleaseAll();
-		AbortBufferIO();
 		UnlockBuffers();
 		/* this is probably dead code, but let's be safe: */
 		if (AuxProcessResourceOwner)
@@ -588,7 +587,7 @@ LoginMonitorWorkerMain(int argc, char *argv[]) {
 
 	if (LoginMonitorShmem->curr_user_name[0] != '\0')
 	{
-		InitPostgres(DB_FOR_COMMON_ACCESS, InvalidOid, NULL, InvalidOid, NULL, false);
+		InitPostgres(DB_FOR_COMMON_ACCESS, InvalidOid, NULL, InvalidOid, false, false, NULL);
 		SetProcessingMode(NormalProcessing);
 		set_ps_display(LoginMonitorShmem->curr_user_name);
 		ereport(DEBUG1,

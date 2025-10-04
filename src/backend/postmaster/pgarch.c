@@ -107,32 +107,6 @@ static PgArchData *PgArch = NULL;
 static const ArchiveModuleCallbacks *ArchiveCallbacks;
 static ArchiveModuleState *archive_module_state;
 
-
-/*
- * Stuff for tracking multiple files to archive from each scan of
- * archive_status.  Minimizing the number of directory scans when there are
- * many files to archive can significantly improve archival rate.
- *
- * arch_heap is a max-heap that is used during the directory scan to track
- * the highest-priority files to archive.  After the directory scan
- * completes, the file names are stored in ascending order of priority in
- * arch_files.  pgarch_readyXlog() returns files from arch_files until it
- * is empty, at which point another directory scan must be performed.
- *
- * We only need this data in the archiver process, so make it a palloc'd
- * struct rather than a bunch of static arrays.
- */
-struct arch_files_state
-{
-	binaryheap *arch_heap;
-	int			arch_files_size;	/* number of live entries in arch_files[] */
-	char	   *arch_files[NUM_FILES_PER_DIRECTORY_SCAN];
-	/* buffers underlying heap, and later arch_files[], entries: */
-	char		arch_filenames[NUM_FILES_PER_DIRECTORY_SCAN][MAX_XFN_CHARS + 1];
-};
-
-static struct arch_files_state *arch_files = NULL;
-
 /*
  * Stuff for tracking multiple files to archive from each scan of
  * archive_status.  Minimizing the number of directory scans when there are

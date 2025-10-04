@@ -167,9 +167,7 @@ static FILE *logfile_open(const char *filename, const char *mode,
 #ifdef WIN32
 static unsigned int __stdcall pipeThread(void *arg);
 #endif
-static bool logfile_rotate(bool time_based_rotation, bool size_based_rotation, const char *suffix,
-						   const char *log_directory, const char *log_filename,
-                           FILE **fh, char **last_log_file_name);
+static bool logfile_rotate(bool time_based_rotation, int size_rotation_for);
 static char *logfile_getname(pg_time_t timestamp, const char *suffix, const char *log_directory, const char *log_file_pattern);
 static bool logfile_rotate_dest(bool time_based_rotation,
 								int size_rotation_for, pg_time_t fntime,
@@ -489,17 +487,11 @@ SysLoggerMain(int argc, char *argv[])
 			rotation_requested = false;
 
 			all_rotations_occurred &=
-				logfile_rotate(time_based_rotation, (size_rotation_for & LOG_DESTINATION_STDERR) != 0,
-							   NULL, Log_directory, Log_filename,
-							   &syslogFile, &last_sys_file_name);
+				logfile_rotate(time_based_rotation, size_rotation_for);
 			all_rotations_occurred &=
-				logfile_rotate(time_based_rotation, (size_rotation_for & LOG_DESTINATION_CSVLOG) != 0,
-							   ".csv", Log_directory, Log_filename,
-							   &csvlogFile, &last_csv_file_name);
+				logfile_rotate(time_based_rotation, size_rotation_for);
 			all_rotations_occurred &=
-					logfile_rotate(time_based_rotation, (size_rotation_for & LOG_DESTINATION_CSVLOG) != 0,
-								   ".csv", Log_directory, Log_filename,
-								   &jsonlogFile, &last_json_file_name;
+					logfile_rotate(time_based_rotation, size_rotation_for);
 		}
 
 		/*
@@ -726,7 +718,7 @@ SysLogger_Start(void)
 	 */
 	if (Log_destination & LOG_DESTINATION_JSONLOG)
 	{
-		filename = logfile_getname(first_syslogger_file_time, ".json");
+		filename = logfile_getname(first_syslogger_file_time, ".json", Log_directory, Log_filename);
 
 		jsonlogFile = logfile_open(filename, "a", false);
 
@@ -2037,7 +2029,7 @@ logfile_rotate_dest(bool time_based_rotation, int size_rotation_for,
 	}
 
 	/* build the new file name */
-	filename = logfile_getname(fntime, logFileExt);
+	filename = logfile_getname(fntime, logFileExt, Log_directory, Log_filename);
 
 	/*
 	 * Decide whether to overwrite or append.  We can overwrite if (a)
@@ -2089,15 +2081,9 @@ logfile_rotate_dest(bool time_based_rotation, int size_rotation_for,
  * perform logfile rotation
  */
 static bool
-logfile_rotate(bool time_based_rotation, bool size_based_rotation,
-			   const char *suffix,
-               const char *log_directory, 
-               const char *log_filename, 
-               FILE **fh_p,
-               char **last_log_file_name)
+logfile_rotate(bool time_based_rotation, int size_rotation_for)
 {
 	pg_time_t	fntime;
-	FILE	   *fh = *fh_p;
 
 	/*
 	 * When doing a time-based rotation, invent the new logfile name based on
@@ -2113,20 +2099,20 @@ logfile_rotate(bool time_based_rotation, bool size_based_rotation,
 	if (!logfile_rotate_dest(time_based_rotation, size_rotation_for, fntime,
 							 LOG_DESTINATION_STDERR, &last_sys_file_name,
 							 &syslogFile))
-		return;
+		return false;
 
 	/* file rotation for csvlog */
 	if (!logfile_rotate_dest(time_based_rotation, size_rotation_for, fntime,
 							 LOG_DESTINATION_CSVLOG, &last_csv_file_name,
 							 &csvlogFile))
-		return;
+		return false;
 
 
 	/* file rotation for jsonlog */
 	if (!logfile_rotate_dest(time_based_rotation, size_rotation_for, fntime,
 							 LOG_DESTINATION_JSONLOG, &last_json_file_name,
 							 &jsonlogFile))
-		return;
+		return false;
 
 	return true;
 }

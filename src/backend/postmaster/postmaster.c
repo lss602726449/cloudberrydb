@@ -542,7 +542,6 @@ static int	BackendStartup(Port *port);
 static int	ProcessStartupPacket(Port *port, bool ssl_done, bool gss_done);
 static void SendNegotiateProtocolVersion(List *unrecognized_protocol_options);
 static void processCancelRequest(Port *port, void *pkt, MsgType code);
-static int	initMasks(fd_set *rmask);
 static void report_fork_failure_to_client(Port *port, int errnum);
 static CAC_state canAcceptConnections(int backend_type);
 static bool RandomCancelKey(int32 *cancel_key);
@@ -1908,7 +1907,7 @@ checkPgDir(const char *dir)
 			elog(LOG, "System file or directory missing (%s), shutting down segment", dir);
 
 		/* quit all processes and exit */
-		pmdie(SIGQUIT);
+		handle_pm_shutdown_request_signal(SIGQUIT);
 	}
 }
 
@@ -2275,33 +2274,6 @@ ServerLoop(void)
 			last_touch_time = now;
 		}
 	}
-}
-
-/*
- * Initialise the masks for select() for the ports we are listening on.
- * Return the number of sockets to listen on.
- */
-static int
-initMasks(fd_set *rmask)
-{
-	int			maxsock = -1;
-	int			i;
-
-	FD_ZERO(rmask);
-
-	for (i = 0; i < MAXLISTEN; i++)
-	{
-		int			fd = ListenSocket[i];
-
-		if (fd == PGINVALID_SOCKET)
-			break;
-		FD_SET(fd, rmask);
-
-		if (fd > maxsock)
-			maxsock = fd;
-	}
-
-	return maxsock + 1;
 }
 
 /*
@@ -4217,9 +4189,9 @@ HandleChildCrash(int pid, int exitstatus, const char *procname)
 		{
 			ereport(DEBUG2,
 				(errmsg_internal("sending %s to process %d",
-						 (SendStop ? "SIGSTOP" : "SIGQUIT"),
+						 ("SIGSTOP/SIGQUIT"),
 						 (int) LoginMonitorPID)));
-			signal_child(LoginMonitorPID, (SendStop ? SIGSTOP : SIGQUIT));
+			sigquit_child(LoginMonitorPID);
 		}
 	}
 
@@ -5762,18 +5734,6 @@ process_pm_pmsignal(void)
 		if (XLogArchivingAlways())
 			PgArchPID = StartArchiver();
 
-		/*
-		 * GPDB: if promote trigger file exist we don't wish to convey
-		 * PM_STATUS_STANDBY, instead wish pg_ctl -w to wait till
-		 * connections can be actually accepted by the database.
-		 */
-		if (PromoteTriggerFile != NULL && strcmp(PromoteTriggerFile, "") != 0)
-		{
-			struct stat stat_buf;
-
-			if (stat(PromoteTriggerFile, &stat_buf) == 0)
-				promotion_requested = true;
-		}
 		/*
 		 * GPDB: Setting recovery_target_action
 		 * configuration parameter to 'promote' will also result

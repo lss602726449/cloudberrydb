@@ -27,12 +27,6 @@
  */
 #include "postgres.h"
 
-#ifndef HAVE_GETRUSAGE
-#include "rusagestub.h"
-#else
-#include <sys/time.h>
-#include <sys/resource.h>
-#endif
 #include <sys/time.h>
 #include <signal.h>
 #include <math.h>
@@ -57,6 +51,7 @@
 #include "postmaster/backoff.h"
 #include "pg_trace.h"
 #include "pgstat.h"
+#include "sys/resource.h"
 
 extern bool gp_debug_resqueue_priority;
 
