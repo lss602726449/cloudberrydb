@@ -485,8 +485,8 @@ BufFileOpenSharedV2(SharedFileSet *fileset, const char *name, int mode)
 			files = repalloc(files, sizeof(File) * capacity);
 		}
 		/* Try to load a segment. */
-		SharedSegmentName(segment_name, name, nfiles);
-		files[nfiles] = SharedFileSetOpen(fileset, segment_name, mode);
+		FileSetSegmentName(segment_name, name, nfiles);
+		files[nfiles] = FileSetOpen(&fileset->fs, segment_name, mode);
 		if (files[nfiles] <= 0)
 			break;
 		++nfiles;
@@ -508,7 +508,7 @@ BufFileOpenSharedV2(SharedFileSet *fileset, const char *name, int mode)
 	file = makeBufFileCommon(nfiles);
 	file->files = files;
 	file->readOnly = (mode == O_RDONLY) ? true : false;
-	file->fileset = fileset;
+	file->fileset = &fileset->fs;
 	file->name = pstrdup(name);
 
 	return file;
@@ -897,7 +897,6 @@ size_t
 BufFileReadMaybeEOF(BufFile *file, void *ptr, size_t size, bool eofOK)
 {
 	return BufFileReadCommon(file, ptr, size, true, eofOK);
->>>>>>> REL_16_9
 }
 
 /*

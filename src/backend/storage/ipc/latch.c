@@ -1644,9 +1644,6 @@ WaitEventSetWaitBlock(WaitEventSet *set, int cur_timeout,
 		if (cur_event->events == WL_LATCH_SET &&
 			cur_epoll_event->events & (EPOLLIN | EPOLLERR | EPOLLHUP))
 		{
-			/* Drain the signalfd. */
-			drain();
-
 			if (set->latch && set->latch->maybe_sleeping && set->latch->is_set)
 			{
 				occurred_events->fd = PGINVALID_SOCKET;

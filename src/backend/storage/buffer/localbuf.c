@@ -205,12 +205,6 @@ GetLocalVictimBuffer(void)
 
 		if (LocalRefCount[victim_bufid] == 0)
 		{
-		    if (-b - 1 == non_evited_buffer)
-		    {
-		        /* Prevent eviction of the buffer with needed page */
-		        continue;
-		    }
-
 			buf_state = pg_atomic_read_u32(&bufHdr->state);
 
 			if (BUF_STATE_GET_USAGECOUNT(buf_state) > 0)
@@ -252,7 +246,7 @@ GetLocalVictimBuffer(void)
 		Page		localpage = (char *) LocalBufHdrGetBlock(bufHdr);
 
 		/* Find smgr relation for buffer */
-		oreln = smgropen(BufTagGetRelFileLocator(&bufHdr->tag), MyBackendId);
+		oreln = smgropen(BufTagGetRelFileLocator(&bufHdr->tag), MyBackendId, SMGR_MD, NULL);
 
 		/*
 		 * Technically BM_PERMANENT could indicate an init fork, but that's

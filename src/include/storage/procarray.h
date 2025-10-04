@@ -70,7 +70,7 @@ extern VirtualTransactionId *GetVirtualXIDsDelayingChkpt(int *nvxids, int type);
 extern VirtualTransactionId *GetVirtualXIDsDelayingChkptEnd(int *nvxids);
 
 extern bool HaveVirtualXIDsDelayingChkpt(VirtualTransactionId *vxids,
-										 int nvxids, int type);
+										 int nvxids);
 extern bool HaveVirtualXIDsDelayingChkptEnd(VirtualTransactionId *vxids,
 											int nvxids);
 

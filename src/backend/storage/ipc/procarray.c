@@ -361,8 +361,6 @@ static void DisplayXidCache(void);
 #define xc_slow_answer_inc()		((void) 0)
 #endif							/* XIDCACHE_DEBUG */
 
-static VirtualTransactionId *GetVirtualXIDsDelayingChkptGuts(int *nvxids,
-															 int type);
 static bool HaveVirtualXIDsDelayingChkptGuts(VirtualTransactionId *vxids,
 											 int nvxids, int type);
 
@@ -785,7 +783,6 @@ ProcArrayEndTransaction(PGPROC *proc, TransactionId latestXid)
 	proc->xmin = InvalidTransactionId;
 
 	/* be sure these are cleared in abort */
-	proc->delayChkpt = false;
 	proc->delayChkptEnd = false;
 
 	proc->recoveryConflictPending = false;
@@ -2148,33 +2145,6 @@ GetLocalOldestNonRemovableTransactionId(Relation rel, bool updateGlobalVis)
 	}
 
 	return InvalidTransactionId;
-}
-
-/*
- * Determine what kind of visibility horizon needs to be used for a
- * relation. If rel is NULL, the most conservative horizon is used.
- */
-static inline GlobalVisHorizonKind
-GlobalVisHorizonKindForRel(Relation rel)
-{
-	/*
-	 * Other relkinds currently don't contain xids, nor always the necessary
-	 * logical decoding markers.
-	 */
-	Assert(!rel ||
-		   rel->rd_rel->relkind == RELKIND_RELATION ||
-		   rel->rd_rel->relkind == RELKIND_MATVIEW ||
-		   rel->rd_rel->relkind == RELKIND_TOASTVALUE);
-
-	if (rel == NULL || rel->rd_rel->relisshared || RecoveryInProgress())
-		return VISHORIZON_SHARED;
-	else if (IsCatalogRelation(rel) ||
-			 RelationIsAccessibleInLogicalDecoding(rel))
-		return VISHORIZON_CATALOG;
-	else if (!RELATION_IS_LOCAL(rel))
-		return VISHORIZON_DATA;
-	else
-		return VISHORIZON_TEMP;
 }
 
 /*
@@ -4000,8 +3970,8 @@ GetVirtualXIDsDelayingChkpt(int *nvxids, int type)
  * Note: this is O(N^2) in the number of vxacts that are/were delaying, but
  * those numbers should be small enough for it not to be a problem.
  */
-bool
-HaveVirtualXIDsDelayingChkpt(VirtualTransactionId *vxids, int nvxids, int type)
+static bool
+HaveVirtualXIDsDelayingChkptGuts(VirtualTransactionId *vxids, int nvxids, int type)
 {
 	bool		result = false;
 	ProcArrayStruct *arrayP = procArray;
@@ -5534,8 +5504,6 @@ ExpireTreeKnownAssignedTransactionIds(TransactionId xid, int nsubxids,
 void
 ExpireAllKnownAssignedTransactionIds(void)
 {
-	FullTransactionId latestXid;
-
 	LWLockAcquire(ProcArrayLock, LW_EXCLUSIVE);
 	KnownAssignedXidsRemovePreceding(InvalidTransactionId);
 
@@ -5556,8 +5524,6 @@ ExpireAllKnownAssignedTransactionIds(void)
 void
 ExpireOldKnownAssignedTransactionIds(TransactionId xid)
 {
-	TransactionId latestXid;
-
 	LWLockAcquire(ProcArrayLock, LW_EXCLUSIVE);
 
 	/*

@@ -539,7 +539,7 @@ static inline void BufferMProtect(volatile BufferDesc *bufHdr, int protectionLev
 }
 #endif
 
-static inline void ReleaseContentLock(volatile BufferDesc *buf)
+static inline void ReleaseContentLock(BufferDesc *buf)
 {
 	LWLockRelease(BufferDescriptorGetContentLock(buf));
 
@@ -551,7 +551,7 @@ static inline void ReleaseContentLock(volatile BufferDesc *buf)
 }
 
 
-static inline void AcquireContentLock(volatile BufferDesc *buf, LWLockMode mode)
+static inline void AcquireContentLock(BufferDesc *buf, LWLockMode mode)
 {
 #ifdef MPROTECT_BUFFERS
 	const bool newAcquisition =
@@ -567,7 +567,7 @@ static inline void AcquireContentLock(volatile BufferDesc *buf, LWLockMode mode)
 #endif
 }
 
-static inline bool ConditionalAcquireContentLock(volatile BufferDesc *buf,
+static inline bool ConditionalAcquireContentLock(BufferDesc *buf,
 												 LWLockMode mode)
 {
 #ifdef MPROTECT_BUFFERS
@@ -1085,7 +1085,6 @@ ReadBuffer_common(SMgrRelation smgr, char relpersistence, ForkNumber forkNum,
 	bool		found;
 	IOContext	io_context;
 	IOObject	io_object;
-	bool		isExtend;
 
 	if (ReadBuffer_hook)
 	{
@@ -1230,7 +1229,7 @@ ReadBuffer_common(SMgrRelation smgr, char relpersistence, ForkNumber forkNum,
 								IOOP_READ, io_start, 1);
 
 		/* check for garbage data */
-		if (!PageIsVerifiedExtended((Page) bufBlock, blockNum,
+		if (!PageIsVerifiedExtended((Page) bufBlock, forkNum, blockNum,
 									PIV_LOG_WARNING | PIV_REPORT_STAT))
 		{
 			if (mode == RBM_ZERO_ON_ERROR || zero_damaged_pages)
@@ -4230,9 +4229,6 @@ FlushRelationBuffers(Relation rel)
 	int			i;
 	BufferDesc *bufHdr;
 
-	/* Open rel at the smgr level if not already done */
-	RelationOpenSmgr(rel);
-
 	if (!RelationUsesBufferManager(rel))
 		return;
 
@@ -4456,7 +4452,7 @@ RelationCopyStorageUsingBuffer(RelFileLocator srclocator,
 	use_wal = XLogIsNeeded() && (permanent || forkNum == INIT_FORKNUM);
 
 	/* Get number of blocks in the source relation. */
-	nblocks = smgrnblocks(smgropen(srclocator, InvalidBackendId),
+	nblocks = smgrnblocks(smgropen(srclocator, InvalidBackendId, SMGR_MD, NULL),
 						  forkNum);
 
 	/* Nothing to copy; just return. */
@@ -4468,7 +4464,7 @@ RelationCopyStorageUsingBuffer(RelFileLocator srclocator,
 	 * relation before starting to copy block by block.
 	 */
 	memset(buf.data, 0, BLCKSZ);
-	smgrextend(smgropen(dstlocator, InvalidBackendId), forkNum, nblocks - 1,
+	smgrextend(smgropen(dstlocator, InvalidBackendId, SMGR_MD, NULL), forkNum, nblocks - 1,
 			   buf.data, true);
 
 	/* This is a bulk operation, so use buffer access strategies. */
@@ -4540,7 +4536,7 @@ CreateAndCopyRelationData(RelFileLocator src_rlocator,
 	 * directory.  Therefore, each individual relation doesn't need to be
 	 * registered for cleanup.
 	 */
-	RelationCreateStorage(dst_rlocator, relpersistence, false);
+	RelationCreateStorage(dst_rlocator, relpersistence, false, SMGR_MD, NULL);
 
 	/* copy main fork. */
 	RelationCopyStorageUsingBuffer(src_rlocator, dst_rlocator, MAIN_FORKNUM,
@@ -4550,16 +4546,16 @@ CreateAndCopyRelationData(RelFileLocator src_rlocator,
 	for (ForkNumber forkNum = MAIN_FORKNUM + 1;
 		 forkNum <= MAX_FORKNUM; forkNum++)
 	{
-		if (smgrexists(smgropen(src_rlocator, InvalidBackendId), forkNum))
+		if (smgrexists(smgropen(src_rlocator, InvalidBackendId, SMGR_MD, NULL), forkNum))
 		{
-			smgrcreate(smgropen(dst_rlocator, InvalidBackendId), forkNum, false);
+			smgrcreate(smgropen(dst_rlocator, InvalidBackendId, SMGR_MD, NULL), forkNum, false);
 
 			/*
 			 * WAL log creation if the relation is persistent, or this is the
 			 * init fork of an unlogged relation.
 			 */
 			if (permanent || forkNum == INIT_FORKNUM)
-				log_smgrcreate(&dst_rlocator, forkNum);
+				log_smgrcreate(&dst_rlocator, forkNum, SMGR_MD);
 
 			/* Copy a fork's data, block by block. */
 			RelationCopyStorageUsingBuffer(src_rlocator, dst_rlocator, forkNum,
@@ -4772,6 +4768,12 @@ MarkBufferDirtyHint(Buffer buffer, bool buffer_std)
 		 */
 		if (XLogHintBitIsNeeded())
 		{
+			RelFileLocator locator;
+
+			locator.spcOid = bufHdr->tag.spcOid;
+			locator.dbOid = bufHdr->tag.dbOid;
+			locator.relNumber = bufHdr->tag.relNumber;
+
 			/*
 			 * If we must not write WAL, due to a relfilelocator-specific
 			 * condition or being in recovery, don't dirty the page.  We can
@@ -4782,7 +4784,7 @@ MarkBufferDirtyHint(Buffer buffer, bool buffer_std)
 			 */
 			if (RecoveryInProgress() ||
 				IsInitProcessingMode() ||
-				(RelFileNodeSkippingWAL(bufHdr->tag.rnode) &&
+				(RelFileLocatorSkippingWAL(locator) &&
 				 !FileEncryptionEnabled))
 				return;
 
@@ -4792,7 +4794,7 @@ MarkBufferDirtyHint(Buffer buffer, bool buffer_std)
 			 * have full page images generated.
 			 */
 			if (pg_atomic_read_u32(&bufHdr->state) & BM_PERMANENT &&
-				!RelFileNodeSkippingWAL(bufHdr->tag.rnode))
+				!RelFileLocatorSkippingWAL(locator))
 			{
 				/*
 				* If the block is already dirty because we either made a change
@@ -4861,7 +4863,7 @@ MarkBufferDirtyHint(Buffer buffer, bool buffer_std)
 				 */
 				/* XXX Do we need the checkpoint delay here? */
 				MyProc->delayChkptFlags |= DELAY_CHKPT_START;
-				delayChkpt = true;
+
 				/*
 				 * XXX We probably don't need to replay this WAL on the primary
 				 * since the full page image is restored, but do we have
