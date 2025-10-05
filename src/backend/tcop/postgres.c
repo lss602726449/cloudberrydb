@@ -178,7 +178,7 @@ static long max_stack_depth_bytes = 100 * 1024L;
  * Stack base pointer -- initialized by PostmasterMain and inherited by
  * subprocesses (but see also InitPostmasterChild).
  */
-static char *stack_base_ptr = NULL;
+char *stack_base_ptr = NULL;
 
 /*
  * Flag to keep track of whether we have started a transaction.
@@ -1294,25 +1294,27 @@ exec_mpp_query(const char *query_string,
 		elog(ERROR, "MPPEXEC: received non-DML Plan");
 	commandType = plan->commandType;
 
-	if ( slice )
-	{
-		/* Non root slices don't need update privileges. */
-		if (sliceTable->localSlice != slice->rootIndex)
-		{
-			ListCell       *rtcell;
-			RangeTblEntry  *rte;
-			AclMode         removeperms = ACL_INSERT | ACL_UPDATE | ACL_DELETE | ACL_SELECT_FOR_UPDATE;
-
-			/* Just reading, so don't check INS/DEL/UPD permissions. */
-			foreach(rtcell, plan->rtable)
-			{
-				rte = (RangeTblEntry *)lfirst(rtcell);
-				if (rte->rtekind == RTE_RELATION &&
-					0 != (rte->requiredPerms & removeperms))
-					rte->requiredPerms &= ~removeperms;
-			}
-		}
-	}
+	// MERGE16_FIXME: Check if wo should remove requiredPerms in Query
+//	if ( slice )
+//	{
+//		/* Non root slices don't need update privileges. */
+//		if (sliceTable->localSlice != slice->rootIndex)
+//		{
+//			ListCell       *rtcell;
+//			RangeTblEntry  *rte;
+//			RTEPermissionInfo  *rte_permission;
+//			AclMode         removeperms = ACL_INSERT | ACL_UPDATE | ACL_DELETE | ACL_SELECT_FOR_UPDATE;
+//
+//			/* Just reading, so don't check INS/DEL/UPD permissions. */
+//			foreach(rtcell, plan->rtable)
+//			{
+//				rte = (RangeTblEntry *)lfirst(rtcell);
+//				if (rte->rtekind == RTE_RELATION &&
+//					0 != (rte->requiredPerms & removeperms))
+//					rte->requiredPerms &= ~removeperms;
+//			}
+//		}
+//	}
 
 	if (log_statement != LOGSTMT_NONE)
 	{
@@ -1485,12 +1487,6 @@ exec_mpp_query(const char *query_string,
 						 receiver,
 						 receiver,
 						 &qc);
-
-		/*
-		 * If writer QE, sent current pgstat for tables to QD.
-		 */
-		if (Gp_role == GP_ROLE_EXECUTE && Gp_is_writer)
-			pgstat_send_qd_tabstats();
 
 		(*receiver->rDestroy) (receiver);
 
@@ -1806,8 +1802,6 @@ exec_simple_query(const char *query_string)
 		Portal		portal;
 		DestReceiver *receiver;
 		int16		format;
-		const char *cmdtagname;
-		size_t		cmdtaglen;
 
 		pgstat_report_query_id(0, true);
 
@@ -5744,8 +5738,6 @@ PostgresMain(const char *dbname, const char *username)
 				 */
 				if (notifyInterruptPending)
 					ProcessNotifyInterrupt(false);
-
-				pgstat_report_queuestat();
 
 				/*
 				 * Check if we need to report stats. If pgstat_report_stat()
