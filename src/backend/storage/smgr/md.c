@@ -1328,7 +1328,7 @@ ForgetDatabaseSyncRequests(Oid dbid)
 	 * is part of the key that is used to determine equivalence among two
 	 * pending entries.
 	 */
-	INIT_FILETAG(tag, rnode, InvalidForkNumber, InvalidBlockNumber, SYNC_HANDLER_AO);
+	INIT_FILETAG(tag, rlocator, InvalidForkNumber, InvalidBlockNumber, SYNC_HANDLER_AO);
 
 	RegisterSyncRequest(&tag, SYNC_FILTER_REQUEST, true /* retryOnError */ );
 }
@@ -1700,7 +1700,7 @@ mdsyncfiletag(const FileTag *ftag, char *path)
 int
 aosyncfiletag(const FileTag *ftag, char *path)
 {
-	SMgrRelation reln = smgropen(ftag->rnode, InvalidBackendId, 1, NULL);
+	SMgrRelation reln = smgropen(ftag->rlocator, InvalidBackendId, 1, NULL);
 	char	   *p;
 	int			result,
 				save_errno;

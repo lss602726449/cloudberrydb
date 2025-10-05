@@ -1758,35 +1758,25 @@ LockCheckConflicts(LockMethod lockMethodTable,
 		for (i = 1; i <= numLockModes; i++)
 		{
 			int				ourHolding = 0;
-			SHM_QUEUE	   *procLocks = &(lock->procLocks);
-			PROCLOCK	   *otherProclock =
-					(PROCLOCK *) SHMQueueNext(procLocks, procLocks,
-											  offsetof(PROCLOCK, lockLink));
-			/*
-			 * Go through the proclock queue in the lock.  otherProclock
-			 * may be this process itself.
-			 */
-			while (otherProclock)
+			dlist_foreach(proclock_iter, &lock->procLocks)
 			{
-				PGPROC	   *otherProc = otherProclock->tag.myProc;
+				PROCLOCK   *otherproclock =
+						dlist_container(PROCLOCK, lockLink, proclock_iter.cur);
+				PGPROC	   *otherProc = otherproclock->tag.myProc;
 
 				/*
 				 * If processes in my session are holding the lock, mask
 				 * it out so that we won't be blocked by them.
 				 */
 				if (otherProc->mppSessionId == mppSessionId &&
-					otherProclock->holdMask & LOCKBIT_ON(i))
+					otherproclock->holdMask & LOCKBIT_ON(i))
 					ourHolding++;
-
-				otherProclock =
-					(PROCLOCK *) SHMQueueNext(procLocks,
-											  &otherProclock->lockLink,
-											  offsetof(PROCLOCK, lockLink));
 			}
-			/*
-			 * I'll be blocked only if processes outside of the session are
-			 * holding conflicting locks.
-			 */
+
+				/*
+				 * I'll be blocked only if processes outside of the session are
+				 * holding conflicting locks.
+				 */
 			if (lock->granted[i] > ourHolding)
 				otherLocks |= LOCKBIT_ON(i);
 		}
@@ -3619,191 +3609,6 @@ CheckForSessionAndXactLocks(void)
 		/* Otherwise, find or make an entry in lockhtab */
 		hentry = (PerLockTagEntry *) hash_search(lockhtab,
 												 &locallock->tag.lock,
-												 HASH_ENTER, &found);
-		if (!found)				/* initialize, if newly created */
-			hentry->sessLock = hentry->xactLock = false;
-
-		/* Scan to see if we hold lock at session or xact level or both */
-		for (i = locallock->numLockOwners - 1; i >= 0; i--)
-		{
-			if (lockOwners[i].owner == NULL)
-				hentry->sessLock = true;
-			else
-				hentry->xactLock = true;
-		}
-
-		/*
-		 * We can throw error immediately when we see both types of locks; no
-		 * need to wait around to see if there are more violations.
-		 */
-		if (hentry->sessLock && hentry->xactLock)
-			ereport(ERROR,
-					(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-					 errmsg("cannot PREPARE while holding both session-level and transaction-level locks on the same object")));
-	}
-
-	/* Success, so clean up */
-	hash_destroy(lockhtab);
-}
-
-/*
- * AtPrepare_Locks
- *		Do the preparatory work for a PREPARE: make 2PC state file records
- *		for all locks currently held.
- *
- * This marks LOCALLOCK objects on temporary tables, so that we can
- * ignore them while writing the prepare record. Figuring out which
- * tables are temporary requires catalog access, hence we must do this
- * before we start actually preparing.
- *
- * For the most part, we don't need to touch shared memory for this ---
- * all the necessary state information is in the locallock table.
- * Fast-path locks are an exception, however: we move any such locks to
- * the main table before allowing PREPARE TRANSACTION to succeed.
- */
-void
-PrePrepare_Locks(void)
-{
-	HASH_SEQ_STATUS status;
-	LOCALLOCK  *locallock;
-
-	/* First, verify there aren't locks of both xact and session level */
-	CheckForSessionAndXactLocks();
-
-	/* Now do the per-locallock cleanup work */
-	hash_seq_init(&status, LockMethodLocalHash);
-	while ((locallock = (LOCALLOCK *) hash_seq_search(&status)) != NULL)
-	{
-		LOCALLOCKOWNER *lockOwners = locallock->lockOwners;
-		bool		haveSessionLock;
-		bool		haveXactLock;
-		int			i;
-
-		locallock->istemptable = false;
-
-		/*
-		 * Skip locks that would be ignored by AtPrepare_Locks() anyway.
-		 *
-		 * NOTE: these conditions should be kept in sync with AtPrepare_Locks()!
-		 */
-
-		/*
-		 * Ignore VXID locks.  We don't want those to be held by prepared
-		 * transactions, since they aren't meaningful after a restart.
-		 */
-		if (locallock->tag.lock.locktag_type == LOCKTAG_VIRTUALTRANSACTION)
-			continue;
-
-		/* Ignore it if we don't actually hold the lock */
-		if (locallock->nLocks <= 0)
-			continue;
-
-		/* Scan to see whether we hold it at session or transaction level */
-		haveSessionLock = haveXactLock = false;
-		for (i = locallock->numLockOwners - 1; i >= 0; i--)
-		{
-			if (lockOwners[i].owner == NULL)
-				haveSessionLock = true;
-			else
-				haveXactLock = true;
-		}
-
-		/* Ignore it if we have only session lock */
-		if (!haveXactLock)
-			continue;
-
-		/* This can't happen, because we already checked it */
-		if (haveSessionLock)
-			ereport(ERROR,
-					(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-					 errmsg("cannot PREPARE while holding both session-level and transaction-level locks on the same object")));
-
-		/* gp-change
-		 *
-		 * We allow 2PC commit transactions to include temp objects.
-		 * After PREPARE we WILL NOT transfer locks on the temp objects
-		 * into our 2PC record.  Instead, we will keep them with the proc which
-		 * will be released at the end of the session.
-		 *
-		 * There doesn't seem to be any reason not to do this.  Once the txn
-		 * is prepared, it will be committed or aborted regardless of the state
-		 * of the temp table.  and quite possibly, the temp table will be
-		 * destroyed at the end of the session, while the transaction will be
-		 * committed from another session.
-		 */
-		locallock->istemptable = LockTagIsTemp(&locallock->tag.lock);
-	}
-}
-
-/*
- * CheckForSessionAndXactLocks
- *		Check to see if transaction holds both session-level and xact-level
- *		locks on the same object; if so, throw an error.
- *
- * If we have both session- and transaction-level locks on the same object,
- * PREPARE TRANSACTION must fail.  This should never happen with regular
- * locks, since we only take those at session level in some special operations
- * like VACUUM.  It's possible to hit this with advisory locks, though.
- *
- * It would be nice if we could keep the session hold and give away the
- * transactional hold to the prepared xact.  However, that would require two
- * PROCLOCK objects, and we cannot be sure that another PROCLOCK will be
- * available when it comes time for PostPrepare_Locks to do the deed.
- * So for now, we error out while we can still do so safely.
- *
- * Since the LOCALLOCK table stores a separate entry for each lockmode,
- * we can't implement this check by examining LOCALLOCK entries in isolation.
- * We must build a transient hashtable that is indexed by locktag only.
- */
-static void
-CheckForSessionAndXactLocks(void)
-{
-	typedef struct
-	{
-		LOCKTAG		lock;		/* identifies the lockable object */
-		bool		sessLock;	/* is any lockmode held at session level? */
-		bool		xactLock;	/* is any lockmode held at xact level? */
-	} PerLockTagEntry;
-
-	HASHCTL		hash_ctl;
-	HTAB	   *lockhtab;
-	HASH_SEQ_STATUS status;
-	LOCALLOCK  *locallock;
-
-	/* Create a local hash table keyed by LOCKTAG only */
-	hash_ctl.keysize = sizeof(LOCKTAG);
-	hash_ctl.entrysize = sizeof(PerLockTagEntry);
-	hash_ctl.hcxt = CurrentMemoryContext;
-
-	lockhtab = hash_create("CheckForSessionAndXactLocks table",
-						   256, /* arbitrary initial size */
-						   &hash_ctl,
-						   HASH_ELEM | HASH_BLOBS | HASH_CONTEXT);
-
-	/* Scan local lock table to find entries for each LOCKTAG */
-	hash_seq_init(&status, LockMethodLocalHash);
-
-	while ((locallock = (LOCALLOCK *) hash_seq_search(&status)) != NULL)
-	{
-		LOCALLOCKOWNER *lockOwners = locallock->lockOwners;
-		PerLockTagEntry *hentry;
-		bool		found;
-		int			i;
-
-		/*
-		 * Ignore VXID locks.  We don't want those to be held by prepared
-		 * transactions, since they aren't meaningful after a restart.
-		 */
-		if (locallock->tag.lock.locktag_type == LOCKTAG_VIRTUALTRANSACTION)
-			continue;
-
-		/* Ignore it if we don't actually hold the lock */
-		if (locallock->nLocks <= 0)
-			continue;
-
-		/* Otherwise, find or make an entry in lockhtab */
-		hentry = (PerLockTagEntry *) hash_search(lockhtab,
-												 (void *) &locallock->tag.lock,
 												 HASH_ENTER, &found);
 		if (!found)				/* initialize, if newly created */
 			hentry->sessLock = hentry->xactLock = false;

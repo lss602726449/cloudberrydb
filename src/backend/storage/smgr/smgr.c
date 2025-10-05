@@ -39,7 +39,7 @@
 #include "utils/faultinjector.h"
 #include "utils/hsearch.h"
 #include "utils/inval.h"
-#include "utils/relfilenodemap.h"
+#include "utils/relfilenumbermap.h"
 
 /*
  * Hook for plugins to collect statistics from storage functions
@@ -520,7 +520,7 @@ smgrcreate(SMgrRelation reln, ForkNumber forknum, bool isRedo)
 	(*reln->smgr).smgr_create(reln, forknum, isRedo);
 
 	if (file_create_hook)
-		(*file_create_hook)(reln->smgr_rnode);
+		(*file_create_hook)(reln->smgr_rlocator);
 }
 
 /*
@@ -606,7 +606,6 @@ smgrdounlinkall(SMgrRelation *rels, int nrels, bool isRedo)
 	for (i = 0; i < nrels; i++)
 	{
 		RelFileLocatorBackend rlocator = rels[i]->smgr_rlocator;
-		int			which = rels[i]->smgr_which;
 
 		rlocators[i] = rlocator;
 
@@ -675,7 +674,7 @@ smgrextend(SMgrRelation reln, ForkNumber forknum, BlockNumber blocknum,
 		reln->smgr_cached_nblocks[forknum] = InvalidBlockNumber;
 
 	if (file_extend_hook)
-		(*file_extend_hook)(reln->smgr_rnode);
+		(*file_extend_hook)(reln->smgr_rlocator);
 }
 
 /*
@@ -873,7 +872,7 @@ smgrtruncate2(SMgrRelation reln, ForkNumber *forknum, int nforks,
 		/* Make the cached size is invalid if we encounter an error. */
 		reln->smgr_cached_nblocks[forknum[i]] = InvalidBlockNumber;
 
-		(*reln->smgr).smgr_truncate(reln, forknum[i], nblocks[i]);
+		(*reln->smgr).smgr_truncate(reln, forknum[i], *old_nblocks, nblocks[i]);
 
 		/*
 		 * We might as well update the local smgr_cached_nblocks values. The

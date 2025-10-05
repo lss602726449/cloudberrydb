@@ -137,23 +137,23 @@ typedef struct f_smgr
 	void		(*smgr_create) (SMgrRelation reln, ForkNumber forknum,
 								bool isRedo);
 	bool		(*smgr_exists) (SMgrRelation reln, ForkNumber forknum);
-	void		(*smgr_unlink) (RelFileNodeBackend rnode, ForkNumber forknum,
+	void		(*smgr_unlink) (RelFileLocatorBackend rlocator, ForkNumber forknum,
 								bool isRedo);
 	void		(*smgr_extend) (SMgrRelation reln, ForkNumber forknum,
-								BlockNumber blocknum, char *buffer, bool skipFsync);
+								BlockNumber blocknum, const void *buffer, bool skipFsync);
 	void		(*smgr_zeroextend) (SMgrRelation reln, ForkNumber forknum,
 									BlockNumber blocknum, int nblocks, bool skipFsync);
 	bool		(*smgr_prefetch) (SMgrRelation reln, ForkNumber forknum,
 								  BlockNumber blocknum);
 	void		(*smgr_read) (SMgrRelation reln, ForkNumber forknum,
-							  BlockNumber blocknum, char *buffer);
+							  BlockNumber blocknum, void *buffer);
 	void		(*smgr_write) (SMgrRelation reln, ForkNumber forknum,
-							   BlockNumber blocknum, char *buffer, bool skipFsync);
+							   BlockNumber blocknum, const void *buffer, bool skipFsync);
 	void		(*smgr_writeback) (SMgrRelation reln, ForkNumber forknum,
 								   BlockNumber blocknum, BlockNumber nblocks);
 	BlockNumber (*smgr_nblocks) (SMgrRelation reln, ForkNumber forknum);
 	void		(*smgr_truncate) (SMgrRelation reln, ForkNumber forknum,
-								  BlockNumber nblocks);
+								  BlockNumber old_blocks, BlockNumber nblocks);
 	void		(*smgr_immedsync) (SMgrRelation reln, ForkNumber forknum);
 } f_smgr;
 
@@ -163,8 +163,8 @@ typedef struct f_smgr_ao {
 	int				(*smgr_FileTruncate) (File file, int64 offset, uint32 wait_event_info);
 	File			(*smgr_AORelOpenSegFile) (Oid reloid, const char *filePath, int fileFlags);
 	File			(*smgr_AORelOpenSegFileXlog) (RelFileLocator node, int32 segmentFileNum, int fileFlags);
-	int				(*smgr_FileWrite) (File file, char *buffer, int amount, off_t offset, uint32 wait_event_info);
-	int				(*smgr_FileRead) (File file, char *buffer, int amount, off_t offset, uint32 wait_event_info);
+	int				(*smgr_FileWrite) (File file, const void *buffer, size_t amount, off_t offset, uint32 wait_event_info);
+	int				(*smgr_FileRead) (File file, void *buffer, size_t amount, off_t offset, uint32 wait_event_info);
 	off_t			(*smgr_FileSize) (File file);
 	int				(*smgr_FileSync) (File file, uint32 wait_event_info);
 } f_smgr_ao;

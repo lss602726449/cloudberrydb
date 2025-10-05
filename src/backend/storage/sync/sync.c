@@ -394,12 +394,12 @@ ProcessSyncRequests(void)
 			{
 				if (entry->tag.segno == 0)
 					elog(LOG, "checkpoint performing fsync for %d/%d/%u",
-						 entry->tag.rnode.spcNode, entry->tag.rnode.dbNode,
-						 entry->tag.rnode.relNode);
+						 entry->tag.rlocator.spcOid, entry->tag.rlocator.dbOid,
+						 entry->tag.rlocator.relNumber);
 				else
 					elog(LOG, "checkpoint performing fsync for %d/%d/%u.%d",
-						 entry->tag.rnode.spcNode, entry->tag.rnode.dbNode,
-						 entry->tag.rnode.relNode, entry->tag.segno);
+						 entry->tag.rlocator.spcOid, entry->tag.rlocator.dbOid,
+						 entry->tag.rlocator.relNumber, entry->tag.segno);
 			}
 			else
 			{
@@ -407,13 +407,13 @@ ProcessSyncRequests(void)
 				if (entry->tag.segno == 0)
 					elog(level, "non checkpoint process trying to fsync "
 						 "%d/%d/%u when fsync_counter fault is set",
-						 entry->tag.rnode.spcNode, entry->tag.rnode.dbNode,
-						 entry->tag.rnode.relNode);
+						 entry->tag.rlocator.spcOid, entry->tag.rlocator.dbOid,
+						 entry->tag.rlocator.relNumber);
 				else
 					elog(level, "non checkpoint process trying to fsync "
 						 "%d/%d/%u.%d when fsync_counter fault is set",
-						 entry->tag.rnode.spcNode, entry->tag.rnode.dbNode,
-						 entry->tag.rnode.relNode, entry->tag.segno);
+						 entry->tag.rlocator.spcOid, entry->tag.rlocator.dbOid,
+						 entry->tag.rlocator.relNumber, entry->tag.segno);
 			}
 		}
 #endif

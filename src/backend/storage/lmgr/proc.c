@@ -200,7 +200,7 @@ InitProcGlobal(void)
 	 * Initialize the data structures.
 	 */
 	ProcGlobal->spins_per_delay = DEFAULT_SPINS_PER_DELAY;
-	ProcGlobal->lmFreeProcs = NULL;
+	dlist_init(&ProcGlobal->lmFreeProcs);
 	dlist_init(&ProcGlobal->freeProcs);
 	dlist_init(&ProcGlobal->autovacFreeProcs);
 	dlist_init(&ProcGlobal->bgworkerFreeProcs);
@@ -292,8 +292,7 @@ InitProcGlobal(void)
 		else if (i < MaxConnections + autovacuum_max_workers + 1 + login_monitor_max_processes)
 		{
 			/* PGPROC for login monitor, add to lmFreeProcs list */
-			procs[i].links.next = (SHM_QUEUE *) ProcGlobal->lmFreeProcs;
-			ProcGlobal->lmFreeProcs = &procs[i];
+			dlist_push_head(&ProcGlobal->lmFreeProcs, &proc->links);
 			procs[i].procgloballist = &ProcGlobal->lmFreeProcs;
 		}
 		else if (i < MaxConnections + autovacuum_max_workers + 1 + login_monitor_max_processes + max_worker_processes)
@@ -2126,18 +2125,16 @@ ResProcSleep(LOCKMODE lockmode, LOCALLOCK *locallock, void *incrementSet)
 {
 	LOCK	   *lock = locallock->lock;
 	PROCLOCK   *proclock = locallock->proclock;
-	PROC_QUEUE	*waitQueue = &(lock->waitProcs);
+	dclist_head	*waitQueue = &(lock->waitProcs);
 	int			myWaitStatus;
-	PGPROC		*proc;
 	uint32		hashcode = locallock->hashcode;
 	LWLockId	partitionLock = LockHashPartitionLock(hashcode);
+	dlist_iter	proclock_iter;
 
 	/*
 	 * Don't check my held locks, as we just add at the end of the queue.
 	 */
-	proc = (PGPROC *) &(waitQueue->links);
-	SHMQueueInsertBefore(&(proc->links), &(MyProc->links));
-	waitQueue->size++;
+	dclist_push_tail(waitQueue, &(MyProc->links));
 
 	lock->waitMask |= LOCKBIT_ON(lockmode);
 
@@ -2214,8 +2211,7 @@ ResProcSleep(LOCKMODE lockmode, LOCALLOCK *locallock, void *incrementSet)
 			long		secs;
 			int			usecs;
 			long		msecs;
-			SHM_QUEUE	*procLocks;
-			PROCLOCK	*proclock;
+			dlist_head 	*procLocks;
 			bool		first_holder = true,
 						first_waiter = true;
 			int			lockHoldersNum = 0;
@@ -2244,43 +2240,39 @@ ResProcSleep(LOCKMODE lockmode, LOCALLOCK *locallock, void *incrementSet)
 			LWLockAcquire(partitionLock, LW_SHARED);
 
 			procLocks = &(lock->procLocks);
-			proclock = (PROCLOCK *) SHMQueueNext(procLocks, procLocks,
-												 offsetof(PROCLOCK, lockLink));
-
-			while (proclock)
+			dlist_foreach(proclock_iter, procLocks)
 			{
+				PROCLOCK   *cur_proclock = dlist_container(PROCLOCK, lockLink, proclock_iter.cur);
+
 				/*
-				 * we are a waiter if myProc->waitProcLock == proclock; we are
+				 * we are a waiter if myProc->waitProcLock == cur_proclock; we are
 				 * a holder if it is NULL or something different
 				 */
-				if (proclock->tag.myProc->waitProcLock == proclock)
+				if (cur_proclock->tag.myProc->waitProcLock == cur_proclock)
 				{
 					if (first_waiter)
 					{
 						appendStringInfo(&lock_waiters_sbuf, "%d",
-									proclock->tag.myProc->pid);
+										 cur_proclock->tag.myProc->pid);
 						first_waiter = false;
 					}
 					else
 						appendStringInfo(&lock_waiters_sbuf, ", %d",
-										 proclock->tag.myProc->pid);
+										 cur_proclock->tag.myProc->pid);
 				}
 				else
 				{
 					if (first_holder)
 					{
 						appendStringInfo(&lock_holders_sbuf, "%d",
-										 proclock->tag.myProc->pid);
+										 cur_proclock->tag.myProc->pid);
 						first_holder = false;
 					}
 					else
 						appendStringInfo(&lock_holders_sbuf, ", %d",
-										 proclock->tag.myProc->pid);
+										 cur_proclock->tag.myProc->pid);
 					lockHoldersNum++;
 				}
-
-				proclock = (PROCLOCK *) SHMQueueNext(procLocks, &proclock->lockLink,
-												offsetof(PROCLOCK, lockLink));
 			}
 
 			LWLockRelease(partitionLock);
