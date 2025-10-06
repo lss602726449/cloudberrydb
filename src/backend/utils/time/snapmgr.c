@@ -821,23 +821,9 @@ PushActiveSnapshot(Snapshot snapshot)
 void
 PushActiveSnapshotWithLevel(Snapshot snapshot, int snap_level)
 {
-	PushActiveSnapshotWithLevel(snap, GetCurrentTransactionNestLevel());
-}
-
-/*
- * PushActiveSnapshotWithLevel
- *		Set the given snapshot as the current active snapshot
- *
- * Same as PushActiveSnapshot except that caller can specify the
- * transaction nesting level that "owns" the snapshot.  This level
- * must not be deeper than the current top of the snapshot stack.
- */
-void
-PushActiveSnapshotWithLevel(Snapshot snap, int snap_level)
-{
 	ActiveSnapshotElt *newactive;
 
-	Assert(snap != InvalidSnapshot)
+	Assert(snapshot != InvalidSnapshot);
 	Assert(ActiveSnapshot == NULL || snap_level >= ActiveSnapshot->as_level);
 
 	newactive = MemoryContextAlloc(TopTransactionContext, sizeof(ActiveSnapshotElt));
@@ -2354,14 +2340,14 @@ EstimateSnapshotSpace(Snapshot snapshot)
 		size = add_size(size,
 						mul_size(snapshot->subxcnt, sizeof(TransactionId)));
 
-	if (snap->haveDistribSnapshot && snap->distribSnapshotWithLocalMapping.ds.count > 0)
+	if (snapshot->haveDistribSnapshot && snapshot->distribSnapshotWithLocalMapping.ds.count > 0)
 	{
 		size = add_size(size,
-						mul_size(snap->distribSnapshotWithLocalMapping.ds.count, sizeof(DistributedTransactionId)));
-		if (snap->distribSnapshotWithLocalMapping.currentLocalXidsCount > 0)
+						mul_size(snapshot->distribSnapshotWithLocalMapping.ds.count, sizeof(DistributedTransactionId)));
+		if (snapshot->distribSnapshotWithLocalMapping.currentLocalXidsCount > 0)
 		{
 			size = add_size(size,
-							mul_size(snap->distribSnapshotWithLocalMapping.currentLocalXidsCount, sizeof(TransactionId)));
+							mul_size(snapshot->distribSnapshotWithLocalMapping.currentLocalXidsCount, sizeof(TransactionId)));
 		}
 	}
 
