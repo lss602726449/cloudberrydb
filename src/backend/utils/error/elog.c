@@ -247,9 +247,6 @@ ignore_returned_result(long long int result)
 	(void) result;
 }
 
-static void setup_formatted_log_time(void);
-static void setup_formatted_start_time(void);
-
 
 /*
  * is_log_level_output -- is elevel logically >= log_min_level?
@@ -4838,13 +4835,6 @@ write_pipe_chunks(char *data, int len, int dest)
 	p.hdr.log_format = (dest == LOG_DESTINATION_CSVLOG ? 'c' : 't');
 	p.hdr.is_segv_msg = 'f';
 	p.hdr.next = -1;
-	p.proto.flags = 0;
-	if (dest == LOG_DESTINATION_STDERR)
-		p.proto.flags |= PIPE_PROTO_DEST_STDERR;
-	else if (dest == LOG_DESTINATION_CSVLOG)
-		p.proto.flags |= PIPE_PROTO_DEST_CSVLOG;
-	else if (dest == LOG_DESTINATION_JSONLOG)
-		p.proto.flags |= PIPE_PROTO_DEST_JSONLOG;
 
 	/* write all but the last chunk */
 	while (len > PIPE_MAX_PAYLOAD)
@@ -4877,7 +4867,6 @@ write_pipe_chunks(char *data, int len, int dest)
 #endif
 	memcpy(p.data, data, len);
 	ignore_returned_result(write(fd, &p, PIPE_HEADER_SIZE + len));
-	p.proto.flags |= PIPE_PROTO_IS_LAST;
 }
 
 

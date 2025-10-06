@@ -38,8 +38,7 @@ ExceptionalCondition(const char *conditionName,
 {
     /* CDB: Try to tell the QD or client what happened. */
 	if (!PointerIsValid(conditionName)
-		|| !PointerIsValid(fileName)
-		|| !PointerIsValid(errorType))
+		|| !PointerIsValid(fileName))
 		ereport(FATAL,
 				errFatalReturn(gp_reraise_signal),
 				errmsg("TRAP: ExceptionalCondition: bad arguments"));
@@ -47,8 +46,8 @@ ExceptionalCondition(const char *conditionName,
 		ereport(FATAL,
 				errFatalReturn(gp_reraise_signal),
 				errmsg("Unexpected internal error"),
-				errdetail("%s(\"%s\", File: \"%s\", Line: %d)\n",
-						  errorType, conditionName, fileName, lineNumber));
+				errdetail("(\"%s\", File: \"%s\", Line: %d)\n",
+						  conditionName, fileName, lineNumber));
 
 	/* Usually this shouldn't be needed, but make sure the msg went out */
 	fflush(stderr);
