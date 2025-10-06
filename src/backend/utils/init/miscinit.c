@@ -1081,7 +1081,7 @@ SetCurrentRoleId(Oid roleid, bool is_superuser)
 	else
 		SetRoleIsActive = true;
 
-	SetOuterUserId(roleid);
+	SetOuterUserId(roleid, is_superuser);
 
 	/* If resource scheduling enabled, set the cached queue for the new role.*/
 	if ((Gp_role == GP_ROLE_DISPATCH || IS_SINGLENODE() || Gp_role == GP_ROLE_EXECUTE) && IsResQueueEnabled())

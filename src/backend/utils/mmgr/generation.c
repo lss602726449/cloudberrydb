@@ -105,14 +105,6 @@ struct GenerationBlock
 #define GenerationIsValid(set) \
 	(PointerIsValid(set) && IsA(set, GenerationContext))
 
-/*
- * GenerationBlockIsValid
- *		True iff block is valid block of generation set.
- */
-#ifdef MEMORY_CONTEXT_CHECKING
-static void GenerationCheck(MemoryContext context);
-#endif
-
 #define GenerationBlockIsValid(block) \
 	(PointerIsValid(block) && GenerationIsValid((block)->context))
 

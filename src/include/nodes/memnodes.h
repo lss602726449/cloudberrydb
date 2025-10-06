@@ -66,7 +66,7 @@ typedef struct MemoryContextMethods
 	void		(*reset) (MemoryContext context);
 	void		(*delete_context) (MemoryContext context, MemoryContext parent);
 	MemoryContext (*get_chunk_context) (void *pointer);
-	Size		(*get_chunk_space) (MemoryContext context, void *pointer);
+	Size		(*get_chunk_space) (void *pointer);
 	bool		(*is_empty) (MemoryContext context);
 	void		(*stats) (MemoryContext context,
 						  MemoryStatsPrintFunc printfunc, void *passthru,

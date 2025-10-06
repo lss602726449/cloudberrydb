@@ -384,37 +384,7 @@ static AllocSetFreeList context_freelists[2] =
 	}
 };
 
-static void AllocSetDeclareAccountingRoot(MemoryContext context);
-static Size AllocSetGetCurrentUsage(MemoryContext context);
 static Size AllocSetGetPeakUsage(MemoryContext context);
-static Size AllocSetSetPeakUsage(MemoryContext context, Size nbytes);
-
-#ifdef MEMORY_CONTEXT_CHECKING
-static void AllocSetCheck(MemoryContext context);
-#endif
-
-/*
- * This is the virtual function table for AllocSet contexts.
- */
-static const MemoryContextMethods AllocSetMethods = {
-	AllocSetAlloc,
-	AllocSetFree,
-	AllocSetRealloc,
-	AllocSetReset,
-	AllocSetDelete,
-	AllocSetGetChunkSpace,
-	AllocSetIsEmpty,
-	AllocSetStats,
-
-	/* GPDB additions */
-	AllocSetDeclareAccountingRoot,
-	AllocSetGetCurrentUsage,
-	AllocSetGetPeakUsage,
-	AllocSetSetPeakUsage
-#ifdef MEMORY_CONTEXT_CHECKING
-	,AllocSetCheck
-#endif
-};
 
 
 /* ----------
@@ -1369,17 +1339,6 @@ AllocSetRealloc(void *pointer, Size size)
 	/* Allow access to the chunk header. */
 	VALGRIND_MAKE_MEM_DEFINED(chunk, ALLOC_CHUNKHDRSZ);
 
-#ifdef USE_ASSERT_CHECKING
-	if (IsUnderPostmaster  && context != ErrorContext && mainthread() != 0 && !pthread_equal(main_tid, pthread_self()))
-	{
-#if defined(__darwin__)
-		elog(ERROR,"prealloc called from thread (OS-X pthread_sigmask is broken: MPP-4923)");
-#else
-		elog(ERROR,"prealloc called from thread");
-#endif
-	}
-#endif
-
 	if (MemoryChunkIsExternal(chunk))
 	{
 		/*
@@ -1794,26 +1753,6 @@ AllocSetStats(MemoryContext context,
 	}
 }
 
-static void
-AllocSetDeclareAccountingRoot(MemoryContext context)
-{
-	AllocSet	set = (AllocSet) context;
-
-	Assert(set->localAllocated == 0);
-
-	set->accountingParent = set;
-}
-
-static Size
-AllocSetGetCurrentUsage(MemoryContext context)
-{
-	AllocSet	set = (AllocSet) context;
-
-	Assert(IS_MEMORY_ACCOUNT(set));
-
-	return set->currentAllocated;
-}
-
 static Size
 AllocSetGetPeakUsage_recurse(MemoryContext parent, MemoryContext context)
 {
@@ -1849,21 +1788,6 @@ AllocSetGetPeakUsage(MemoryContext context)
 	total += AllocSetGetPeakUsage_recurse(context, context);
 
 	return total;
-}
-
-static Size
-AllocSetSetPeakUsage(MemoryContext context, Size nbytes)
-{
-	AllocSet	set = (AllocSet) context;
-	Size		oldpeak;
-
-	Assert(IS_MEMORY_ACCOUNT(set));
-
-	oldpeak = set->peakAllocated;
-
-	set->peakAllocated = Max(set->currentAllocated, nbytes);
-
-	return oldpeak;
 }
 
 void

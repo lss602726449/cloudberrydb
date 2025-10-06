@@ -757,9 +757,11 @@ BaseInit(void)
  */
 static void check_superuser_connection_limit()
 {
+	int nfree;
+
 	if (!am_ftshandler &&
 		!IS_QUERY_DISPATCHER() &&
-		!HaveNFreeProcs(RESERVED_FTS_CONNECTIONS))
+		!HaveNFreeProcs(RESERVED_FTS_CONNECTIONS, &nfree))
 		ereport(FATAL,
 				(errcode(ERRCODE_TOO_MANY_CONNECTIONS),
 						errmsg("connection limit exceeded for superusers (need "

@@ -1087,7 +1087,6 @@ hash_search_with_hash_value(HTAB *hashp,
 		case HASH_ENTER_NULL:
 			/* FALL THRU */
 		case HASH_ENTER:
-		case HASH_ENTER_NULL:
 			/* Return existing element if found, else create one */
 			if (currBucket != NULL)
 				return (void *) ELEMENTKEY(currBucket);

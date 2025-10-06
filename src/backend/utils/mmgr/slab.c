@@ -185,9 +185,6 @@ typedef struct SlabBlock
  *		fullChunkSize starting from the 0th chunk position.  This will return
  *		non-zero if it's not.
  */
-
-#ifdef MEMORY_CONTEXT_CHECKING
-static void SlabCheck(MemoryContext context);
 #define SlabChunkMod(slab, block, chunk)	\
 	(((char *) (chunk) - (char *) SlabBlockGetChunk(slab, block, 0)) % \
 	(slab)->fullChunkSize)
