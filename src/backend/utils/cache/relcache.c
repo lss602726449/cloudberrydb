@@ -2251,9 +2251,9 @@ RelationDecrementReferenceCount(Relation rel)
 		elog(ERROR,
 #endif
 			 "Relation decrement reference count found relation %u/%u/%u with bad count (reference count %d)",
-			 rel->rd_node.spcNode,
-			 rel->rd_node.dbNode,
-			 rel->rd_node.relNode,
+			 rel->rd_locator.spcOid,
+			 rel->rd_locator.dbOid,
+			 rel->rd_locator.relNumber,
 			 rel->rd_refcnt);
 	}
 	
@@ -3816,13 +3816,13 @@ RelationBuildLocalRelation(const char *relname,
 	 * manager in Cloudberry breaks if this happens, see GPDB_91_MERGE_FIXME in
 	 * GetNewRelFileNode() for details.
 	 */
-	if (relfilenode == 1 || mapped_relation)
+	if (relfilenumber == 1 || mapped_relation)
 	{
 		if (relid < FirstNormalObjectId) /* bootstrap only */
-			relfilenode = relid;
+			relfilenumber = relid;
 		else
 		{
-			relfilenode = GetNewRelFileNode(reltablespace, NULL, relpersistence);
+			relfilenumber = GetNewRelFileNode(reltablespace, NULL, relpersistence);
 			if (Gp_role == GP_ROLE_EXECUTE || IsBinaryUpgrade)
 				AdvanceObjectId(relid);
 		}
@@ -3908,36 +3908,9 @@ RelationSetNewRelfilenumber(Relation relation, char persistence)
 	TransactionId freezeXid = InvalidTransactionId;
 	RelFileLocator newrlocator;
 
-	if (!IsBinaryUpgrade)
-	{
-		/* Allocate a new relfilenumber */
-		newrelfilenumber = GetNewRelFileNumber(relation->rd_rel->reltablespace,
-											   NULL, persistence);
-	}
-	else if (relation->rd_rel->relkind == RELKIND_INDEX)
-	{
-		if (!OidIsValid(binary_upgrade_next_index_pg_class_relfilenumber))
-			ereport(ERROR,
-					(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-					 errmsg("index relfilenumber value not set when in binary upgrade mode")));
-
-		newrelfilenumber = binary_upgrade_next_index_pg_class_relfilenumber;
-		binary_upgrade_next_index_pg_class_relfilenumber = InvalidOid;
-	}
-	else if (relation->rd_rel->relkind == RELKIND_RELATION)
-	{
-		if (!OidIsValid(binary_upgrade_next_heap_pg_class_relfilenumber))
-			ereport(ERROR,
-					(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-					 errmsg("heap relfilenumber value not set when in binary upgrade mode")));
-
-		newrelfilenumber = binary_upgrade_next_heap_pg_class_relfilenumber;
-		binary_upgrade_next_heap_pg_class_relfilenumber = InvalidOid;
-	}
-	else
-		ereport(ERROR,
-				(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-				 errmsg("unexpected request for new relfilenumber in binary upgrade mode")));
+	/* Allocate a new relfilenumber */
+	newrelfilenumber = GetNewRelFileNumber(relation->rd_rel->reltablespace,
+										   NULL, persistence);
 
 	/*
 	 * Get a writable copy of the pg_class tuple for the given relation.
@@ -3975,7 +3948,7 @@ RelationSetNewRelfilenumber(Relation relation, char persistence)
 		 * fails at this stage, the new cluster will need to be recreated
 		 * anyway.
 		 */
-		srel = smgropen(relation->rd_locator, relation->rd_backend);
+		srel = smgropen(relation->rd_locator, relation->rd_backend, SMGR_MD, relation);
 		smgrdounlinkall(&srel, 1, false);
 		smgrclose(srel);
 	}
@@ -4008,7 +3981,7 @@ RelationSetNewRelfilenumber(Relation relation, char persistence)
 		/* handle these directly, at least for now */
 		SMgrRelation srel;
 
-		srel = RelationCreateStorage(newrlocator, persistence, true);
+		srel = RelationCreateStorage(newrlocator, persistence, true, SMGR_MD, relation);
 		smgrclose(srel);
 	}
 	else

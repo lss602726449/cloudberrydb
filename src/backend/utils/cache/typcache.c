@@ -275,10 +275,15 @@ static const dshash_parameters srtr_typmod_table_params = {
 /* hashtable for recognizing registered record types */
 static HTAB *RecordCacheHash = NULL;
 
-/* arrays of info about registered record types, indexed by assigned typmod */
-static TupleDesc *RecordCacheArray = NULL;
-static uint64 *RecordIdentifierArray = NULL;
-static int32 RecordCacheArrayLen = 0;	/* allocated length of above arrays */
+typedef struct RecordCacheArrayEntry
+{
+	uint64		id;
+	TupleDesc	tupdesc;
+} RecordCacheArrayEntry;
+
+/* array of info about registered record types, indexed by assigned typmod */
+static RecordCacheArrayEntry *RecordCacheArray = NULL;
+static int32 RecordCacheArrayLen = 0;	/* allocated length of above array */
 int32 NextRecordTypmod = 0;	/* number of entries used */
 
 /*
@@ -1926,13 +1931,10 @@ reset_record_cache(void)
 	if (RecordCacheArray != NULL)
 	{
 		Assert(RecordCacheArrayLen != 0);
-		Assert(RecordIdentifierArray != NULL);
 
 		pfree(RecordCacheArray);
-		pfree(RecordIdentifierArray);
 
 		RecordCacheArray = NULL;
-		RecordIdentifierArray = NULL;
 		RecordCacheArrayLen = 0;
 	}
 }
@@ -2032,7 +2034,7 @@ assign_record_type_typmod(TupleDesc tupDesc)
 		ensure_record_cache_typmod_slot_exists(entDesc->tdtypmod);
 	}
 
-	RecordCacheArray[entDesc->tdtypmod] = entDesc;
+	RecordCacheArray[entDesc->tdtypmod].tupdesc = entDesc;
 
 	/* Assign a unique tupdesc identifier, too. */
 	RecordCacheArray[entDesc->tdtypmod].id = ++tupledesc_id_counter;
@@ -2496,7 +2498,7 @@ build_tuple_node_list(int start)
 
 	for (; i < NextRecordTypmod; i++)
 	{
-		TupleDesc tmp = RecordCacheArray[i];
+		TupleDesc tmp = RecordCacheArray[i].tupdesc;
 
 		TupleDescNode *node = palloc0(sizeof(TupleDescNode));
 		node->type = T_TupleDescNode;
@@ -2509,7 +2511,7 @@ build_tuple_node_list(int start)
 	{
 		for (; i < GetSharedNextRecordTypmod(CurrentSession->shared_typmod_registry); i++)
 		{
-			TupleDesc tmp = RecordCacheArray[i];
+			TupleDesc tmp = RecordCacheArray[i].tupdesc;
 
 			TupleDescNode *node = palloc0(sizeof(TupleDescNode));
 			node->type = T_TupleDescNode;
