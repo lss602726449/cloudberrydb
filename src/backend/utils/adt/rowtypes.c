@@ -188,7 +188,6 @@ record_in(PG_FUNCTION_ARGS)
 			{
 				ReleaseTupleDesc(tupdesc);
 				/* *ptr must be ')' */
-			{
 				errsave(escontext,
 						(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
 						 errmsg("malformed record literal: \"%s\"", string),

@@ -286,7 +286,8 @@ gp_log_backend_memory_contexts(PG_FUNCTION_ARGS)
 			struct pg_result *pgresult = cdb_pgresults.pg_results[resultno];
 			if (PQresultStatus(pgresult) == PGRES_TUPLES_OK)
 			{
-				int retValue = pg_atoi(PQgetvalue(pgresult, 0, 0), sizeof(int), 0);
+				char	   *endp;
+				int retValue = strtol(PQgetvalue(pgresult, 0, 0), &endp, 10);
 				if (retValue != ERROR_DISPATCHING_LOG_MEMORY_CONTEXT)
 					returnedSegments = lappend_int(returnedSegments, retValue);
 			}
@@ -328,7 +329,7 @@ gp_log_backend_memory_contexts(PG_FUNCTION_ARGS)
 		int logsSignalled = 0;
 		for (int beid = 1; beid <= tot_backends; beid++)
 		{
-			PgBackendStatus *beentry = pgstat_fetch_stat_beentry(beid);
+			PgBackendStatus *beentry = pgstat_get_beentry_by_backend_id(beid);
 			if (beentry && beentry->st_procpid >0 &&
 				beentry->st_session_id == targetSessionId)
 			{

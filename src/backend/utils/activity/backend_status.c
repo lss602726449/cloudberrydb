@@ -454,7 +454,6 @@ pgstat_bestart(void)
 	/*
 	 * GPDB: Initialize per-portal statistics hash for resource queues.
 	 */
-	pgstat_init_localportalhash();
 
 	/* Update app name to current GUC setting */
 	if (application_name)

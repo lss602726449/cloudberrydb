@@ -29,14 +29,14 @@
 #include "miscadmin.h"
 #include "storage/fd.h"
 #include "utils/acl.h"
+#include "utils/array.h"
 #include "utils/builtins.h"
-#include "utils/int8.h"
 #include "utils/inval.h"
 #include "utils/lsyscache.h"
 #include "utils/numeric.h"
 #include "utils/rel.h"
 #include "utils/relcache.h"
-#include "utils/relfilenodemap.h"
+#include "utils/relfilenumbermap.h"
 #include "utils/relmapper.h"
 #include "utils/syscache.h"
 
@@ -490,7 +490,7 @@ pg_tablespace_size_name(PG_FUNCTION_ARGS)
  * is no check here or at the call sites for that.
  */
 static int64
-calculate_relation_size(RelFileLocator *rfn, BackendId backend, ForkNumber forknum)
+calculate_relation_size(Relation rel, ForkNumber forknum)
 {
 	int64		totalsize = 0;
 	char	   *relationpath;
@@ -507,7 +507,7 @@ calculate_relation_size(RelFileLocator *rfn, BackendId backend, ForkNumber forkn
 	if (RelationIsNonblockRelation(rel))
 		return table_relation_size(rel, forknum);
 
-	relationpath = relpathbackend(rel->rd_node, rel->rd_backend, forknum);
+	relationpath = relpathbackend(rel->rd_locator, rel->rd_backend, forknum);
 
 	/* Ordinary relation, including heap and index.
 	 * They take form of relationpath, or relationpath.%d
@@ -624,8 +624,7 @@ calculate_toast_table_size(Oid toastrelid)
 
 	/* toast heap size, including FSM and VM size */
 	for (forkNum = 0; forkNum <= MAX_FORKNUM; forkNum++)
-		size += calculate_relation_size(&(toastRel->rd_locator),
-										toastRel->rd_backend, forkNum);
+		size += calculate_relation_size(toastRel, forkNum);
 
 	/* toast index size, including FSM and VM size */
 	indexlist = RelationGetIndexList(toastRel);
@@ -638,8 +637,7 @@ calculate_toast_table_size(Oid toastrelid)
 		toastIdxRel = relation_open(lfirst_oid(lc),
 									AccessShareLock);
 		for (forkNum = 0; forkNum <= MAX_FORKNUM; forkNum++)
-			size += calculate_relation_size(&(toastIdxRel->rd_locator),
-											toastIdxRel->rd_backend, forkNum);
+			size += calculate_relation_size(toastIdxRel, forkNum);
 
 		relation_close(toastIdxRel, AccessShareLock);
 	}
@@ -673,7 +671,7 @@ calculate_table_size(Relation rel)
 	if (rel->rd_locator.relNumber != 0)
 	{
 		for (forkNum = 0; forkNum <= MAX_FORKNUM; forkNum++)
-			size += calculate_relation_size(rel, rel->rd_backend, forkNum);
+			size += calculate_relation_size(rel, forkNum);
 	}
 
 	/*
@@ -745,8 +743,7 @@ calculate_indexes_size(Relation rel)
 			if (RelationIsValid(idxRel))
 			{
 				for (forkNum = 0; forkNum <= MAX_FORKNUM; forkNum++)
-					size += calculate_relation_size(&(idxRel->rd_locator),
-													idxRel->rd_backend,
+					size += calculate_relation_size(idxRel,
 													forkNum);
 
 				relation_close(idxRel, AccessShareLock);

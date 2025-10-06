@@ -23,6 +23,7 @@
 #include "catalog/pg_type.h"
 #include "cdb/cdbvars.h"
 #include "commands/extension.h"
+#include "commands/tablespace.h"
 #include "miscadmin.h"
 #include "utils/array.h"
 #include "utils/builtins.h"
@@ -119,6 +120,7 @@ binary_upgrade_set_next_heap_pg_class_oid(PG_FUNCTION_ARGS)
 	PG_RETURN_VOID();
 }
 
+extern RelFileNumber binary_upgrade_next_heap_pg_class_relfilenumber;
 Datum
 binary_upgrade_set_next_heap_relfilenode(PG_FUNCTION_ARGS)
 {
@@ -144,6 +146,7 @@ binary_upgrade_set_next_index_pg_class_oid(PG_FUNCTION_ARGS)
 	PG_RETURN_VOID();
 }
 
+extern RelFileNumber binary_upgrade_next_index_pg_class_relfilenumber;
 Datum
 binary_upgrade_set_next_index_relfilenode(PG_FUNCTION_ARGS)
 {
@@ -169,6 +172,7 @@ binary_upgrade_set_next_toast_pg_class_oid(PG_FUNCTION_ARGS)
 	PG_RETURN_VOID();
 }
 
+extern RelFileNumber binary_upgrade_next_toast_pg_class_relfilenumber;
 Datum
 binary_upgrade_set_next_toast_relfilenode(PG_FUNCTION_ARGS)
 {

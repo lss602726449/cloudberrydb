@@ -1032,6 +1032,7 @@ pg_logdir_ls_internal(FunctionCallInfo fcinfo)
 		fsec_t		fsec;
 		int			tz = 0;
 		struct pg_tm date;
+		DateTimeErrorExtra extra;
 
 		if (prefix_is_gpdb)
 		{
@@ -1067,7 +1068,7 @@ pg_logdir_ls_internal(FunctionCallInfo fcinfo)
 		if (ParseDateTime(timestampbuf, lowstr, MAXDATELEN, field, ftype, MAXDATEFIELDS, &nf))
 			continue;
 
-		if (DecodeDateTime(field, ftype, nf, &dtype, &date, &fsec, &tz))
+		if (DecodeDateTime(field, ftype, nf, &dtype, &date, &fsec, &tz, &extra))
 			continue;
 
 		/* Seems the timestamp is OK; prepare and return tuple */

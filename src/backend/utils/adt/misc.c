@@ -379,7 +379,7 @@ pg_tablespace_location(PG_FUNCTION_ARGS)
 Datum
 get_tablespace_version_directory_name(PG_FUNCTION_ARGS)
 {
-	PG_RETURN_TEXT_P(CStringGetTextDatum(GP_TABLESPACE_VERSION_DIRECTORY));
+	PG_RETURN_TEXT_P(GP_TABLESPACE_VERSION_DIRECTORY);
 }
 
 /*
@@ -1094,7 +1094,7 @@ gp_get_segment_configuration(PG_FUNCTION_ARGS)
 {
 #ifdef USE_INTERNAL_FTS
 	ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-		errmsg("Should not call this function when using internal fts module")));
+			errmsg("Should not call this function when using internal fts module")));
 #else
 	GpSegConfigEntryForUDF * config_for_udf;
 
@@ -1184,6 +1184,7 @@ gp_get_segment_configuration(PG_FUNCTION_ARGS)
 		SRF_RETURN_DONE(funcctx);
 	}
 #endif
+}
 
 /*
  * Transition function for the ANY_VALUE aggregate

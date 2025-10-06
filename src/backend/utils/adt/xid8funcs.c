@@ -361,7 +361,7 @@ bad_format:
 pg_snapshot* 
 deserialize_snapshot(const char *str) 
 {
-	return parse_snapshot(str);
+	return parse_snapshot(str, NULL);
 }
 
 /*

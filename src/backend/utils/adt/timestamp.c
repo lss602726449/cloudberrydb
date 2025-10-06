@@ -4451,10 +4451,9 @@ timestamp_age(PG_FUNCTION_ARGS)
 	Timestamp	dt1 = PG_GETARG_TIMESTAMP(0);
 	Timestamp	dt2 = PG_GETARG_TIMESTAMP(1);
 	Interval   *result;
-	fsec_t		fsec,
-				fsec1 = 0,
+	fsec_t		fsec1 = 0,
 				fsec2 = 0;
-	struct pg_tm tt,
+	struct pg_itm tt,
 			   *tm = &tt;
 	struct pg_tm tt1,
 			   *tm1 = &tt1;
@@ -4828,8 +4827,15 @@ timestamp_bin(PG_FUNCTION_ARGS)
 				(errcode(ERRCODE_DATETIME_VALUE_OUT_OF_RANGE),
 				 errmsg("stride must be greater than zero")));
 
-	tm_diff = timestamp - origin;
-	tm_delta = tm_diff - tm_diff % stride_usecs;
+	if (unlikely(pg_sub_s64_overflow(timestamp, origin, &tm_diff)))
+		ereport(ERROR,
+				(errcode(ERRCODE_DATETIME_VALUE_OUT_OF_RANGE),
+				 errmsg("interval out of range")));
+
+	/* These calculations cannot overflow */
+	tm_modulo = tm_diff % stride_usecs;
+	tm_delta = tm_diff - tm_modulo;
+	result = origin + tm_delta;
 
 	/*
 	 * We want to round towards -infinity, not 0, when tm_diff is negative and
@@ -5021,8 +5027,15 @@ timestamptz_bin(PG_FUNCTION_ARGS)
 				(errcode(ERRCODE_DATETIME_VALUE_OUT_OF_RANGE),
 				 errmsg("stride must be greater than zero")));
 
-	tm_diff = timestamp - origin;
-	tm_delta = tm_diff - tm_diff % stride_usecs;
+	if (unlikely(pg_sub_s64_overflow(timestamp, origin, &tm_diff)))
+		ereport(ERROR,
+				(errcode(ERRCODE_DATETIME_VALUE_OUT_OF_RANGE),
+				 errmsg("interval out of range")));
+
+	/* These calculations cannot overflow */
+	tm_modulo = tm_diff % stride_usecs;
+	tm_delta = tm_diff - tm_modulo;
+	result = origin + tm_delta;
 
 	/*
 	 * We want to round towards -infinity, not 0, when tm_diff is negative and

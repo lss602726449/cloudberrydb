@@ -1130,7 +1130,7 @@ hasBackendsExist(PG_FUNCTION_ARGS)
 		int tot_backends = pgstat_fetch_stat_numbackends();
 		for (beid = 1; beid <= tot_backends; beid++)
 		{
-			PgBackendStatus *beentry = pgstat_fetch_stat_beentry(beid);
+			PgBackendStatus *beentry = pgstat_get_beentry_by_backend_id(beid);
 			if (beentry && beentry->st_procpid >0 && beentry->st_procpid != pid &&
 				beentry->st_session_id == gp_session_id)
 				result++;

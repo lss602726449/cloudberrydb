@@ -411,12 +411,12 @@ static void get_query_def(Query *query, StringInfo buf, List *parentnamespace,
 static void get_values_def(List *values_lists, deparse_context *context);
 static void get_with_clause(Query *query, deparse_context *context);
 static void get_select_query_def(Query *query, deparse_context *context);
-static void get_insert_query_def(Query *query, deparse_context *context);
-static void get_update_query_def(Query *query, deparse_context *context);
+static void get_insert_query_def(Query *query, deparse_context *context, bool colNamesVisible);
+static void get_update_query_def(Query *query, deparse_context *context, bool colNamesVisible);
 static void get_update_query_targetlist_def(Query *query, List *targetList,
 											deparse_context *context,
 											RangeTblEntry *rte);
-static void get_delete_query_def(Query *query, deparse_context *context);
+static void get_delete_query_def(Query *query, deparse_context *context, bool colNamesVisible);
 static void get_merge_query_def(Query *query, deparse_context *context);
 static void get_utility_query_def(Query *query, deparse_context *context);
 static void get_basic_select_query(Query *query, deparse_context *context);
@@ -2719,7 +2719,7 @@ pg_get_expr_worker(text *expr, Oid relid, int prettyFlags)
 	 */
 	if (OidIsValid(relid))
 	{
-		rel = try_relation_open(relid, AccessShareLock);
+		rel = try_relation_open(relid, AccessShareLock, false);
 		if (rel == NULL)
 			return NULL;
 		context = deparse_context_for(RelationGetRelationName(rel), relid);
@@ -6099,7 +6099,7 @@ get_basic_select_query(Query *query, deparse_context *context)
 				appendStringInfoString(buf, ",");
 
 			appendStringInfo(buf, " %s AS ", quote_identifier(wc->name));
-			get_rule_windowspec(wc, context->windowTList, context);
+			get_rule_windowspec(wc, context->targetList, context);
 		}
 	}
 }
@@ -11781,54 +11781,7 @@ get_from_clause_item(Node *jtnode, Query *query, deparse_context *context)
 		}
 
 		/* Print the relation alias, if needed */
-		printalias = false;
-		if (rte->alias != NULL)
-		{
-			/* Always print alias if user provided one */
-			printalias = true;
-		}
-		else if (colinfo->printaliases)
-		{
-			/* Always print alias if we need to print column aliases */
-			printalias = true;
-		}
-		else if (rte->rtekind == RTE_RELATION)
-		{
-			/*
-			 * No need to print alias if it's same as relation name (this
-			 * would normally be the case, but not if set_rtable_names had to
-			 * resolve a conflict).
-			 */
-			if (strcmp(refname, get_relation_name(rte->relid)) != 0)
-				printalias = true;
-		}
-		else if (rte->rtekind == RTE_FUNCTION || rte->rtekind == RTE_TABLEFUNCTION)
-		{
-			/*
-			 * For a function RTE, always print alias.  This covers possible
-			 * renaming of the function and/or instability of the
-			 * FigureColname rules for things that aren't simple functions.
-			 * Note we'd need to force it anyway for the columndef list case.
-			 */
-			printalias = true;
-		}
-		else if (rte->rtekind == RTE_VALUES)
-		{
-			/* Alias is syntactically required for VALUES */
-			printalias = true;
-		}
-		else if (rte->rtekind == RTE_CTE)
-		{
-			/*
-			 * No need to print alias if it's same as CTE name (this would
-			 * normally be the case, but not if set_rtable_names had to
-			 * resolve a conflict).
-			 */
-			if (strcmp(refname, rte->ctename) != 0)
-				printalias = true;
-		}
-		if (printalias)
-			appendStringInfo(buf, " %s", quote_identifier(refname));
+		get_rte_alias(rte, varno, false, context);
 
 		/* Print the column definitions or aliases, if needed */
 		if (rtfunc1 && rtfunc1->funccolnames != NIL)

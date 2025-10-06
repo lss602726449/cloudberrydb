@@ -40,7 +40,6 @@
 #include "utils/builtins.h"
 #include "utils/float.h"
 #include "utils/guc.h"
-#include "utils/int8.h"
 #include "utils/memutils.h"
 #include "utils/numeric.h"
 #include "utils/pg_lsn.h"
@@ -272,9 +271,8 @@ static void dump_var(const char *str, NumericVar *var);
 	(weight) <= NUMERIC_SHORT_WEIGHT_MAX && \
 	(weight) >= NUMERIC_SHORT_WEIGHT_MIN)
 
-static bool set_var_from_str(const char *str, const char *cp,
-							 NumericVar *dest, const char **endptr,
-							 Node *escontext);
+#define NUMERIC_WEIGHT_MAX			PG_INT16_MAX
+
 static bool set_var_from_non_decimal_integer_str(const char *str,
 												 const char *cp, int sign,
 												 int base, NumericVar *dest,
@@ -285,7 +283,6 @@ static void numericvar_serialize(StringInfo buf, const NumericVar *var);
 static void numericvar_deserialize(StringInfo buf, NumericVar *var);
 
 static Numeric duplicate_numeric(Numeric num);
-static Numeric make_result(const NumericVar *var);
 static Numeric make_result_opt_error(const NumericVar *var, bool *have_error);
 
 static bool apply_typmod(NumericVar *var, int32 typmod, Node *escontext);
@@ -521,7 +518,7 @@ numeric_in(PG_FUNCTION_ARGS)
 		/* Parse the rest of the number and apply the sign */
 		if (base == 10)
 		{
-			if (!set_var_from_str(str, cp, &value, &cp, escontext))
+			if (!init_var_from_str(str, cp, &value, &cp, escontext))
 				PG_RETURN_NULL();
 			value.sign = sign;
 		}
@@ -4094,6 +4091,8 @@ Numeric
 numeric_li_value(float8 f, Numeric y0, Numeric y1)
 {
 	Numeric y;
+	Node	   *escontext = NULL;
+	const char 	   *cp;
 	
 	if ( NUMERIC_IS_NAN(y0) || NUMERIC_IS_NAN(y1) || isnan(f) )
 	{
@@ -4114,7 +4113,7 @@ numeric_li_value(float8 f, Numeric y0, Numeric y1)
 		snprintf(buf, sizeof(buf), "%.*g", DBL_DIG, f);
 
 		/* Assume we need not worry about leading/trailing spaces */
-		(void) init_var_from_str(buf, buf, &vf);
+		(void) init_var_from_str(buf, buf, &vf, &cp, escontext);
 		
 		mul_var(&vf, &v1, &v1, vf.dscale + v1.dscale);
 		add_var(&v0, &v1, &v1);  
@@ -4597,7 +4596,8 @@ float8_numeric(PG_FUNCTION_ARGS)
 	Numeric		res;
 	NumericVar	result;
 	char		buf[DBL_DIG + 100];
-	const char *endptr;
+	Node	   *escontext = fcinfo->context;
+	const char 	   *cp;
 
 	if (isnan(val))
 		PG_RETURN_NUMERIC(make_numeric_result(&const_nan));
@@ -4613,7 +4613,7 @@ float8_numeric(PG_FUNCTION_ARGS)
 	snprintf(buf, sizeof(buf), "%.*g", DBL_DIG, val);
 
 	/* Assume we need not worry about leading/trailing spaces */
-	(void) init_var_from_str(buf, buf, &result);
+	(void) init_var_from_str(buf, buf, &result, &cp, escontext);
 
 	res = make_numeric_result(&result);
 
@@ -4702,7 +4702,8 @@ float4_numeric(PG_FUNCTION_ARGS)
 	Numeric		res;
 	NumericVar	result;
 	char		buf[FLT_DIG + 100];
-	const char *endptr;
+	Node	   *escontext = fcinfo->context;
+	const char 	   *cp;
 
 	if (isnan(val))
 		PG_RETURN_NUMERIC(make_numeric_result(&const_nan));
@@ -4718,7 +4719,7 @@ float4_numeric(PG_FUNCTION_ARGS)
 	snprintf(buf, sizeof(buf), "%.*g", FLT_DIG, val);
 
 	/* Assume we need not worry about leading/trailing spaces */
-	(void) init_var_from_str(buf, buf, &result);
+	(void) init_var_from_str(buf, buf, &result, &cp, escontext);
 
 	res = make_numeric_result(&result);
 
@@ -7049,6 +7050,25 @@ zero_numeric_var(NumericVar *var)
 
 
 /*
+ * zero_var() -
+ *
+ *	Set a variable to ZERO.
+ *	Note: its dscale is not touched.
+ */
+static void
+zero_var(NumericVar *var)
+{
+	digitbuf_free(var);
+	var->buf = NULL;
+	var->digits = NULL;
+	var->ndigits = 0;
+	var->weight = 0;			/* by convention; doesn't really matter */
+	var->sign = NUMERIC_POS;	/* anything but NAN... */
+}
+
+
+
+/*
  * init_var_from_str()
  *
  *	Parse a string and put the number into a variable
@@ -7063,7 +7083,7 @@ zero_numeric_var(NumericVar *var)
  * Returns true on success, false on failure (if escontext points to an
  * ErrorSaveContext; otherwise errors are thrown).
  */
-const char *
+const bool
 init_var_from_str(const char *str, const char *cp, NumericVar *dest, const char **endptr,
 				  Node *escontext)
 {
@@ -7835,7 +7855,7 @@ numericvar_deserialize(StringInfo buf, NumericVar *var)
 
 	len = pq_getmsgint(buf, sizeof(int32));
 
-	alloc_var(var, len);		/* sets var->ndigits */
+	init_alloc_var(var, len);		/* sets var->ndigits */
 
 	var->weight = pq_getmsgint(buf, sizeof(int32));
 	var->sign = pq_getmsgint(buf, sizeof(int32));
@@ -9795,7 +9815,7 @@ div_var_int(const NumericVar *var, int ival, int ival_weight,
 	}
 
 	/* Store the quotient in result */
-	digitbuf_free(result->buf);
+	digitbuf_free(result);
 	result->ndigits = res_ndigits;
 	result->buf = res_buf;
 	result->digits = res_digits;
@@ -9911,7 +9931,7 @@ div_var_int64(const NumericVar *var, int64 ival, int ival_weight,
 	}
 
 	/* Store the quotient in result */
-	digitbuf_free(result->buf);
+	digitbuf_free(result);
 	result->ndigits = res_ndigits;
 	result->buf = res_buf;
 	result->digits = res_digits;

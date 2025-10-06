@@ -44,7 +44,7 @@ const char *const LockTagTypeNames[] = {
 	"distributed xid",
 	"userlock",
 	"advisory",
-	"applytransaction"
+	"applytransaction",
 	"warehouse"
 };
 

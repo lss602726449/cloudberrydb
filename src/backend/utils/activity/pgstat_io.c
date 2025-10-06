@@ -314,6 +314,8 @@ pgstat_tracks_io_bktype(BackendType bktype)
 		case B_LOGGER:
 		case B_WAL_RECEIVER:
 		case B_WAL_WRITER:
+		case B_LOGIN_MONITOR:
+		case B_LOGIN_MONITOR_WORKER:
 			return false;
 
 		case B_AUTOVAC_LAUNCHER:
