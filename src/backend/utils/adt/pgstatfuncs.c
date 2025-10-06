@@ -1771,104 +1771,6 @@ pg_stat_get_snapshot_timestamp(PG_FUNCTION_ARGS)
 	PG_RETURN_TIMESTAMPTZ(ts);
 }
 
-/* Discard the active statistics snapshot */
-Datum
-pg_stat_clear_snapshot(PG_FUNCTION_ARGS)
-{
-	pgstat_clear_snapshot();
-
-	PG_RETURN_VOID();
-}
-
-
-Datum
-pg_stat_get_queue_num_exec(PG_FUNCTION_ARGS)
-{
-	Oid			queueid = PG_GETARG_OID(0);
-	int64		result;
-	PgStat_StatQueueEntry *queueentry;
-
-	if ((queueentry = pgstat_fetch_stat_queueentry(queueid)) == NULL)
-		result = 0;
-	else
-		result = (int64) (queueentry->n_queries_exec);
-
-	PG_RETURN_INT64(result);
-}
-
-
-Datum
-pg_stat_get_queue_num_wait(PG_FUNCTION_ARGS)
-{
-	Oid			queueid = PG_GETARG_OID(0);
-	int64		result;
-	PgStat_StatQueueEntry *queueentry;
-
-	if ((queueentry = pgstat_fetch_stat_queueentry(queueid)) == NULL)
-		result = 0;
-	else
-		result = (int64) (queueentry->n_queries_wait);
-
-	PG_RETURN_INT64(result);
-}
-
-
-Datum
-pg_stat_get_queue_elapsed_exec(PG_FUNCTION_ARGS)
-{
-	Oid			queueid = PG_GETARG_OID(0);
-	int64		result;
-	PgStat_StatQueueEntry *queueentry;
-
-	if ((queueentry = pgstat_fetch_stat_queueentry(queueid)) == NULL)
-		result = 0;
-	else
-		result = (int64) (queueentry->elapsed_exec);
-
-	PG_RETURN_INT64(result);
-}
-
-
-Datum
-pg_stat_get_queue_elapsed_wait(PG_FUNCTION_ARGS)
-{
-	Oid			queueid = PG_GETARG_OID(0);
-	int64		result;
-	PgStat_StatQueueEntry *queueentry;
-
-	if ((queueentry = pgstat_fetch_stat_queueentry(queueid)) == NULL)
-		result = 0;
-	else
-		result = (int64) (queueentry->elapsed_wait);
-
-	PG_RETURN_INT64(result);
-}
-
-
-/*
- * This should probably be moved to it's own file, or at least some better place.
- * I put it here because it uses pgstat_fetch_stat_beentry
- */
-
-#include <sys/time.h>
-#ifndef WIN32
-#include <sys/resource.h>
-#endif
-#include "lib/stringinfo.h"
-#include "cdb/cdbvars.h"
-#include "cdb/cdbdisp_query.h"
-
-/**
- * We no longer support pg_renice_session. For the time being issue an error.
- */
-Datum
-pg_renice_session(PG_FUNCTION_ARGS)
-{
-	int prio_out = -1;  
-	elog(NOTICE, "Renicing a session is not longer supported. Please use the Query Prioritization feature.");
-	PG_RETURN_INT32(prio_out);
-}
-
 /* Force statistics to be reported at the next occasion */
 Datum
 pg_stat_force_next_flush(PG_FUNCTION_ARGS)
@@ -2079,7 +1981,7 @@ Datum
 pg_stat_get_replication_slot(PG_FUNCTION_ARGS)
 {
 #define PG_STAT_GET_REPLICATION_SLOT_COLS 10
-	text	   *slotname_text;
+	text	   *slotname_text = PG_GETARG_TEXT_P(0);
 	NameData	slotname;
 	TupleDesc	tupdesc;
 	Datum		values[PG_STAT_GET_REPLICATION_SLOT_COLS] = {0};
