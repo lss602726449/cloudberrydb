@@ -628,7 +628,7 @@ create_datumstreamwrite(
 								/* errdetailArg */ (void *) acc,
 				  /* errcontextCallback */ datumstreamwrite_context_callback,
 								/* errcontextArg */ (void *) acc,
-								&acc->ao_write.relFileNode.node);
+								&acc->ao_write.relFileNode.locator);
 
 	return acc;
 }
@@ -903,7 +903,7 @@ datumstreamwrite_block_orig(DatumStreamWrite * acc)
 	writesz = DatumStreamBlockWrite_Block(
 										  &acc->blockWrite,
 										  buffer,
-										  &acc->ao_write.relFileNode.node);
+										  &acc->ao_write.relFileNode.locator);
 
 	acc->ao_write.logicalBlockStartOffset =
 		BufferedAppendNextBufferPosition(&(acc->ao_write.bufferedAppend));
@@ -958,7 +958,7 @@ datumstreamwrite_block_dense(DatumStreamWrite * acc)
 	writesz = DatumStreamBlockWrite_Block(
 										  &acc->blockWrite,
 										  buffer,
-										  &acc->ao_write.relFileNode.node);
+										  &acc->ao_write.relFileNode.locator);
 
 	acc->ao_write.logicalBlockStartOffset =
 		BufferedAppendNextBufferPosition(&(acc->ao_write.bufferedAppend));
@@ -1096,7 +1096,7 @@ datumstreamwrite_lob(DatumStreamWrite * acc,
 
 		EncryptAOBLock((unsigned char *)encryptData, 
 						encryptLen, 
-						&acc->ao_write.relFileNode.node);
+						&acc->ao_write.relFileNode.locator);
 
 		*(uint16 *)content = 1;
 		memcpy(content + alignedHeaderSize, p, varLen);
