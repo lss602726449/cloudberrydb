@@ -428,7 +428,7 @@ typedef struct PROCLOCK
 	dlist_node	procLink;		/* list link in PGPROC's list of proclocks */
 	int			nLocks;			/* total number of times lock is held by
 								   this process, used by resource scheduler */
-	dlist_node	portalLinks;	/* list of ResPortalIncrements for this
+	dlist_head 	portalLinks;	/* list of ResPortalIncrements for this
 								   proclock, used by resource scheduler */
 } PROCLOCK;
 

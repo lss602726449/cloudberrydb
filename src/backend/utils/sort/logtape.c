@@ -602,12 +602,14 @@ LogicalTapeSetCreate(bool preallocate, SharedFileSet *fileset, int worker)
 	else if (fileset)
 	{
 		char		filename[MAXPGPATH];
+		workfile_set *work_set;
 
 		pg_itoa(worker, filename);
-		lts->pfile = BufFileCreateFileSet(&fileset->fs, filename);
+		work_set = workfile_mgr_create_set("Logtape", filename, false /* hold pin */);
+		lts->pfile = BufFileCreateFileSet(&fileset->fs, filename, work_set);
 	}
 	else
-		lts->pfile = BufFileCreateTemp(false);
+		lts->pfile = BufFileCreateTemp("Logtape", false);
 
 	return lts;
 }

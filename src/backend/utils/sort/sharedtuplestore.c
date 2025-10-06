@@ -317,7 +317,7 @@ sts_puttuple(SharedTuplestoreAccessor *accessor, void *meta_data,
 		oldcxt = MemoryContextSwitchTo(accessor->context);
 
 		work_set = workfile_mgr_create_set("SharedTupleStore", name, false /* hold pin */);
-		accessor->write_file = BufFileCreateFileSet(accessor->fileset->fs, name, work_set);
+		accessor->write_file = BufFileCreateFileSet(&accessor->fileset->fs, name, work_set);
 		MemoryContextSwitchTo(oldcxt);
 
 		/* Set up the shared state for this backend's file. */

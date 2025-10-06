@@ -2615,7 +2615,7 @@ tuplesort_get_stats(Tuplesortstate *state,
 	else
 		stats->spaceType = SORT_SPACE_TYPE_MEMORY;
 	stats->spaceUsed = (state->maxSpace + 1023) / 1024;
-	stats->workmemused = MemoryContextGetPeakSpace(state->sortcontext);
+	stats->workmemused = MemoryContextGetPeakSpace(state->base.sortcontext);
 
 	switch (state->maxSpaceStatus)
 	{
