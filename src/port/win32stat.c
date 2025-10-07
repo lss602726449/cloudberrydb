@@ -257,12 +257,7 @@ int
 _pgfstat64(int fileno, struct stat *buf)
 {
 	HANDLE		hFile = (HANDLE) _get_osfhandle(fileno);
-<<<<<<< HEAD
 	BY_HANDLE_FILE_INFORMATION fiData;
-=======
-	DWORD		fileType = FILE_TYPE_UNKNOWN;
-	unsigned short st_mode;
->>>>>>> REL_16_9
 
 	if (buf == NULL)
 	{
@@ -270,7 +265,6 @@ _pgfstat64(int fileno, struct stat *buf)
 		return -1;
 	}
 
-<<<<<<< HEAD
 	/*
 	 * Check if the fileno is a data stream.  If so, unless it has been
 	 * redirected to a file, getting information through its HANDLE will fail,
@@ -294,11 +288,6 @@ _pgfstat64(int fileno, struct stat *buf)
 	 * Since we already have a file handle there is no need to check for
 	 * ERROR_DELETE_PENDING.
 	 */
-=======
-	fileType = pgwin32_get_file_type(hFile);
-	if (errno != 0)
-		return -1;
->>>>>>> REL_16_9
 
 	switch (fileType)
 	{
