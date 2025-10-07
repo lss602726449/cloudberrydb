@@ -304,39 +304,19 @@ PQprint(FILE *fout, const PGresult *res, const PQprintOpt *po)
 			fputs("</table>\n", fout);
 
 exit:
-<<<<<<< HEAD
-		if (fieldMax)
-			free(fieldMax);
-		if (fieldNotNum)
-			free(fieldNotNum);
-		if (border)
-			free(border);
-=======
 		free(fieldMax);
 		free(fieldNotNum);
 		free(border);
->>>>>>> REL_16_9
 		if (fields)
 		{
 			/* if calloc succeeded, this shouldn't overflow size_t */
 			size_t		numfields = ((size_t) nTups + 1) * (size_t) nFields;
 
 			while (numfields-- > 0)
-<<<<<<< HEAD
-			{
-				if (fields[numfields])
-					free(fields[numfields]);
-			}
-			free(fields);
-		}
-		if (fieldNames)
-			free((void *) fieldNames);
-=======
 				free(fields[numfields]);
 			free(fields);
 		}
 		free(fieldNames);
->>>>>>> REL_16_9
 		if (usePipe)
 		{
 #ifdef WIN32

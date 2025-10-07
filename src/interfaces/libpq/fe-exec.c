@@ -3,12 +3,8 @@
  * fe-exec.c
  *	  functions related to sending a query down to the backend
  *
-<<<<<<< HEAD
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
- * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
-=======
  * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -230,12 +226,8 @@ PQmakeEmptyPGresult(PGconn *conn, ExecStatusType status)
 				/* non-error cases */
 				break;
 			default:
-<<<<<<< HEAD
-				pqSetResultError(result, &conn->errorMessage);
-=======
 				/* we intentionally do not use or modify errorReported here */
 				pqSetResultError(result, &conn->errorMessage, 0);
->>>>>>> REL_16_9
 				break;
 		}
 
@@ -718,11 +710,7 @@ pqResultStrdup(PGresult *res, const char *str)
  * (it's caller's responsibility that offset is valid)
  */
 void
-<<<<<<< HEAD
-pqSetResultError(PGresult *res, PQExpBuffer errorMessage)
-=======
 pqSetResultError(PGresult *res, PQExpBuffer errorMessage, int offset)
->>>>>>> REL_16_9
 {
 	char	   *msg;
 
@@ -737,11 +725,7 @@ pqSetResultError(PGresult *res, PQExpBuffer errorMessage, int offset)
 	 * at a constant "out of memory" string.
 	 */
 	if (!PQExpBufferBroken(errorMessage))
-<<<<<<< HEAD
-		msg = pqResultStrdup(res, errorMessage->data);
-=======
 		msg = pqResultStrdup(res, errorMessage->data + offset);
->>>>>>> REL_16_9
 	else
 		msg = NULL;
 	if (msg)
@@ -1429,17 +1413,11 @@ pqAppendCmdQueueEntry(PGconn *conn, PGcmdQueueEntry *entry)
 			 * itself consume commands from the queue; if we're in any other
 			 * state, we don't have to do anything.
 			 */
-<<<<<<< HEAD
 			if (conn->asyncStatus == PGASYNC_IDLE)
 			{
 				resetPQExpBuffer(&conn->errorMessage);
 				pqPipelineProcessQueue(conn);
 			}
-=======
-			if (conn->asyncStatus == PGASYNC_IDLE ||
-				conn->asyncStatus == PGASYNC_PIPELINE_IDLE)
-				pqPipelineProcessQueue(conn);
->>>>>>> REL_16_9
 			break;
 	}
 }
@@ -1541,10 +1519,7 @@ PQsendQueryInternal(PGconn *conn, const char *query, bool newQuery)
 
 	/* OK, it's launched! */
 	pqAppendCmdQueueEntry(conn, entry);
-<<<<<<< HEAD
-=======
 
->>>>>>> REL_16_9
 	return 1;
 
 sendFailed:
@@ -2232,35 +2207,9 @@ PQgetResult(PGconn *conn)
 			break;
 	}
 
-<<<<<<< HEAD
-	if (res)
-	{
-		int			i;
-
-		for (i = 0; i < res->nEvents; i++)
-		{
-			PGEventResultCreate evt;
-
-			evt.conn = conn;
-			evt.result = res;
-			if (!res->events[i].proc(PGEVT_RESULTCREATE, &evt,
-									 res->events[i].passThrough))
-			{
-				appendPQExpBuffer(&conn->errorMessage,
-								  libpq_gettext("PGEventProc \"%s\" failed during PGEVT_RESULTCREATE event\n"),
-								  res->events[i].name);
-				pqSetResultError(res, &conn->errorMessage);
-				res->resultStatus = PGRES_FATAL_ERROR;
-				break;
-			}
-			res->events[i].resultInitialized = true;
-		}
-	}
-=======
 	/* Time to fire PGEVT_RESULTCREATE events, if there are any */
 	if (res && res->nEvents > 0)
 		(void) PQfireResultCreateEvents(conn, res);
->>>>>>> REL_16_9
 
 	return res;
 }
@@ -3326,12 +3275,7 @@ PQsendFlushRequest(PGconn *conn)
 	/* Don't try to send if we know there's no live connection. */
 	if (conn->status != CONNECTION_OK)
 	{
-<<<<<<< HEAD
-		appendPQExpBufferStr(&conn->errorMessage,
-							 libpq_gettext("no connection to the server\n"));
-=======
 		libpq_append_conn_error(conn, "no connection to the server");
->>>>>>> REL_16_9
 		return 0;
 	}
 
@@ -3339,12 +3283,7 @@ PQsendFlushRequest(PGconn *conn)
 	if (conn->asyncStatus != PGASYNC_IDLE &&
 		conn->pipelineStatus == PQ_PIPELINE_OFF)
 	{
-<<<<<<< HEAD
-		appendPQExpBufferStr(&conn->errorMessage,
-							 libpq_gettext("another command is already in progress\n"));
-=======
 		libpq_append_conn_error(conn, "another command is already in progress");
->>>>>>> REL_16_9
 		return 0;
 	}
 
@@ -3354,17 +3293,6 @@ PQsendFlushRequest(PGconn *conn)
 		return 0;
 	}
 
-<<<<<<< HEAD
-=======
-	/*
-	 * Give the data a push (in pipeline mode, only if we're past the size
-	 * threshold).  In nonblock mode, don't complain if we're unable to send
-	 * it all; PQgetResult() will do any additional flushing needed.
-	 */
-	if (pqPipelineFlush(conn) < 0)
-		return 0;
-
->>>>>>> REL_16_9
 	return 1;
 }
 
@@ -4043,10 +3971,6 @@ PQescapeStringInternal(PGconn *conn,
 	const char *source = from;
 	char	   *target = to;
 	size_t		remaining = strnlen(from, length);
-<<<<<<< HEAD
-=======
-	bool		already_complained = false;
->>>>>>> REL_16_9
 
 	if (error)
 		*error = 0;
@@ -4071,7 +3995,6 @@ PQescapeStringInternal(PGconn *conn,
 		}
 
 		/* Slow path for possible multibyte characters */
-<<<<<<< HEAD
 		charlen = pg_encoding_mblen(encoding, source);
 
 		if (remaining < charlen)
@@ -4086,85 +4009,23 @@ PQescapeStringInternal(PGconn *conn,
 			 * This isn't *that* crucial when we can report an error to the
 			 * caller, but if we can't, the caller will use this string
 			 * unmodified and it needs to be safe for parsing.
-=======
-		charlen = pg_encoding_mblen_or_incomplete(encoding,
-												  source, remaining);
-
-		if (remaining < charlen ||
-			pg_encoding_verifymbchar(encoding, source, charlen) == -1)
-		{
-			/*
-			 * Multibyte character is invalid.  It's important to verify that
-			 * as invalid multibyte characters could e.g. be used to "skip"
-			 * over quote characters, e.g. when parsing
-			 * character-by-character.
-			 *
-			 * Report an error if possible, and replace the character's first
-			 * byte with an invalid sequence. The invalid sequence ensures
-			 * that the escaped string will trigger an error on the
-			 * server-side, even if we can't directly report an error here.
-			 *
-			 * This isn't *that* crucial when we can report an error to the
-			 * caller; but if we can't or the caller ignores it, the caller
-			 * will use this string unmodified and it needs to be safe for
-			 * parsing.
->>>>>>> REL_16_9
 			 *
 			 * We know there's enough space for the invalid sequence because
 			 * the "to" buffer needs to be at least 2 * length + 1 long, and
 			 * at worst we're replacing a single input byte with two invalid
 			 * bytes.
-<<<<<<< HEAD
 			 */
 			if (error)
 				*error = 1;
 			if (conn)
 				appendPQExpBufferStr(&conn->errorMessage,
 									 libpq_gettext("incomplete multibyte character\n"));
-=======
-			 *
-			 * It would be a bit faster to verify the whole string the first
-			 * time we encounter a set highbit, but this way we can replace
-			 * just the invalid data, which probably makes it easier for users
-			 * to find the invalidly encoded portion of a larger string.
-			 */
-			if (error)
-				*error = 1;
-			if (conn && !already_complained)
-			{
-				if (remaining < charlen)
-					libpq_append_conn_error(conn, "incomplete multibyte character");
-				else
-					libpq_append_conn_error(conn, "invalid multibyte character");
-				/* Issue a complaint only once per string */
-				already_complained = true;
-			}
->>>>>>> REL_16_9
 
 			pg_encoding_set_invalid(encoding, target);
 			target += 2;
 
-<<<<<<< HEAD
 			/* there's no more input data, so we can stop */
 			break;
-=======
-			/*
-			 * Handle the following bytes as if this byte didn't exist. That's
-			 * safer in case the subsequent bytes contain important characters
-			 * for the caller (e.g. '>' in html).
-			 */
-			source++;
-			remaining--;
-		}
-		else
-		{
-			/* Copy the character */
-			for (i = 0; i < charlen; i++)
-			{
-				*target++ = *source++;
-				remaining--;
-			}
->>>>>>> REL_16_9
 		}
 		else if (pg_encoding_verifymbchar(encoding, source, charlen) == -1)
 		{
@@ -4260,11 +4121,7 @@ PQescapeInternal(PGconn *conn, const char *str, size_t len, bool as_ident)
 	char	   *rp;
 	int			num_quotes = 0; /* single or double, depending on as_ident */
 	int			num_backslashes = 0;
-<<<<<<< HEAD
 	size_t		input_len = strlen(str);
-=======
-	size_t		input_len = strnlen(str, len);
->>>>>>> REL_16_9
 	size_t		result_size;
 	char		quote_char = as_ident ? '"' : '\'';
 	bool		validated_mb = false;
@@ -4315,16 +4172,9 @@ PQescapeInternal(PGconn *conn, const char *str, size_t len, bool as_ident)
 			if (!validated_mb)
 			{
 				if (pg_encoding_verifymbstr(conn->client_encoding, s, remaining)
-<<<<<<< HEAD
 					!= strlen(s))
 				{
-					appendPQExpBufferStr(&conn->errorMessage,
-										 libpq_gettext("invalid multibyte character\n"));
-=======
-					!= remaining)
-				{
 					libpq_append_conn_error(conn, "invalid multibyte character");
->>>>>>> REL_16_9
 					return NULL;
 				}
 				validated_mb = true;

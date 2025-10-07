@@ -271,7 +271,7 @@ pqParseInput3(PGconn *conn)
 					else
 					{
 						/* Advance the command queue and set us idle */
-						pqCommandQueueAdvance(conn);
+						pqCommandQueueAdvance(conn, false, false);
 						conn->asyncStatus = PGASYNC_IDLE;
 					}
 					break;

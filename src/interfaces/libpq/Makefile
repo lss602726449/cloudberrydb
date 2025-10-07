@@ -96,11 +96,7 @@ SHLIB_PREREQS = submake-libpgport
 SHLIB_EXPORTS = exports.txt
 
 ifeq ($(with_ssl),openssl)
-<<<<<<< HEAD
-PKG_CONFIG_REQUIRES_PRIVATE = libssl libcrypto
-=======
 PKG_CONFIG_REQUIRES_PRIVATE = libssl, libcrypto
->>>>>>> REL_16_9
 endif
 
 all: all-lib libpq-refs-stamp

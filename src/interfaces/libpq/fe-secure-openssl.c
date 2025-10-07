@@ -1377,14 +1377,8 @@ initialize_SSL(PGconn *conn)
 		/* Key file must be a regular file */
 		if (!S_ISREG(buf.st_mode))
 		{
-<<<<<<< HEAD
-			appendPQExpBuffer(&conn->errorMessage,
-							  libpq_gettext("private key file \"%s\" is not a regular file\n"),
-							  fnbuf);
-=======
 			libpq_append_conn_error(conn, "private key file \"%s\" is not a regular file",
 									fnbuf);
->>>>>>> REL_16_9
 			return -1;
 		}
 
@@ -1415,15 +1409,9 @@ initialize_SSL(PGconn *conn)
 			buf.st_mode & (S_IWGRP | S_IXGRP | S_IRWXO) :
 			buf.st_mode & (S_IRWXG | S_IRWXO))
 		{
-<<<<<<< HEAD
-			appendPQExpBuffer(&conn->errorMessage,
-							  libpq_gettext("private key file \"%s\" has group or world access; file must have permissions u=rw (0600) or less if owned by the current user, or permissions u=rw,g=r (0640) or less if owned by root\n"),
-							  fnbuf);
-=======
 			libpq_append_conn_error(conn,
 									"private key file \"%s\" has group or world access; file must have permissions u=rw (0600) or less if owned by the current user, or permissions u=rw,g=r (0640) or less if owned by root",
 									fnbuf);
->>>>>>> REL_16_9
 			return -1;
 		}
 #endif
@@ -1937,19 +1925,11 @@ my_BIO_s_socket(void)
 
 		my_bio_index = BIO_get_new_index();
 		if (my_bio_index == -1)
-<<<<<<< HEAD
 			return NULL;
 		my_bio_index |= (BIO_TYPE_DESCRIPTOR | BIO_TYPE_SOURCE_SINK);
 		my_bio_methods = BIO_meth_new(my_bio_index, "libpq socket");
 		if (!my_bio_methods)
 			return NULL;
-=======
-			goto err;
-		my_bio_index |= (BIO_TYPE_DESCRIPTOR | BIO_TYPE_SOURCE_SINK);
-		res = BIO_meth_new(my_bio_index, "libpq socket");
-		if (!res)
-			goto err;
->>>>>>> REL_16_9
 
 		/*
 		 * As of this writing, these functions never fail. But check anyway,

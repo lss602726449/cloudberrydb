@@ -3,12 +3,8 @@
  * fe-connect.c
  *	  functions related to setting up a connection to the backend
  *
-<<<<<<< HEAD
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
- * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
-=======
  * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -405,7 +401,11 @@ static const internalPQconninfoOption PQconninfoOptions[] = {
 		"Target-Session-Attrs", "", 15, /* sizeof("prefer-standby") = 15 */
 	offsetof(struct pg_conn, target_session_attrs)},
 
-<<<<<<< HEAD
+	{"load_balance_hosts", "PGLOADBALANCEHOSTS",
+	 DefaultLoadBalanceHosts, NULL,
+	 "Load-Balance-Hosts", "", 8,	/* sizeof("disable") = 8 */
+	 offsetof(struct pg_conn, load_balance_hosts)},
+
     /* CDB: qExec wants some info from qDisp before GUCs are processed */
 	{"gpqeid", NULL, "", NULL,
 		"gp-debug-qeid", "D", 40,
@@ -418,12 +418,6 @@ static const internalPQconninfoOption PQconninfoOptions[] = {
 	{"diff_options", NULL, NULL, NULL,
 		"updated synced GUCs", "D", 80,
 	offsetof(struct pg_conn, diffoptions)},
-=======
-	{"load_balance_hosts", "PGLOADBALANCEHOSTS",
-		DefaultLoadBalanceHosts, NULL,
-		"Load-Balance-Hosts", "", 8,	/* sizeof("disable") = 8 */
-	offsetof(struct pg_conn, load_balance_hosts)},
->>>>>>> REL_16_9
 
 	/* Terminating entry --- MUST BE LAST */
 	{NULL, NULL, NULL, NULL,
@@ -1224,21 +1218,12 @@ connectOptions2(PGconn *conn)
 		}
 		else
 		{
-<<<<<<< HEAD
-			if (ch->host)
-				free(ch->host);
-=======
 			free(ch->host);
->>>>>>> REL_16_9
 
 			/*
 			 * This bit selects the default host location.  If you change
 			 * this, see also pg_regress.
 			 */
-<<<<<<< HEAD
-#ifdef HAVE_UNIX_SOCKETS
-=======
->>>>>>> REL_16_9
 			if (DEFAULT_PGSOCKET_DIR[0])
 			{
 				ch->host = strdup(DEFAULT_PGSOCKET_DIR);
@@ -3520,12 +3505,7 @@ keep_going:						/* We will come back to here until there is
 					 */
 					if (conn->inCursor != conn->inEnd)
 					{
-<<<<<<< HEAD
-						appendPQExpBufferStr(&conn->errorMessage,
-											 libpq_gettext("received unencrypted data after SSL response\n"));
-=======
 						libpq_append_conn_error(conn, "received unencrypted data after SSL response");
->>>>>>> REL_16_9
 						goto error_return;
 					}
 
@@ -3634,12 +3614,7 @@ keep_going:						/* We will come back to here until there is
 					 */
 					if (conn->inCursor != conn->inEnd)
 					{
-<<<<<<< HEAD
-						appendPQExpBufferStr(&conn->errorMessage,
-											 libpq_gettext("received unencrypted data after GSSAPI encryption response\n"));
-=======
 						libpq_append_conn_error(conn, "received unencrypted data after GSSAPI encryption response");
->>>>>>> REL_16_9
 						goto error_return;
 					}
 
@@ -4142,11 +4117,7 @@ keep_going:						/* We will come back to here until there is
 				 * (and it seems some clients expect it to be empty after a
 				 * successful connection).
 				 */
-<<<<<<< HEAD
-				resetPQExpBuffer(&conn->errorMessage);
-=======
 				pqClearConnErrorState(conn);
->>>>>>> REL_16_9
 
 				/* We are open for business! */
 				conn->status = CONNECTION_OK;
@@ -4499,9 +4470,6 @@ makeEmptyPGconn(void)
 static void
 freePGconn(PGconn *conn)
 {
-<<<<<<< HEAD
-	int			i;
-
 	if (!conn)
 		return;
 
@@ -4512,8 +4480,6 @@ freePGconn(PGconn *conn)
 		closesocket(conn->sock);
 	}
 
-=======
->>>>>>> REL_16_9
 	/* let any event procs clean up their state data */
 	for (int i = 0; i < conn->nEvents; i++)
 	{
@@ -4571,35 +4537,25 @@ freePGconn(PGconn *conn)
 		explicit_bzero(conn->sslpassword, strlen(conn->sslpassword));
 		free(conn->sslpassword);
 	}
-<<<<<<< HEAD
-	if (conn->sslrootcert)
-		free(conn->sslrootcert);
-	if (conn->sslcrl)
-		free(conn->sslcrl);
-	if (conn->sslcrldir)
-		free(conn->sslcrldir);
-	if (conn->sslcompression)
-		free(conn->sslcompression);
-	if (conn->sslsni)
-		free(conn->sslsni);
-	if (conn->requirepeer)
-		free(conn->requirepeer);
-	if (conn->ssl_min_protocol_version)
-		free(conn->ssl_min_protocol_version);
-	if (conn->ssl_max_protocol_version)
-		free(conn->ssl_max_protocol_version);
-	if (conn->gssencmode)
-		free(conn->gssencmode);
+	free(conn->sslcertmode);
+	free(conn->sslrootcert);
+	free(conn->sslcrl);
+	free(conn->sslcrldir);
+	free(conn->sslcompression);
+	free(conn->sslsni);
+	free(conn->requirepeer);
+	free(conn->require_auth);
+	free(conn->ssl_min_protocol_version);
+	free(conn->ssl_max_protocol_version);
+	free(conn->gssencmode);
 #if defined(ENABLE_GSS) || defined(ENABLE_SSPI)
-	if (conn->krbsrvname)
-		free(conn->krbsrvname);
+	free(conn->krbsrvname);
 #endif
-	if (conn->gsslib)
-		free(conn->gsslib);
-	if (conn->gpconntype)
-		free(conn->gpconntype);
-	if (conn->connip)
-		free(conn->connip);
+	free(conn->gpqeid);
+	free(conn->gsslib);
+	free(conn->gpconntype);
+	free(conn->gssdelegation);
+	free(conn->connip);
 #ifdef ENABLE_GSS
 	if (conn->gcred != GSS_C_NO_CREDENTIAL)
 	{
@@ -4616,40 +4572,6 @@ freePGconn(PGconn *conn)
 		conn->gctx = NULL;
 	}
 #endif
-#if defined(ENABLE_GSS) && defined(ENABLE_SSPI)
-	if (conn->gsslib)
-		free(conn->gsslib);
-#endif
-	if (conn->gpqeid)			/* CDB */
-		free(conn->gpqeid);
-
-	/* Note that conn->Pfdebug is not ours to close or free */
-	if (conn->write_err_msg)
-		free(conn->write_err_msg);
-	if (conn->inBuffer)
-		free(conn->inBuffer);
-	if (conn->outBuffer && !conn->outBuffer_shared)
-		free(conn->outBuffer);
-	if (conn->rowBuf)
-		free(conn->rowBuf);
-	if (conn->target_session_attrs)
-		free(conn->target_session_attrs);
-=======
-	free(conn->sslcertmode);
-	free(conn->sslrootcert);
-	free(conn->sslcrl);
-	free(conn->sslcrldir);
-	free(conn->sslcompression);
-	free(conn->sslsni);
-	free(conn->requirepeer);
-	free(conn->require_auth);
-	free(conn->ssl_min_protocol_version);
-	free(conn->ssl_max_protocol_version);
-	free(conn->gssencmode);
-	free(conn->krbsrvname);
-	free(conn->gsslib);
-	free(conn->gssdelegation);
-	free(conn->connip);
 	/* Note that conn->Pfdebug is not ours to close or free */
 	free(conn->write_err_msg);
 	free(conn->inBuffer);
@@ -4657,7 +4579,6 @@ freePGconn(PGconn *conn)
 	free(conn->rowBuf);
 	free(conn->target_session_attrs);
 	free(conn->load_balance_hosts);
->>>>>>> REL_16_9
 	termPQExpBuffer(&conn->errorMessage);
 	termPQExpBuffer(&conn->workBuffer);
 
@@ -5012,14 +4933,8 @@ optional_setsockopt(int fd, int protoid, int optid, int value)
  * error messages with strcpy/strcat is tedious but should be quite safe.
  * We also save/restore errno in case the signal handler support doesn't.
  */
-<<<<<<< HEAD
 static int
-internal_cancel(SockAddr *raddr, int be_pid, int be_key,
-				char *errbuf, int errbufsize, bool requestFinish)
-=======
-int
-PQcancel(PGcancel *cancel, char *errbuf, int errbufsize)
->>>>>>> REL_16_9
+PQcancel_internal(PGcancel *cancel, char *errbuf, int errbufsize,  bool requestFinish)
 {
 	int			save_errno = SOCK_ERRNO;
 	pgsocket	tmpsock = PGINVALID_SOCKET;
@@ -5030,14 +4945,13 @@ PQcancel(PGcancel *cancel, char *errbuf, int errbufsize)
 		CancelRequestPacket cp;
 	}			crp;
 
-<<<<<<< HEAD
 #ifndef WIN32
 	struct pollfd	pollFds[1];
 	int				pollRet;
 
 retry2:
 #endif
-=======
+
 	if (!cancel)
 	{
 		strlcpy(errbuf, "PQcancel() -- no cancel object supplied", errbufsize);
@@ -5046,7 +4960,6 @@ retry2:
 		return false;
 	}
 
->>>>>>> REL_16_9
 	/*
 	 * We need to open a temporary connection to the postmaster. Do this with
 	 * only kernel calls.
@@ -5142,18 +5055,12 @@ retry3:
 	/* Create and send the cancel request packet. */
 
 	crp.packetlen = pg_hton32((uint32) sizeof(crp));
-<<<<<<< HEAD
 	if (requestFinish)
 		crp.cp.cancelRequestCode = (MsgType) pg_hton32(FINISH_REQUEST_CODE);
 	else
 		crp.cp.cancelRequestCode = (MsgType) pg_hton32(CANCEL_REQUEST_CODE);
-	crp.cp.backendPID = pg_hton32(be_pid);
-	crp.cp.cancelAuthCode = pg_hton32(be_key);
-=======
-	crp.cp.cancelRequestCode = (MsgType) pg_hton32(CANCEL_REQUEST_CODE);
 	crp.cp.backendPID = pg_hton32(cancel->be_pid);
 	crp.cp.cancelAuthCode = pg_hton32(cancel->be_key);
->>>>>>> REL_16_9
 
 retry4:
 	if (send(tmpsock, (char *) &crp, sizeof(crp), 0) != (int) sizeof(crp))
@@ -5254,27 +5161,10 @@ cancel_errReturn:
 	return false;
 }
 
-<<<<<<< HEAD
-/*
- * PQcancel: request query cancel
- *
- * Returns true if able to send the cancel request, false if not.
- *
- * On failure, an error message is stored in *errbuf, which must be of size
- * errbufsize (recommended size is 256 bytes).  *errbuf is not changed on
- * success return.
- */
 int
 PQcancel(PGcancel *cancel, char *errbuf, int errbufsize)
 {
-	if (!cancel)
-	{
-		strlcpy(errbuf, "PQcancel() -- no cancel object supplied", errbufsize);
-		return false;
-	}
-
-	return internal_cancel(&cancel->raddr, cancel->be_pid, cancel->be_key,
-						   errbuf, errbufsize, false);
+	return PQcancel_internal(cancel, errbuf, errbufsize, false);
 }
 
 /*
@@ -5292,11 +5182,8 @@ PQrequestFinish(PGcancel *cancel, char *errbuf, int errbufsize)
 		return false;
 	}
 
-	return internal_cancel(&cancel->raddr, cancel->be_pid, cancel->be_key,
-						   errbuf, errbufsize, true);
+	return PQcancel_internal(cancel, errbuf, errbufsize, true);
 }
-=======
->>>>>>> REL_16_9
 
 /*
  * PQrequestCancel: old, not thread-safe function for requesting query cancel
@@ -5331,11 +5218,6 @@ PQrequestCancel(PGconn *conn)
 		return false;
 	}
 
-<<<<<<< HEAD
-	r = internal_cancel(&conn->raddr, conn->be_pid, conn->be_key,
-						conn->errorMessage.data, conn->errorMessage.maxlen,
-						false);
-=======
 	cancel = PQgetCancel(conn);
 	if (cancel)
 	{
@@ -5349,7 +5231,6 @@ PQrequestCancel(PGconn *conn)
 				conn->errorMessage.maxlen);
 		r = false;
 	}
->>>>>>> REL_16_9
 
 	if (!r)
 	{
