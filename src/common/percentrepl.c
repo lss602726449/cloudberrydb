@@ -20,6 +20,7 @@
 #include "common/logging.h"
 #endif
 
+#include "cdb/cdbvars.h"
 #include "common/percentrepl.h"
 #include "lib/stringinfo.h"
 #include "postmaster/postmaster.h"

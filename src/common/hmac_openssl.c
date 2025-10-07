@@ -52,8 +52,6 @@
 #define FREE(ptr) free(ptr)
 #endif							/* FRONTEND */
 
-<<<<<<< HEAD
-=======
 /* Set of error states */
 typedef enum pg_hmac_errno
 {
@@ -62,7 +60,6 @@ typedef enum pg_hmac_errno
 	PG_HMAC_ERROR_OPENSSL
 } pg_hmac_errno;
 
->>>>>>> REL_16_9
 /* Internal pg_hmac_ctx structure */
 struct pg_hmac_ctx
 {

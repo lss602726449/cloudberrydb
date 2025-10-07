@@ -45,100 +45,13 @@ BuildRestoreCommand(const char *restoreCommand,
 					const char *xlogfname,
 					const char *lastRestartPointFname)
 {
-<<<<<<< HEAD
-	StringInfoData result;
-	const char *sp;
-#ifndef FRONTEND
-	char        contentid[12];  /* sign, 10 digits and '\0' */
-#endif
-=======
 	char	   *nativePath = NULL;
 	char	   *result;
->>>>>>> REL_16_9
 
 	if (xlogpath)
 	{
-<<<<<<< HEAD
-		if (*sp == '%')
-		{
-			switch (sp[1])
-			{
-				case 'p':
-					{
-						char	   *nativePath;
-
-						/* %p: relative path of target file */
-						if (xlogpath == NULL)
-						{
-							pfree(result.data);
-							return NULL;
-						}
-						sp++;
-
-						/*
-						 * This needs to use a placeholder to not modify the
-						 * input with the conversion done via
-						 * make_native_path().
-						 */
-						nativePath = pstrdup(xlogpath);
-						make_native_path(nativePath);
-						appendStringInfoString(&result,
-											   nativePath);
-						pfree(nativePath);
-						break;
-					}
-				case 'f':
-					/* %f: filename of desired file */
-					if (xlogfname == NULL)
-					{
-						pfree(result.data);
-						return NULL;
-					}
-					sp++;
-					appendStringInfoString(&result, xlogfname);
-					break;
-				case 'r':
-					/* %r: filename of last restartpoint */
-					if (lastRestartPointFname == NULL)
-					{
-						pfree(result.data);
-						return NULL;
-					}
-					sp++;
-					appendStringInfoString(&result,
-										   lastRestartPointFname);
-					break;
-#ifndef FRONTEND
-				/* GPDB_13_MERGE_FIXME: How to set GpIdentity for frontend?
-				 * Discussion: https://postgr.es/m/a3acff50-5a0d-9a2c-b3b2-ee36168955c1@postgrespro.ru
-				 * */
-				case 'c':
-					/* GPDB: %c: contentId of segment */
-					Assert(GpIdentity.segindex != UNINITIALIZED_GP_IDENTITY_VALUE);
-					sp++;
-					pg_ltoa(GpIdentity.segindex, contentid);
-					appendStringInfoString(&result, contentid);
-					break;
-#endif
-				case '%':
-					/* convert %% to a single % */
-					sp++;
-					appendStringInfoChar(&result, *sp);
-					break;
-				default:
-					/* otherwise treat the % as not special */
-					appendStringInfoChar(&result, *sp);
-					break;
-			}
-		}
-		else
-		{
-			appendStringInfoChar(&result, *sp);
-		}
-=======
 		nativePath = pstrdup(xlogpath);
 		make_native_path(nativePath);
->>>>>>> REL_16_9
 	}
 
 	result = replace_percent_placeholders(restoreCommand, "restore_command", "frp",

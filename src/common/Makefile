@@ -87,11 +87,7 @@ OBJS_COMMON = \
 
 ifeq ($(with_ssl),openssl)
 OBJS_COMMON += \
-<<<<<<< HEAD
 	cipher_openssl.o \
-	protocol_openssl.o \
-=======
->>>>>>> REL_16_9
 	cryptohash_openssl.o \
 	hmac_openssl.o \
 	protocol_openssl.o

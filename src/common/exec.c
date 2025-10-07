@@ -34,23 +34,10 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-<<<<<<< HEAD
 /* Inhibit mingw CRT's auto-globbing of command line arguments */
 #if defined(WIN32) && !defined(_MSC_VER)
 extern int _CRT_glob = 0; /* 0 turns off globbing; 1 turns it on */
-=======
-#ifdef EXEC_BACKEND
-#if defined(HAVE_SYS_PERSONALITY_H)
-#include <sys/personality.h>
-#elif defined(HAVE_SYS_PROCCTL_H)
-#include <sys/procctl.h>
-#endif
-#endif
 
-/* Inhibit mingw CRT's auto-globbing of command line arguments */
-#if defined(WIN32) && !defined(_MSC_VER)
-extern int	_CRT_glob = 0;		/* 0 turns off globbing; 1 turns it on */
->>>>>>> REL_16_9
 #endif
 
 /*

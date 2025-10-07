@@ -38,8 +38,6 @@
 #define FREE(ptr) free(ptr)
 #endif
 
-<<<<<<< HEAD
-=======
 /* Set of error states */
 typedef enum pg_hmac_errno
 {
@@ -48,7 +46,6 @@ typedef enum pg_hmac_errno
 	PG_HMAC_ERROR_INTERNAL
 } pg_hmac_errno;
 
->>>>>>> REL_16_9
 /* Internal pg_hmac_ctx structure */
 struct pg_hmac_ctx
 {
@@ -265,11 +262,8 @@ pg_hmac_final(pg_hmac_ctx *ctx, uint8 *dest, size_t len)
 
 	if (pg_cryptohash_final(ctx->hash, h, ctx->digest_size) < 0)
 	{
-<<<<<<< HEAD
-=======
 		ctx->error = PG_HMAC_ERROR_INTERNAL;
 		ctx->errreason = pg_cryptohash_error(ctx->hash);
->>>>>>> REL_16_9
 		FREE(h);
 		return -1;
 	}
@@ -280,11 +274,8 @@ pg_hmac_final(pg_hmac_ctx *ctx, uint8 *dest, size_t len)
 		pg_cryptohash_update(ctx->hash, h, ctx->digest_size) < 0 ||
 		pg_cryptohash_final(ctx->hash, dest, len) < 0)
 	{
-<<<<<<< HEAD
-=======
 		ctx->error = PG_HMAC_ERROR_INTERNAL;
 		ctx->errreason = pg_cryptohash_error(ctx->hash);
->>>>>>> REL_16_9
 		FREE(h);
 		return -1;
 	}

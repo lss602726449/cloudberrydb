@@ -51,9 +51,6 @@
 #define FREE(ptr) free(ptr)
 #endif
 
-<<<<<<< HEAD
-
-=======
 /* Set of error states */
 typedef enum pg_cryptohash_errno
 {
@@ -61,7 +58,6 @@ typedef enum pg_cryptohash_errno
 	PG_CRYPTOHASH_ERROR_DEST_LEN,
 	PG_CRYPTOHASH_ERROR_OPENSSL
 } pg_cryptohash_errno;
->>>>>>> REL_16_9
 
 /*
  * Internal pg_cryptohash_ctx structure.
@@ -126,16 +122,13 @@ pg_cryptohash_create(pg_cryptohash_type type)
 		return NULL;
 	memset(ctx, 0, sizeof(pg_cryptohash_ctx));
 	ctx->type = type;
-<<<<<<< HEAD
 #ifdef OPENSSL_ALLOW_REDIRECT
 	if (ctx->type == PG_SM3) {
 		return ctx;
 	}
 #endif
-=======
 	ctx->error = PG_CRYPTOHASH_ERROR_NONE;
 	ctx->errreason = NULL;
->>>>>>> REL_16_9
 
 	/*
 	 * Initialization takes care of assigning the correct type for OpenSSL.

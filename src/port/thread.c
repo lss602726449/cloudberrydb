@@ -23,24 +23,6 @@
  */
 
 #ifndef WIN32
-<<<<<<< HEAD
-int
-pqGetpwuid(uid_t uid, struct passwd *resultbuf, char *buffer,
-		   size_t buflen, struct passwd **result)
-{
-#if defined(ENABLE_THREAD_SAFETY) && defined(HAVE_GETPWUID_R)
-	return getpwuid_r(uid, resultbuf, buffer, buflen, result);
-#else
-	/* no getpwuid_r() available, just use getpwuid() */
-	errno = 0;
-	*result = getpwuid(uid);
-	/* paranoia: ensure we return zero on success */
-	return (*result == NULL) ? errno : 0;
-#endif
-}
-#endif
-=======
->>>>>>> REL_16_9
 
 /*
  * pg_get_user_name - get the name of the user with the given ID
@@ -52,14 +34,10 @@ pqGetpwuid(uid_t uid, struct passwd *resultbuf, char *buffer,
 bool
 pg_get_user_name(uid_t user_id, char *buffer, size_t buflen)
 {
-<<<<<<< HEAD
-#if defined(ENABLE_THREAD_SAFETY) && defined(HAVE_GETHOSTBYNAME_R)
-=======
 	char		pwdbuf[BUFSIZ];
 	struct passwd pwdstr;
 	struct passwd *pw = NULL;
 	int			pwerr;
->>>>>>> REL_16_9
 
 	pwerr = getpwuid_r(user_id, &pwdstr, pwdbuf, sizeof(pwdbuf), &pw);
 	if (pw != NULL)

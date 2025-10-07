@@ -40,11 +40,8 @@
 #endif
 
 #include "common/hashfn.h"
-<<<<<<< HEAD
 #include "utils/hsearch.h"
-=======
 #include "port/pg_bitutils.h"
->>>>>>> REL_16_9
 
 
 /*
