@@ -744,7 +744,7 @@ extern void MarkGUCPrefixReserved(const char *className);
 /* old name for MarkGUCPrefixReserved, for backwards compatibility: */
 #define EmitWarningsOnPlaceholders(className) MarkGUCPrefixReserved(className)
 
-extern struct config_generic **get_guc_variables(void);
+extern struct config_generic **get_guc_variables(int *num_vars);
 extern const char *GetConfigOption(const char *name, bool missing_ok,
 								   bool restrict_privileged);
 extern const char *GetConfigOptionResetString(const char *name);
@@ -753,7 +753,6 @@ extern void ProcessConfigFile(GucContext context);
 extern char *convert_GUC_name_for_parameter_acl(const char *name);
 extern bool check_GUC_name_for_parameter_acl(const char *name);
 extern void InitializeGUCOptions(void);
-extern void InitializeWalConsistencyChecking(void);
 extern bool SelectConfigFiles(const char *userDoption, const char *progname);
 extern void ResetAllOptions(void);
 extern void AtStart_GUC(void);
@@ -787,7 +786,6 @@ extern void SetPGVariableOptDispatch(const char *name, List *args, bool is_local
 extern void GetPGVariable(const char *name, DestReceiver *dest);
 extern TupleDesc GetPGVariableResultDesc(const char *name);
 
-extern void ExecSetVariableStmt(VariableSetStmt *stmt, bool isTopLevel);
 extern char *ExtractSetVariableArgs(VariableSetStmt *stmt);
 
 extern void ProcessGUCArray(ArrayType *array,
@@ -797,8 +795,6 @@ extern ArrayType *GUCArrayDelete(ArrayType *array, const char *name);
 extern ArrayType *GUCArrayReset(ArrayType *array);
 
 extern void pg_timezone_abbrev_initialize(void);
-
-extern List *gp_guc_list_show(GucSource excluding, List *guclist);
 
 extern struct config_generic *find_option(const char *name,
 				bool create_placeholders, bool skip_errors, int elevel);

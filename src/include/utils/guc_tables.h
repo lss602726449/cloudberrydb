@@ -18,6 +18,7 @@
 
 #include "lib/ilist.h"
 #include "utils/guc.h"
+#include "utils/hsearch.h"
 
 /*
  * GUC supports these types of variables:
@@ -98,7 +99,6 @@ enum config_group
 
 	STATS_ANALYZE,                      /*CDB*/
 	STATS_MONITORING,
-	STATS_COLLECTOR,
 	ENCRYPTION,
 	STATS_CUMULATIVE,
 	AUTOVACUUM,
@@ -358,9 +358,6 @@ extern char *ShowGUCOption(struct config_generic *record, bool use_units);
 /* get whether or not the GUC variable is visible to current user */
 extern bool ConfigOptionIsVisible(struct config_generic *conf);
 
-/* get the current set of variables */
-extern int get_num_guc_variables(void);
-
 extern void build_guc_variables(void);
 
 /* search in enum options */
@@ -381,7 +378,9 @@ extern struct config_real ConfigureNamesReal_gp[];
 extern struct config_string ConfigureNamesString_gp[];
 extern struct config_enum ConfigureNamesEnum_gp[];
 
-extern void gpdb_assign_sync_flag(struct config_generic **guc_variables, int size, bool predefine);
+extern void gpdb_assign_sync_flag(HTAB *guc_tab);
+extern void gpdb_assign_sync_flag_one(struct config_generic *var, bool predefine);
+
 extern char *config_enum_get_options(struct config_enum *record,
 									 const char *prefix,
 									 const char *suffix,

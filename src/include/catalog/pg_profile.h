@@ -31,6 +31,7 @@
 #ifndef PG_PROFILE_H
 #define PG_PROFILE_H
 
+#include "catalog/objectaddress.h"
 #include "catalog/genbki.h"
 #include "catalog/pg_profile_d.h"
 #include "parser/parse_node.h"

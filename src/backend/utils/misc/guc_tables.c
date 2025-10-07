@@ -36,12 +36,15 @@
 #include "archive/archive_module.h"
 #include "catalog/namespace.h"
 #include "catalog/storage.h"
+#include "catalog/storage_directory_table.h"
 #include "commands/async.h"
 #include "commands/tablespace.h"
 #include "commands/trigger.h"
 #include "commands/user.h"
 #include "commands/vacuum.h"
+#include "commands/variable.h"
 #include "common/scram-common.h"
+#include "crypto/kmgr.h"
 #include "jit/jit.h"
 #include "libpq/auth.h"
 #include "libpq/libpq.h"
@@ -52,6 +55,7 @@
 #include "optimizer/optimizer.h"
 #include "optimizer/paths.h"
 #include "optimizer/planmain.h"
+#include "parser/analyze.h"
 #include "parser/parse_expr.h"
 #include "parser/parser.h"
 #include "pgstat.h"
@@ -757,6 +761,8 @@ const char *const config_group_names[] =
 	/* CLIENT_CONN_OTHER */
 	gettext_noop("Client Connection Defaults / Other Defaults"),
 	/* LOCK_MANAGEMENT */
+	/* COMPAT_OPTIONS */
+	gettext_noop("Version and Platform Compatibility"),
 	gettext_noop("Lock Management"),
 	/* COMPAT_OPTIONS_PREVIOUS */
 	gettext_noop("Version and Platform Compatibility / Previous PostgreSQL Versions"),
@@ -2272,7 +2278,7 @@ struct config_int ConfigureNamesInt[] =
 		},
 		&MaxConnections,
 		200, 10, MAX_BACKENDS,
-		check_maxconnections, NULL, NULL
+		check_max_connections, NULL, NULL
 	},
 
 	{
@@ -4144,28 +4150,6 @@ struct config_string ConfigureNamesString[] =
 	/* See main.c about why defaults for LC_foo are not all alike */
 
 	{
-		{"lc_collate", PGC_INTERNAL, PRESET_OPTIONS,
-			gettext_noop("Shows the collation order locale."),
-			NULL,
-			GUC_NOT_IN_SAMPLE | GUC_DISALLOW_IN_FILE
-		},
-		&locale_collate,
-		"C",
-		NULL, NULL, NULL
-	},
-
-	{
-		{"lc_ctype", PGC_INTERNAL, PRESET_OPTIONS,
-			gettext_noop("Shows the character classification and case conversion locale."),
-			NULL,
-			GUC_NOT_IN_SAMPLE | GUC_DISALLOW_IN_FILE
-		},
-		&locale_ctype,
-		"C",
-		NULL, NULL, NULL
-	},
-
-	{
 		{"lc_messages", PGC_SUSET, CLIENT_CONN_LOCALE,
 			gettext_noop("Sets the language in which messages are displayed."),
 			NULL
@@ -4529,17 +4513,6 @@ struct config_string ConfigureNamesString[] =
 		&ssl_crl_dir,
 		"",
 		NULL, NULL, NULL
-	},
-
-	{
-		{"stats_temp_directory", PGC_SIGHUP, STATS_COLLECTOR,
-			gettext_noop("Writes temporary statistics files to the specified directory."),
-			NULL,
-			GUC_SUPERUSER_ONLY | GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
-		},
-		&pgstat_temp_directory,
-		PG_STAT_TMP_DIR,
-		check_canonical_path, assign_pgstat_temp_directory, NULL
 	},
 
 	{

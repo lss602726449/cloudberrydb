@@ -22,6 +22,8 @@
 #include "catalog/objectaccess.h"
 #include "catalog/pg_authid.h"
 #include "catalog/pg_parameter_acl.h"
+#include "cdb/cdbdisp_query.h"
+#include "cdb/cdbvars.h"
 #include "funcapi.h"
 #include "guc_internal.h"
 #include "parser/parse_type.h"
@@ -34,6 +36,7 @@
 static char *flatten_set_variable_args(const char *name, List *args);
 static void ShowGUCConfigOption(const char *name, DestReceiver *dest);
 static void ShowAllGUCConfig(DestReceiver *dest);
+static void DispatchSetPGVariable(const char *name, List *args, bool is_local);
 
 
 /*
@@ -1105,4 +1108,101 @@ show_all_file_settings(PG_FUNCTION_ARGS)
 	}
 
 	return (Datum) 0;
+}
+
+
+static void
+DispatchSetPGVariable(const char *name, List *args, bool is_local)
+{
+	ListCell   *l;
+	StringInfoData buffer;
+
+	if (Gp_role != GP_ROLE_DISPATCH || IsBootstrapProcessingMode())
+		return;
+
+	/*
+	 * client_encoding is always kept at SQL_ASCII in QE processes. (See also
+	 * cdbconn_doConnectStart().)
+	 */
+	if (strcmp(name, "client_encoding") == 0)
+		return;
+
+	initStringInfo( &buffer );
+
+	if (args == NIL)
+	{
+		appendStringInfo(&buffer, "RESET %s", name);
+	}
+	else
+	{
+		appendStringInfo(&buffer, "SET ");
+		if (is_local)
+			appendStringInfo(&buffer, "LOCAL ");
+
+		appendStringInfo(&buffer, "%s TO ", quote_identifier(name));
+
+		/*
+		 * GPDB: We handle the timezone GUC specially. This is because the
+		 * timezone GUC can be set with the SET TIME ZONE .. syntax which is an
+		 * alias for SET timezone. Instead of dispatching the SET TIME ZONE ..
+		 * as a special case, we dispatch the already set time zone from the QD
+		 * with the usual SET syntax flavor (SET timezone TO <>).
+		 * Please refer to Issue: #9055 for additional detail.
+		 * #9055 - https://github.com/greenplum-db/gpdb/issues/9055
+		 */
+		if (strcmp(name, "timezone") == 0)
+			appendStringInfo(&buffer, "%s",
+							 quote_literal_cstr(GetConfigOptionByName("timezone",
+																	  NULL,
+																	  false)));
+		else
+		{
+			foreach(l, args)
+			{
+				Node	   *arg = (Node *) lfirst(l);
+				char	   *val;
+				A_Const	   *con;
+
+				if (l != list_head(args))
+					appendStringInfo(&buffer, ", ");
+
+				if (IsA(arg, TypeCast))
+				{
+					TypeCast   *tc = (TypeCast *) arg;
+					arg = tc->arg;
+				}
+
+				con = (A_Const *) arg;
+
+				if (!IsA(con, A_Const))
+					elog(ERROR, "unrecognized node type: %d", (int) nodeTag(arg));
+
+				switch (nodeTag(&con->val))
+				{
+					case T_Integer:
+						appendStringInfo(&buffer, "%d", intVal(&con->val));
+						break;
+					case T_Float:
+						/* represented as a string, so just copy it */
+						appendStringInfoString(&buffer, strVal(&con->val));
+						break;
+					case T_String:
+						val = strVal(&con->val);
+
+						/*
+						 * Plain string literal or identifier. Quote it.
+						 */
+						appendStringInfo(&buffer, "%s", quote_literal_cstr(val));
+
+						break;
+					default:
+						elog(ERROR, "unrecognized node type: %d",
+							 (int) nodeTag(&con->val));
+						break;
+				}
+			}
+		}
+	}
+
+	CdbDispatchSetCommand(buffer.data, false);
 }

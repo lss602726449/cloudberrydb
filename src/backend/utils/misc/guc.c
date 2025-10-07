@@ -99,7 +99,6 @@
 #include "utils/plancache.h"
 #include "utils/portal.h"
 #include "utils/ps_status.h"
-#include "utils/queryjumble.h"
 #include "utils/rls.h"
 #include "utils/snapmgr.h"
 #include "utils/tzparser.h"
@@ -288,7 +287,6 @@ static bool reporting_enabled;	/* true to enable GUC_REPORT */
 static int	GUCNestLevel = 0;	/* 1 when in main transaction */
 
 
-static int	guc_var_name_compare(const void *key, const void *generic);
 static int	guc_var_compare(const void *a, const void *b);
 static uint32 guc_name_hash(const void *key, Size keysize);
 static int	guc_name_match(const void *key1, const void *key2, Size keysize);
@@ -296,7 +294,6 @@ static void InitializeGUCOptionsFromEnvironment(void);
 static void InitializeOneGUCOption(struct config_generic *gconf);
 static void RemoveGUCFromLists(struct config_generic *gconf);
 static void set_guc_source(struct config_generic *gconf, GucSource newsource);
-static void pg_timezone_abbrev_initialize(void);
 static void push_old_value(struct config_generic *gconf, GucAction action);
 static void ReportGUCOption(struct config_generic *record);
 static void set_config_sourcefile(const char *name, char *sourcefile,
@@ -325,8 +322,6 @@ static bool call_string_check_hook(struct config_string *conf, char **newval,
 								   void **extra, GucSource source, int elevel);
 static bool call_enum_check_hook(struct config_enum *conf, int *newval,
 								 void **extra, GucSource source, int elevel);
-
-static void DispatchSetPGVariable(const char *name, List *args, bool is_local);
 
 /*
  * This function handles both actual config file (re)loads and execution of
@@ -926,49 +921,29 @@ discard_stack_value(struct config_generic *gconf, config_var_value *val)
  * The array length is returned into *num_vars.
  */
 struct config_generic **
-get_guc_variables(void)
+get_guc_variables(int *num_vars)
 {
-	return guc_variables;
+	struct config_generic **result;
+	HASH_SEQ_STATUS status;
+	GUCHashEntry *hentry;
+	int			i;
+
+	*num_vars = hash_get_num_entries(guc_hashtab);
+	result = palloc(sizeof(struct config_generic *) * *num_vars);
+
+	/* Extract pointers from the hash table */
+	i = 0;
+	hash_seq_init(&status, guc_hashtab);
+	while ((hentry = (GUCHashEntry *) hash_seq_search(&status)) != NULL)
+		result[i++] = hentry->gucvar;
+	Assert(i == *num_vars);
+
+	/* Sort by name */
+	qsort(result, *num_vars,
+		  sizeof(struct config_generic *), guc_var_compare);
+
+	return result;
 }
-
-int get_num_guc_variables(void)
-{
-	return num_guc_variables;
-}
-
-/*
- * gp_guc_list_show
- *
- * Given a list of GUCs (a List of struct config_generic), construct a list
- * of human-readable strings of the option names and current values, skipping
- * any whose source <= 'excluding'.
- */
-List *
-gp_guc_list_show(GucSource excluding, List *guclist)
-{
-	List	   *options = NIL;
-	ListCell   *cell;
-	char	   *value;
-	char	 	buf[NAMEDATALEN];
-
-	foreach(cell, guclist)
-	{
-		struct config_generic *gconf = (struct config_generic *) lfirst(cell);
-
-		if (gconf->source > excluding)
-        {
-            value = _ShowOption(gconf, true);
-			snprintf(buf, sizeof(buf), "%s=%s", gconf->name, value);
-			options = lappend(options, pstrdup(buf));
-
-			memset(&buf, '\0', sizeof(buf));
-            pfree(value);
-        }
-	}
-
-	return options;
-}
-
 
 /*
  * Build the GUC hash table.  This is split out so that help_config.c can
@@ -1112,7 +1087,16 @@ build_guc_variables(void)
 	}
 
 	for (i = 0; ConfigureNamesBool_gp[i].gen.name; i++)
-		guc_vars[num_vars++] = &ConfigureNamesBool_gp[i].gen;
+	{
+		struct config_generic *gucvar = &ConfigureNamesBool_gp[i].gen;
+
+		hentry = (GUCHashEntry *) hash_search(guc_hashtab,
+											  &gucvar->name,
+											  HASH_ENTER,
+											  &found);
+		Assert(!found);
+		hentry->gucvar = gucvar;
+	}
 
 	for (i = 0; ConfigureNamesInt[i].gen.name; i++)
 	{
@@ -1127,7 +1111,16 @@ build_guc_variables(void)
 	}
 
 	for (i = 0; ConfigureNamesInt_gp[i].gen.name; i++)
-		guc_vars[num_vars++] = &ConfigureNamesInt_gp[i].gen;
+	{
+		struct config_generic *gucvar = &ConfigureNamesInt_gp[i].gen;
+
+		hentry = (GUCHashEntry *) hash_search(guc_hashtab,
+											  &gucvar->name,
+											  HASH_ENTER,
+											  &found);
+		Assert(!found);
+		hentry->gucvar = gucvar;
+	}
 
 	for (i = 0; ConfigureNamesReal[i].gen.name; i++)
 	{
@@ -1142,7 +1135,16 @@ build_guc_variables(void)
 	}
 
 	for (i = 0; ConfigureNamesReal_gp[i].gen.name; i++)
-		guc_vars[num_vars++] = &ConfigureNamesReal_gp[i].gen;
+	{
+		struct config_generic *gucvar = &ConfigureNamesReal_gp[i].gen;
+
+		hentry = (GUCHashEntry *) hash_search(guc_hashtab,
+											  &gucvar->name,
+											  HASH_ENTER,
+											  &found);
+		Assert(!found);
+		hentry->gucvar = gucvar;
+	}
 
 	for (i = 0; ConfigureNamesString[i].gen.name; i++)
 	{
@@ -1157,13 +1159,10 @@ build_guc_variables(void)
 	}
 
 	for (i = 0; ConfigureNamesString_gp[i].gen.name; i++)
-		guc_vars[num_vars++] = &ConfigureNamesString_gp[i].gen;
-
-	for (i = 0; ConfigureNamesEnum[i].gen.name; i++)
 	{
-		struct config_generic *gucvar = &ConfigureNamesEnum[i].gen;
+		struct config_generic *gucvar = &ConfigureNamesString_gp[i].gen;
 
-		hentry = (GUCH ashEntry *) hash_search(guc_hashtab,
+		hentry = (GUCHashEntry *) hash_search(guc_hashtab,
 											  &gucvar->name,
 											  HASH_ENTER,
 											  &found);
@@ -1171,7 +1170,19 @@ build_guc_variables(void)
 		hentry->gucvar = gucvar;
 	}
 
-	gpdb_assign_sync_flag(guc_variables, num_guc_variables, true /* predefine */);
+	for (i = 0; ConfigureNamesEnum[i].gen.name; i++)
+	{
+		struct config_generic *gucvar = &ConfigureNamesEnum[i].gen;
+
+		hentry = (GUCHashEntry *) hash_search(guc_hashtab,
+											  &gucvar->name,
+											  HASH_ENTER,
+											  &found);
+		Assert(!found);
+		hentry->gucvar = gucvar;
+	}
+
+	gpdb_assign_sync_flag(guc_hashtab);
 
 	Assert(num_vars == hash_get_num_entries(guc_hashtab));
 }
@@ -1199,7 +1210,7 @@ add_guc_variable(struct config_generic *var, int elevel)
 	}
 	Assert(!found);
 	hentry->gucvar = var;
-	gpdb_assign_sync_flag(&var, 1, false /* predefine */);
+	gpdb_assign_sync_flag_one(var, false /* predefine */);
 
 	return true;
 }
@@ -1389,24 +1400,6 @@ find_option(const char *name, bool create_placeholders, bool skip_errors,
 				 errmsg("unrecognized configuration parameter \"%s\"",
 						name)));
 	return NULL;
-}
-
-/*
- * comparator for bsearch guc_variables array
- * qsort requires that two arguments are the type of element,
- * but bsearch requires the first argument to be the key,
- * the second argument is type of the array element.
- *
- * In pg upstream, bsearch is not used in this file, so
- * the function should be removed later.
- */
-static int
-guc_var_name_compare(const void *key, const void *generic)
-{
-	const char *name = *(char *const *)key;
-	const struct config_generic *conf = *(struct config_generic *const *) generic;
-
-	return guc_name_compare(name, conf->name);
 }
 
 /*
@@ -1704,36 +1697,6 @@ InitializeGUCOptions(void)
 	 * environment variables.  Process those settings.
 	 */
 	InitializeGUCOptionsFromEnvironment();
-}
-
-/*
- * If any custom resource managers were specified in the
- * wal_consistency_checking GUC, processing was deferred. Now that
- * shared_preload_libraries have been loaded, process wal_consistency_checking
- * again.
- */
-void
-InitializeWalConsistencyChecking(void)
-{
-	Assert(process_shared_preload_libraries_done);
-
-	if (check_wal_consistency_checking_deferred)
-	{
-		struct config_generic *guc;
-
-		guc = find_option("wal_consistency_checking", false, false, ERROR);
-
-		check_wal_consistency_checking_deferred = false;
-
-		set_config_option("wal_consistency_checking",
-						  wal_consistency_checking_string,
-						  PGC_POSTMASTER, guc->source,
-						  GUC_ACTION_SET, true, ERROR, false);
-
-		/* checking should not be deferred again */
-		Assert(!check_wal_consistency_checking_deferred);
-	}
-
 }
 
 /*
@@ -2149,7 +2112,7 @@ SelectConfigFiles(const char *userDoption, const char *progname)
  * This can also be called from ProcessConfigFile to establish the default
  * value after a postgresql.conf entry for it is removed.
  */
-static void
+void
 pg_timezone_abbrev_initialize(void)
 {
 	SetConfigOption("timezone_abbreviations", "Default",
@@ -4981,102 +4944,6 @@ AlterSystemSetConfigFile(AlterSystemStmt *altersysstmt)
 	FreeConfigVariables(head);
 
 	LWLockRelease(AutoFileLock);
-}
-
-static void
-DispatchSetPGVariable(const char *name, List *args, bool is_local)
-{
-	ListCell   *l;
-	StringInfoData buffer;
-
-	if (Gp_role != GP_ROLE_DISPATCH || IsBootstrapProcessingMode())
-		return;
-
-	/*
-	 * client_encoding is always kept at SQL_ASCII in QE processes. (See also
-	 * cdbconn_doConnectStart().)
-	 */
-	if (strcmp(name, "client_encoding") == 0)
-		return;
-
-	initStringInfo( &buffer );
-
-	if (args == NIL)
-	{
-		appendStringInfo(&buffer, "RESET %s", name);
-	}
-	else
-	{
-		appendStringInfo(&buffer, "SET ");
-		if (is_local)
-			appendStringInfo(&buffer, "LOCAL ");
-
-		appendStringInfo(&buffer, "%s TO ", quote_identifier(name));
-
-		/*
-		 * GPDB: We handle the timezone GUC specially. This is because the
-		 * timezone GUC can be set with the SET TIME ZONE .. syntax which is an
-		 * alias for SET timezone. Instead of dispatching the SET TIME ZONE ..
-		 * as a special case, we dispatch the already set time zone from the QD
-		 * with the usual SET syntax flavor (SET timezone TO <>).
-		 * Please refer to Issue: #9055 for additional detail.
-		 * #9055 - https://github.com/greenplum-db/gpdb/issues/9055
-		 */
-		if (strcmp(name, "timezone") == 0)
-			appendStringInfo(&buffer, "%s",
-							 quote_literal_cstr(GetConfigOptionByName("timezone",
-																	  NULL,
-																	  false)));
-		else
-		{
-			foreach(l, args)
-			{
-				Node	   *arg = (Node *) lfirst(l);
-				char	   *val;
-				A_Const	   *con;
-
-				if (l != list_head(args))
-					appendStringInfo(&buffer, ", ");
-
-				if (IsA(arg, TypeCast))
-				{
-					TypeCast   *tc = (TypeCast *) arg;
-					arg = tc->arg;
-				}
-
-				con = (A_Const *) arg;
-
-				if (!IsA(con, A_Const))
-					elog(ERROR, "unrecognized node type: %d", (int) nodeTag(arg));
-
-				switch (nodeTag(&con->val))
-				{
-					case T_Integer:
-						appendStringInfo(&buffer, "%d", intVal(&con->val));
-						break;
-					case T_Float:
-						/* represented as a string, so just copy it */
-						appendStringInfoString(&buffer, strVal(&con->val));
-						break;
-					case T_String:
-						val = strVal(&con->val);
-
-						/*
-						 * Plain string literal or identifier. Quote it.
-						 */
-						appendStringInfo(&buffer, "%s", quote_literal_cstr(val));
-
-						break;
-					default:
-						elog(ERROR, "unrecognized node type: %d",
-							 (int) nodeTag(&con->val));
-						break;
-				}
-			}
-		}
-	}
-
-	CdbDispatchSetCommand(buffer.data, false);
 }
 
 /*

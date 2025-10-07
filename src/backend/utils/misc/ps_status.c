@@ -373,46 +373,6 @@ update_ps_display_precheck(void)
 		return false;
 #endif
 
-	Assert(cp >= ps_buffer);
-
-	/* Add client session's global id. */
-	if (gp_session_id > 0 && ep - cp > 0 &&
-		strstr(ps_buffer, "dtx recovery process") == NULL &&
-		strstr(ps_buffer, "ftsprobe process") == NULL)
-	{
-		cp += snprintf(cp, ep - cp, "con%d ", gp_session_id);
-
-		/* Which segment is accessed by this qExec? */
-		if (Gp_role == GP_ROLE_EXECUTE && GpIdentity.segindex >= -1)
-			cp += snprintf(cp, ep - cp, "seg%d ", GpIdentity.segindex);
-	}
-
-	/* Add count of commands received from client session. */
-	if (gp_command_count > 0 && ep - cp > 0)
-		cp += snprintf(cp, ep - cp, "cmd%d ", gp_command_count);
-
-	/* Add slice number information */
-	if (currentSliceId > 0 && ep - cp > 0)
-		cp += snprintf(cp, ep - cp, "slice%d ", currentSliceId);
-
-	/*
-	 * Calculate the size preceding the actual activity string start.
-	 * snprintf returns the number of bytes that *would* have been written if
-	 * enough space had been available. This means cp might go beyond, if
-	 * truncation happened. Hence need below check for Min. (ep - 1) is
-	 * performed because in normal case when no truncation happens, snprintf
-	 * doesn't count null, so in truncation case as well it shouldn't be
-	 * counted. End result simply intended here is really real_act_prefix_size
-	 * = strlen(ps_buffer), for performance reasons kept this way.
-	 */
-	real_act_prefix_size = Min(cp, (ep-1)) - ps_buffer;
-
-	/* Append caller's activity string. */
-	strlcpy(ps_buffer + real_act_prefix_size, activity,
-			ps_buffer_size - real_act_prefix_size);
-
-	ps_buffer_cur_len = strlen(ps_buffer);
-
 	return true;
 }
 #endif							/* not PS_USE_NONE */

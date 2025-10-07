@@ -68,6 +68,7 @@ extern PGDLLIMPORT int	recoveryTargetAction;
 extern PGDLLIMPORT int	recovery_min_apply_delay;
 extern PGDLLIMPORT char *PrimaryConnInfo;
 extern PGDLLIMPORT char *PrimarySlotName;
+extern PGDLLIMPORT char	*PromoteTriggerFile;
 extern PGDLLIMPORT bool wal_receiver_create_temp_slot;
 extern PGDLLIMPORT bool track_wal_io_timing;
 extern PGDLLIMPORT int wal_decode_buffer_size;
