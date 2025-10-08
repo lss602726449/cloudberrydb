@@ -1716,7 +1716,7 @@ tuplestore_make_shared(Tuplestorestate *state, SharedFileSet *fileset, const cha
 	oldowner = CurrentResourceOwner;
 	CurrentResourceOwner = state->resowner;
 
-	state->myfile = BufFileCreateFileSet(&fileset.fs, filename, state->work_set);
+	state->myfile = BufFileCreateFileSet(&fileset->fs, filename, state->work_set);
 	CurrentResourceOwner = oldowner;
 
 	/*
