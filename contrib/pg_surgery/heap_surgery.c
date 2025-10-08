@@ -407,7 +407,7 @@ sanity_check_relation(Relation rel)
 				 errmsg("only heap AM is supported")));
 
 	/* Must be owner of the table or superuser. */
-	if (!pg_class_ownercheck(RelationGetRelid(rel), GetUserId()))
+	if (!object_ownercheck(RelationRelationId, RelationGetRelid(rel), GetUserId()))
 		aclcheck_error(ACLCHECK_NOT_OWNER,
 					   get_relkind_objtype(rel->rd_rel->relkind),
 					   RelationGetRelationName(rel));

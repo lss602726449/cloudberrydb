@@ -263,8 +263,6 @@ extern AclResult pg_parameter_aclcheck(const char *name, Oid roleid,
 									   AclMode mode);
 extern AclResult pg_largeobject_aclcheck_snapshot(Oid lobj_oid, Oid roleid,
 												  AclMode mode, Snapshot snapshot);
-extern AclResult pg_namespace_aclcheck(Oid nsp_oid, Oid roleid, AclMode mode);
-extern AclResult pg_tablespace_aclcheck(Oid spc_oid, Oid roleid, AclMode mode);
 extern AclResult gp_storage_server_aclcheck(Oid srv_oid, Oid roleid, AclMode mode);
 extern AclResult pg_extprotocol_aclcheck(Oid ptc_oid, Oid roleid, AclMode mode);
 
@@ -282,31 +280,8 @@ extern void removeExtObjInitPriv(Oid objoid, Oid classoid);
 
 
 /* ownercheck routines just return true (owner) or false (not) */
-extern bool pg_extension_ownercheck(Oid ext_oid, Oid roleid);
-extern bool pg_class_ownercheck(Oid class_oid, Oid roleid);
-extern bool pg_type_ownercheck(Oid type_oid, Oid roleid);
-extern bool pg_oper_ownercheck(Oid oper_oid, Oid roleid);
-extern bool pg_proc_ownercheck(Oid proc_oid, Oid roleid);
-extern bool pg_language_ownercheck(Oid lan_oid, Oid roleid);
-extern bool pg_largeobject_ownercheck(Oid lobj_oid, Oid roleid);
-extern bool pg_namespace_ownercheck(Oid nsp_oid, Oid roleid);
-extern bool pg_tablespace_ownercheck(Oid spc_oid, Oid roleid);
-extern bool pg_opclass_ownercheck(Oid opc_oid, Oid roleid);
-extern bool pg_opfamily_ownercheck(Oid opf_oid, Oid roleid);
-extern bool pg_database_ownercheck(Oid db_oid, Oid roleid);
-extern bool pg_collation_ownercheck(Oid coll_oid, Oid roleid);
-extern bool pg_conversion_ownercheck(Oid conv_oid, Oid roleid);
 extern bool pg_tag_ownercheck(Oid tag_oid, Oid roleid);
-extern bool pg_ts_dict_ownercheck(Oid dict_oid, Oid roleid);
-extern bool pg_ts_config_ownercheck(Oid cfg_oid, Oid roleid);
-extern bool pg_foreign_data_wrapper_ownercheck(Oid srv_oid, Oid roleid);
-extern bool pg_foreign_server_ownercheck(Oid srv_oid, Oid roleid);
 extern bool gp_storage_server_ownercheck(Oid srv_oid, Oid roleid);
-extern bool pg_event_trigger_ownercheck(Oid et_oid, Oid roleid);
-extern bool pg_extension_ownercheck(Oid ext_oid, Oid roleid);
-extern bool pg_publication_ownercheck(Oid pub_oid, Oid roleid);
-extern bool pg_subscription_ownercheck(Oid sub_oid, Oid roleid);
-extern bool pg_statistics_object_ownercheck(Oid stat_oid, Oid roleid);
 extern bool object_ownercheck(Oid classid, Oid objectid, Oid roleid);
 extern bool has_createrole_privilege(Oid roleid);
 extern bool pg_extprotocol_ownercheck(Oid ptc_oid, Oid roleid);

@@ -1288,7 +1288,7 @@ pull_up_simple_subquery(PlannerInfo *root, Node *jtnode, RangeTblEntry *rte,
 	 * maybe even in the rewriter; but for now let's just fix this case here.)
 	 */
 	subquery->targetList = (List *)
-		flatten_join_alias_vars(subroot, subroot->parse,
+		flatten_join_alias_vars(root, subroot->parse,
 								(Node *) subquery->targetList);
 
 	/*

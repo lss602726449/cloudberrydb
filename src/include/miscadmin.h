@@ -611,7 +611,6 @@ extern void RestoreClientConnectionInfo(char *conninfo);
 
 /* in executor/nodeHash.c */
 extern size_t get_hash_memory_limit(void);
-extern int	get_hash_mem(void);
 
 /*
  * In GPDB, some utility commands may execute nested in another utilities,

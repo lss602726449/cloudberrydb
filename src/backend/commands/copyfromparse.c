@@ -770,6 +770,14 @@ CopyReadBinaryData(CopyFromState cstate, char *dest, int nbytes)
 bool
 NextCopyFromRawFields(CopyFromState cstate, char ***fields, int *nfields)
 {
+	return NextCopyFromRawFieldsX(cstate, fields, nfields, -1);
+}
+
+
+bool
+NextCopyFromRawFieldsX(CopyFromState cstate, char ***fields, int *nfields,
+					   int stop_processing_at_field)
+{
 	int			fldct;
 	bool		done;
 
@@ -792,9 +800,9 @@ NextCopyFromRawFields(CopyFromState cstate, char ***fields, int *nfields)
 			int			fldnum;
 
 			if (cstate->opts.csv_mode)
-				fldct = CopyReadAttributesCSV(cstate, -1);
+				fldct = CopyReadAttributesCSV(cstate, stop_processing_at_field);
 			else
-				fldct = CopyReadAttributesText(cstate, -1);
+				fldct = CopyReadAttributesText(cstate, stop_processing_at_field);
 
 			if (fldct != list_length(cstate->attnumlist))
 				ereport(ERROR,
@@ -856,34 +864,99 @@ NextCopyFromRawFields(CopyFromState cstate, char ***fields, int *nfields)
 	return true;
 }
 
+
+bool
+NextCopyFrom(CopyFromState cstate, ExprContext *econtext,
+			 Datum *values, bool *nulls)
+{
+	if (!cstate->cdbsreh)
+		return NextCopyFromX(cstate, econtext, values, nulls);
+	else
+	{
+		MemoryContext oldcontext = CurrentMemoryContext;
+
+		for (;;)
+		{
+			bool		got_error = false;
+			bool		result = false;
+
+			PG_TRY();
+					{
+						result = NextCopyFromX(cstate, econtext, values, nulls);
+					}
+				PG_CATCH();
+					{
+						HandleCopyError(cstate); /* cdbsreh->processed is updated inside here */
+						got_error = true;
+						MemoryContextSwitchTo(oldcontext);
+					}
+			PG_END_TRY();
+
+			if (result)
+				cstate->cdbsreh->processed++;
+
+			if (!got_error)
+				return result;
+		}
+	}
+}
+
 /*
  * Read next tuple from file for COPY FROM. Return false if no more tuples.
  *
- * 'econtext' is used to evaluate default expression for each column that is
- * either not read from the file or is using the DEFAULT option of COPY FROM.
- * It can be NULL when no default values are used, i.e. when all columns are
- * read from the file, and DEFAULT option is unset.
+ * 'econtext' is used to evaluate default expression for each columns not
+ * read from the file. It can be NULL when no default values are used, i.e.
+ * when all columns are read from the file.
  *
  * 'values' and 'nulls' arrays must be the same length as columns of the
  * relation passed to BeginCopyFrom. This function fills the arrays.
  */
 bool
-NextCopyFrom(CopyFromState cstate, ExprContext *econtext,
-			 Datum *values, bool *nulls)
+NextCopyFromX(CopyFromState cstate, ExprContext *econtext,
+			  Datum *values, bool *nulls)
 {
 	TupleDesc	tupDesc;
 	AttrNumber	num_phys_attrs,
-				attr_count,
-				num_defaults = cstate->num_defaults;
+			attr_count,
+			num_defaults = cstate->num_defaults;
 	FmgrInfo   *in_functions = cstate->in_functions;
 	Oid		   *typioparams = cstate->typioparams;
 	int			i;
 	int		   *defmap = cstate->defmap;
 	ExprState **defexprs = cstate->defexprs;
+	List	   *attnumlist;
+	int			stop_processing_at_field;
+
+	/*
+	 * Figure out what fields we're going to process in this process.
+	 *
+	 * In the QD, set 'stop_processing_at_field' so that we only those
+	 * fields that are needed in the QD.
+	 */
+	switch (cstate->dispatch_mode)
+	{
+		case COPY_DIRECT:
+			stop_processing_at_field = -1;
+			attnumlist = cstate->attnumlist;
+			break;
+
+		case COPY_DISPATCH:
+			stop_processing_at_field = cstate->first_qe_processed_field;
+			attnumlist = cstate->qd_attnumlist;
+			break;
+
+		case COPY_EXECUTOR:
+			stop_processing_at_field = -1;
+			attnumlist = cstate->qe_attnumlist;
+			break;
+
+		default:
+			elog(ERROR, "unexpected COPY dispatch mode %d", cstate->dispatch_mode);
+	}
 
 	tupDesc = RelationGetDescr(cstate->rel);
 	num_phys_attrs = tupDesc->natts;
-	attr_count = list_length(cstate->attnumlist);
+	attr_count = list_length(attnumlist);
 
 	/* Initialize all values for row to NULL */
 	MemSet(values, 0, num_phys_attrs * sizeof(Datum));
@@ -899,30 +972,83 @@ NextCopyFrom(CopyFromState cstate, ExprContext *econtext,
 		char	   *string;
 
 		/* read raw fields in the next line */
-		if (!NextCopyFromRawFields(cstate, &field_strings, &fldct))
-			return false;
-
-		/* check for overflowing fields */
-		if (attr_count > 0 && fldct > attr_count)
+		if (cstate->dispatch_mode != COPY_EXECUTOR)
+		{
+			if (!NextCopyFromRawFieldsX(cstate, &field_strings, &fldct,
+										stop_processing_at_field))
+				return false;
+		}
+		else
+		{
+			/*
+			 * We have received the raw line from the QD, and we just
+			 * need to split it into raw fields.
+			 */
+			if (cstate->stopped_processing_at_delim &&
+				cstate->line_buf.cursor <= cstate->line_buf.len)
+			{
+				if (cstate->opts.csv_mode)
+					fldct = CopyReadAttributesCSV(cstate, -1);
+				else
+					fldct = CopyReadAttributesText(cstate, -1);
+			}
+			else
+				fldct = 0;
+			field_strings = cstate->raw_fields;
+		}
+		/*
+		 * Check for overflowing fields.
+		 * GPDB: Change below condition compared to upstream to
+		 * greater than or equal to 0 as in QE,
+		 * attr_count may be equal to 0,
+		 * when all fields are processed in the QD.
+		 */
+		if (fldct > attr_count)
 			ereport(ERROR,
 					(errcode(ERRCODE_BAD_COPY_FILE_FORMAT),
-					 errmsg("extra data after last expected column")));
+							errmsg("extra data after last expected column")));
+
+		/*
+		 * A completely empty line is not allowed with FILL MISSING FIELDS. Without
+		 * FILL MISSING FIELDS, it's almost surely an error, but not always:
+		 * a table with a single text column, for example, needs to accept empty
+		 * lines.
+		 */
+		if (cstate->line_buf.len == 0 &&
+			cstate->opts.fill_missing &&
+			list_length(cstate->attnumlist) > 1)
+		{
+			ereport(ERROR,
+					(errcode(ERRCODE_BAD_COPY_FILE_FORMAT),
+							errmsg("missing data for column \"%s\", found empty data line",
+								   NameStr(TupleDescAttr(tupDesc, 1)->attname))));
+		}
 
 		fieldno = 0;
 
 		/* Loop to read the user attributes on the line. */
-		foreach(cur, cstate->attnumlist)
+		foreach(cur, attnumlist)
 		{
 			int			attnum = lfirst_int(cur);
 			int			m = attnum - 1;
 			Form_pg_attribute att = TupleDescAttr(tupDesc, m);
 
 			if (fieldno >= fldct)
-				ereport(ERROR,
-						(errcode(ERRCODE_BAD_COPY_FILE_FORMAT),
-						 errmsg("missing data for column \"%s\"",
-								NameStr(att->attname))));
-			string = field_strings[fieldno++];
+			{
+				/*
+				 * Some attributes are missing. In FILL MISSING FIELDS mode,
+				 * treat them as NULLs.
+				 */
+				if (!cstate->opts.fill_missing)
+					ereport(ERROR,
+							(errcode(ERRCODE_BAD_COPY_FILE_FORMAT),
+									errmsg("missing data for column \"%s\"",
+										   NameStr(att->attname))));
+				fieldno++;
+				string = NULL;
+			}
+			else
+				string = field_strings[fieldno++];
 
 			if (cstate->convert_select_flags &&
 				!cstate->convert_select_flags[m])
@@ -957,7 +1083,6 @@ NextCopyFrom(CopyFromState cstate, ExprContext *econtext,
 
 			cstate->cur_attname = NameStr(att->attname);
 			cstate->cur_attval = string;
-
 			if (string != NULL)
 				nulls[m] = false;
 
@@ -984,7 +1109,7 @@ NextCopyFrom(CopyFromState cstate, ExprContext *econtext,
 
 		Assert(fieldno == attr_count);
 	}
-	else
+	else if (attr_count)
 	{
 		/* binary */
 		int16		fld_count;
@@ -1001,35 +1126,42 @@ NextCopyFrom(CopyFromState cstate, ExprContext *econtext,
 		if (fld_count == -1)
 		{
 			/*
-			 * Received EOF marker.  Wait for the protocol-level EOF, and
-			 * complain if it doesn't come immediately.  In COPY FROM STDIN,
-			 * this ensures that we correctly handle CopyFail, if client
-			 * chooses to send that now.  When copying from file, we could
-			 * ignore the rest of the file like in text mode, but we choose to
-			 * be consistent with the COPY FROM STDIN case.
+			 * Received EOF marker.  In a V3-protocol copy, wait for the
+			 * protocol-level EOF, and complain if it doesn't come
+			 * immediately.  This ensures that we correctly handle CopyFail,
+			 * if client chooses to send that now.
+			 *
+			 * Note that we MUST NOT try to read more data in an old-protocol
+			 * copy, since there is no protocol-level EOF marker then.  We
+			 * could go either way for copy from file, but choose to throw
+			 * error if there's data after the EOF marker, for consistency
+			 * with the new-protocol case.
 			 */
 			char		dummy;
 
-			if (CopyReadBinaryData(cstate, &dummy, 1) > 0)
+			if (cstate->copy_src != COPY_FRONTEND &&
+				CopyGetData(cstate, &dummy, 1, 1) > 0)
 				ereport(ERROR,
 						(errcode(ERRCODE_BAD_COPY_FILE_FORMAT),
-						 errmsg("received copy data after EOF marker")));
+								errmsg("received copy data after EOF marker")));
 			return false;
 		}
 
 		if (fld_count != attr_count)
 			ereport(ERROR,
 					(errcode(ERRCODE_BAD_COPY_FILE_FORMAT),
-					 errmsg("row field count is %d, expected %d",
-							(int) fld_count, attr_count)));
+							errmsg("row field count is %d, expected %d",
+								   (int) fld_count, attr_count)));
 
-		foreach(cur, cstate->attnumlist)
+		i = 0;
+		foreach(cur, attnumlist)
 		{
 			int			attnum = lfirst_int(cur);
 			int			m = attnum - 1;
 			Form_pg_attribute att = TupleDescAttr(tupDesc, m);
 
 			cstate->cur_attname = NameStr(att->attname);
+			i++;
 			values[m] = CopyReadBinaryAttribute(cstate,
 												&in_functions[m],
 												typioparams[m],
@@ -1043,22 +1175,32 @@ NextCopyFrom(CopyFromState cstate, ExprContext *econtext,
 	 * Now compute and insert any defaults available for the columns not
 	 * provided by the input data.  Anything not processed here or above will
 	 * remain NULL.
+	 *
+	 * GPDB: The defaults are always computed in the QD, and are included
+	 * in the QD->QE stream as pre-computed Datums. Funny indentation, to
+	 * keep the indentation of the code inside the same as in upstream.
+	 * (We could improve this, and compute immutable defaults that don't
+	 * affect which segment the row belongs to, in the QE.)
 	 */
-	for (i = 0; i < num_defaults; i++)
+	if (cstate->dispatch_mode != COPY_EXECUTOR)
 	{
-		/*
-		 * The caller must supply econtext and have switched into the
-		 * per-tuple memory context in it.
-		 */
-		Assert(econtext != NULL);
-		Assert(CurrentMemoryContext == econtext->ecxt_per_tuple_memory);
+		for (i = 0; i < num_defaults; i++)
+		{
+			/*
+			 * The caller must supply econtext and have switched into the
+			 * per-tuple memory context in it.
+			 */
+			Assert(econtext != NULL);
+			Assert(CurrentMemoryContext == econtext->ecxt_per_tuple_memory);
 
-		values[defmap[i]] = ExecEvalExpr(defexprs[defmap[i]], econtext,
-										 &nulls[defmap[i]]);
+			values[defmap[i]] = ExecEvalExpr(defexprs[defmap[i]], econtext,
+											 &nulls[defmap[i]]);
+		}
 	}
 
 	return true;
 }
+
 
 /*
  * Read the next input line and stash it in line_buf.

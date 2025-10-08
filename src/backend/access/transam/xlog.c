@@ -250,21 +250,6 @@ CheckpointStatsData CheckpointStats;
  */
 TimeLineID	ThisTimeLineID = 0;
 
-/*
- * Are we doing recovery from XLOG?
- *
- * This is only ever true in the startup process; it should be read as meaning
- * "this process is replaying WAL records", rather than "the system is in
- * recovery mode".  It should be examined primarily by functions that need
- * to act differently when called from a WAL redo function (e.g., to skip WAL
- * logging).  To check whether the system is in recovery regardless of which
- * process you're running in, use RecoveryInProgress() but only after shared
- * memory startup and lock initialization.
- */
-bool		InRecovery = false;
-
-/* Are we in Hot Standby mode? Only valid in startup process, see xlog.h */
-HotStandbyState standbyState = STANDBY_DISABLED;
 
 static XLogRecPtr missingContrecPtr;
 
@@ -306,34 +291,15 @@ static int	LocalXLogInsertAllowed = -1;
  * will switch to using offline XLOG archives as soon as we reach the end of
  * WAL in pg_wal.
 */
-bool		ArchiveRecoveryRequested = false;
-bool		InArchiveRecovery = false;
 
 static bool standby_signal_file_found = false;
 static bool recovery_signal_file_found = false;
 
-/* options formerly taken from recovery.conf for archive recovery */
-char	   *recoveryRestoreCommand = NULL;
-char	   *recoveryEndCommand = NULL;
-char	   *archiveCleanupCommand = NULL;
-RecoveryTargetType recoveryTarget = RECOVERY_TARGET_UNSET;
-bool		recoveryTargetInclusive = true;
-int			recoveryTargetAction = RECOVERY_TARGET_ACTION_PAUSE;
-TransactionId recoveryTargetXid;
-char	   *recovery_target_time_string;
-const char *recoveryTargetName;
-XLogRecPtr	recoveryTargetLSN;
-int			recovery_min_apply_delay = 0;
 
 /* options formerly taken from recovery.conf for XLOG streaming */
 bool		StandbyModeRequested = false;
-char	   *PrimaryConnInfo = NULL;
-char	   *PrimarySlotName = NULL;
 char	   *PromoteTriggerFile = NULL;
-bool		wal_receiver_create_temp_slot = false;
 
-/* are we currently in standby mode? */
-bool		StandbyMode = false;
 
 Startup_hook_type Startup_hook = NULL;
 
@@ -341,36 +307,6 @@ ConsistencyCheck_hook_type xlog_check_consistency_hook = NULL;
 
 XLOGDropDatabase_hook_type XLOGDropDatabase_hook = NULL;
 
-
-/*
- * During normal operation, the only timeline we care about is ThisTimeLineID.
- * During recovery, however, things are more complicated.  To simplify life
- * for rmgr code, we keep ThisTimeLineID set to the "current" timeline as we
- * scan through the WAL history (that is, it is the line that was active when
- * the currently-scanned WAL record was generated).  We also need these
- * timeline values:
- *
- * recoveryTargetTimeLineGoal: what the user requested, if any
- *
- * recoveryTargetTLIRequested: numeric value of requested timeline, if constant
- *
- * recoveryTargetTLI: the currently understood target timeline; changes
- *
- * expectedTLEs: a list of TimeLineHistoryEntries for recoveryTargetTLI and the timelines of
- * its known parents, newest first (so recoveryTargetTLI is always the
- * first list member).  Only these TLIs are expected to be seen in the WAL
- * segments we read, and indeed only these TLIs will be considered as
- * candidate WAL files to open at all.
- *
- * curFileTLI: the TLI appearing in the name of the current input WAL file.
- * (This is not necessarily the same as ThisTimeLineID, because we could
- * be scanning data that was copied from an ancestor timeline when the current
- * file was created.)  During a sequential scan we do not allow this value
- * to decrease.
- */
-RecoveryTargetTimeLineGoal recoveryTargetTimeLineGoal = RECOVERY_TARGET_TIMELINE_LATEST;
-TimeLineID	recoveryTargetTLIRequested = 0;
-TimeLineID	recoveryTargetTLI = 0;
 
 /*
  * ProcLastRecPtr points to the start of the last XLOG record inserted by the
@@ -7231,8 +7167,7 @@ CreateCheckPoint(int flags)
 			 */
 			AbsorbSyncRequests();
 			pg_usleep(10000L);	/* wait for 10 msec */
-		} while (HaveVirtualXIDsDelayingChkpt(vxids, nvxids,
-											  DELAY_CHKPT_START));
+		} while (HaveVirtualXIDsDelayingChkpt(vxids, nvxids));
 	}
 	pfree(vxids);
 
@@ -7278,8 +7213,7 @@ CreateCheckPoint(int flags)
 		{
 			AbsorbSyncRequests();
 			pg_usleep(10000L);	/* wait for 10 msec */
-		} while (HaveVirtualXIDsDelayingChkpt(vxids, nvxids,
-											  DELAY_CHKPT_COMPLETE));
+		} while (HaveVirtualXIDsDelayingChkpt(vxids, nvxids));
 	}
 	pfree(vxids);
 

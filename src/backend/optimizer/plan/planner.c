@@ -1259,7 +1259,7 @@ subquery_planner(PlannerGlobal *glob, Query *parse,
 			 */
 			if (rte->lateral && root->hasJoinRTEs)
 				rte->subquery = (Query *)
-					flatten_join_alias_vars(root->parse,
+					flatten_join_alias_vars(root, root->parse,
 											(Node *) rte->subquery);
 		}
 		else if (rte->rtekind == RTE_FUNCTION || rte->rtekind == RTE_TABLEFUNCTION)
@@ -1460,7 +1460,7 @@ preprocess_expression(PlannerInfo *root, Node *expr, int kind)
 		  kind == EXPRKIND_VALUES ||
 		  kind == EXPRKIND_TABLESAMPLE ||
 		  kind == EXPRKIND_TABLEFUNC))
-		expr = flatten_join_alias_vars(root->parse, expr);
+		expr = flatten_join_alias_vars(root, root->parse, expr);
 
 	if (root->parse->hasFuncsWithExecRestrictions)
 	{

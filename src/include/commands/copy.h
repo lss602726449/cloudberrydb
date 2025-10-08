@@ -174,6 +174,8 @@ extern bool NextCopyFrom(CopyFromState cstate, ExprContext *econtext,
 						 Datum *values, bool *nulls);
 extern bool NextCopyFromRawFields(CopyFromState cstate,
 								  char ***fields, int *nfields);
+extern bool NextCopyFromRawFieldsX(CopyFromState cstate, char ***fields, int *nfields,
+								   int stop_processing_at_field);
 extern void CopyFromErrorCallback(void *arg);
 
 extern uint64 CopyFrom(CopyFromState cstate);

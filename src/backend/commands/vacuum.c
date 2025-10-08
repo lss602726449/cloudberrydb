@@ -2761,8 +2761,8 @@ vacuum_rel(Oid relid, RangeVar *relation, VacuumParams *params,
 	 * Note we choose to treat permissions failure as a WARNING and keep
 	 * trying to vacuum the rest of the DB --- is this appropriate?
 	 */
-	if (!(pg_class_ownercheck(RelationGetRelid(rel), GetUserId()) ||
-		  (pg_database_ownercheck(MyDatabaseId, GetUserId()) && !rel->rd_rel->relisshared)))
+	if (!(object_ownercheck(RelationRelationId, RelationGetRelid(rel), GetUserId()) ||
+		  (object_ownercheck(DatabaseRelationId, MyDatabaseId, GetUserId()) && !rel->rd_rel->relisshared)))
 	{
 		if (Gp_role != GP_ROLE_EXECUTE)
 		{

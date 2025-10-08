@@ -19331,7 +19331,7 @@ ATExecExpandTable(List **wqueue, Relation rel, AlterTableCmd *cmd, int numsegmen
 			 errmsg("EXPAND not supported in utility mode")));
 
 	/* Permissions checks */
-	if (!pg_class_ownercheck(relid, GetUserId()))
+	if (!object_ownercheck(RelationRelationId, relid, GetUserId()))
 		aclcheck_error(ACLCHECK_NOT_OWNER, OBJECT_TABLE,
 					   RelationGetRelationName(rel));
 

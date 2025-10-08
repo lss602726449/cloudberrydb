@@ -214,6 +214,8 @@ extern Datum CopyReadBinaryAttribute(CopyFromState cstate, FmgrInfo *flinfo,
 extern int CopyGetData(CopyFromState cstate, void *databuf,
 					   int minread, int maxread);
 extern int CopyReadBinaryData(CopyFromState cstate, char *dest, int nbytes);
+extern bool NextCopyFromX(CopyFromState cstate, ExprContext *econtext,
+						  Datum *values, bool *nulls);
 
 /*
  * These functions do apply some data conversion

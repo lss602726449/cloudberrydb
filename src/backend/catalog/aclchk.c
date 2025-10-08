@@ -4542,34 +4542,6 @@ gp_storage_server_ownercheck(Oid srv_oid, Oid roleid)
 }
 
 /*
- * Ownership check for an event trigger (specified by OID).
- */
-bool
-pg_event_trigger_ownercheck(Oid et_oid, Oid roleid)
-{
-	HeapTuple	tuple;
-	Oid			ownerId;
-
-	/* Superusers bypass all permission checking. */
-	if (superuser_arg(roleid))
-		return true;
-
-	tuple = SearchSysCache1(EVENTTRIGGEROID, ObjectIdGetDatum(et_oid));
-	if (!HeapTupleIsValid(tuple))
-		ereport(ERROR,
-				(errcode(ERRCODE_UNDEFINED_OBJECT),
-						errmsg("event trigger with OID %u does not exist",
-							   et_oid)));
-
-	ownerId = ((Form_pg_event_trigger) GETSTRUCT(tuple))->evtowner;
-
-	ReleaseSysCache(tuple);
-
-	return has_privs_of_role(roleid, ownerId);
-}
-
-
-/*
  * Ownership check for an external protocol (specified by OID).
  */
 bool

@@ -779,8 +779,8 @@ make_join_relation(PlannerInfo *root, RelOptInfo *rel1, RelOptInfo *rel2)
 	 * goes with this particular joining.
 	 */
 	joinrel = build_join_rel(root, joinrelids, rel1, rel2,
-							 sjinfo, pushed_down_joins,
-							 &restrictlist, NULL);
+							 sjinfo, &restrictlist, pushed_down_joins,
+							  NULL);
 
 	/*
 	 * If we've already proven this join is empty, we needn't consider any
@@ -864,8 +864,8 @@ make_grouped_join_rel(PlannerInfo *root, RelOptInfo *rel1, RelOptInfo *rel2,
 		agg_info->build_from_plain = true;
 		joinrel = agg_info->rel_grouped;
 		if (joinrel == NULL)
-			joinrel = build_join_rel(root, joinrelids, rel1, rel2, sjinfo, NIL,
-									 &restrictlist, agg_info);
+			joinrel = build_join_rel(root, joinrelids, rel1, rel2, sjinfo,
+									 &restrictlist, NIL,agg_info);
 		generate_grouping_paths(root, joinrel, joinrel_plain, agg_info);
 		if (joinrel->pathlist != NIL || joinrel->partial_pathlist != NIL)
 			add_grouped_rel_agg_info(root, joinrel, agg_info);
@@ -906,8 +906,8 @@ make_grouped_join_rel(PlannerInfo *root, RelOptInfo *rel1, RelOptInfo *rel2,
 		agg_info->build_from_plain = false;
 		joinrel = agg_info->rel_grouped_non_plain;
 		if (joinrel == NULL)
-			joinrel = build_join_rel(root, joinrelids, rel1, rel2, sjinfo, NIL,
-									 &restrictlist, agg_info);
+			joinrel = build_join_rel(root, joinrelids, rel1, rel2, sjinfo,
+									 &restrictlist, NIL, agg_info);
 
 		populate_joinrel_with_paths(root, rel1, rel2, joinrel, sjinfo,
 									restrictlist);

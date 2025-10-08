@@ -1818,7 +1818,7 @@ get_primary_key_attnos_from_query(Query *query, List **constraintList)
 	i = 1;
 	foreach(lc, query->targetList)
 	{
-		TargetEntry *tle = (TargetEntry *) flatten_join_alias_vars(query, lfirst(lc));
+		TargetEntry *tle = (TargetEntry *) flatten_join_alias_vars(NULL, query, lfirst(lc));
 
 		if (IsA(tle->expr, Var))
 		{

@@ -441,8 +441,8 @@ addOneOption(StringInfo option, StringInfo diff, struct config_generic *guc)
 void
 makeOptions(char **options, char **diff_options)
 {
-	struct config_generic **gucs = get_guc_variables();
-	int			ngucs = get_num_guc_variables();
+	int			ngucs;
+	struct config_generic **gucs = get_guc_variables(&ngucs);
 	CdbComponentDatabaseInfo *qdinfo = NULL;
 	StringInfoData optionsStr;
 	StringInfoData diffStr;
