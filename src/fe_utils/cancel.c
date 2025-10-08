@@ -185,11 +185,7 @@ handle_sigint(SIGNAL_ARGS)
 void
 setup_cancel_handler(void (*query_cancel_callback) (void))
 {
-<<<<<<< HEAD
-	cancel_callback = callback;
-=======
 	cancel_callback = query_cancel_callback;
->>>>>>> REL_16_9
 	cancel_sent_msg = _("Cancel request sent\n");
 	cancel_not_sent_msg = _("Could not send cancel request: ");
 
