@@ -230,11 +230,7 @@ static bool authwarning = false;
  * (no quoting to worry about).
  */
 static const char *boot_options = "-F -c log_checkpoints=false";
-<<<<<<< HEAD
 static const char *backend_options = "--single -F -O -j -c gp_role=utility -c search_path=pg_catalog -c exit_on_error=true -c log_checkpoints=false";
-=======
-static const char *backend_options = "--single -F -O -j -c search_path=pg_catalog -c exit_on_error=true -c log_checkpoints=false";
->>>>>>> REL_16_9
 
 /* Additional switches to pass to backend (either boot or standalone) */
 static char *extra_options = "";
@@ -1180,23 +1176,7 @@ test_config_settings(void)
 		if (n_buffers > 0)
 			test_buffs = n_buffers;
 
-<<<<<<< HEAD
-		snprintf(cmd, sizeof(cmd),
-				 "\"%s\" --boot -x0 %s %s %s "
-				 "-c max_connections=%d "
-				 "-c shared_buffers=%d "
-				 "-c dynamic_shared_memory_type=%s "
-				 "< \"%s\" > \"%s\" 2>&1",
-				 backend_exec, boot_options, extra_options,
-				 term_fd_opt ? term_fd_opt : "",
-				 test_conns, test_buffs,
-				 dynamic_shared_memory_type,
-				 DEVNULL, DEVNULL);
-		status = system(cmd);
-		if (status == 0)
-=======
 		if (test_specific_config_settings(test_conns, test_buffs))
->>>>>>> REL_16_9
 		{
 			n_connections = test_conns;
 			ok_buffers = test_buffs;
@@ -1204,8 +1184,7 @@ test_config_settings(void)
 		}
 		if (n_connections > 0 || i == connslen - 1)
 		{
-			pg_log_error("%s: error %d from: %s",
-						 progname, status, cmd);
+			pg_log_error("%s: error", progname);
 			exit(1);
 		}
 	}
@@ -1224,32 +1203,12 @@ test_config_settings(void)
 			break;
 		}
 
-<<<<<<< HEAD
-		snprintf(cmd, sizeof(cmd),
-				 "\"%s\" --boot -x0 %s %s %s "
-				 "-c max_connections=%d "
-				 "-c shared_buffers=%d "
-				 "-c dynamic_shared_memory_type=%s "
-				 "< \"%s\" > \"%s\" 2>&1",
-				 backend_exec, boot_options, extra_options,
-				 term_fd_opt ? term_fd_opt : "",
-				 n_connections, test_buffs,
-				 dynamic_shared_memory_type,
-				 DEVNULL, DEVNULL);
-		status = system(cmd);
-		if (status == 0)
-		{
-			n_buffers = test_buffs;
-=======
 		if (test_specific_config_settings(n_connections, test_buffs))
->>>>>>> REL_16_9
 			break;
-		}
 	}
 	if (i == bufslen)
 	{
-		pg_log_error("%s: error %d from: %s",
-					 progname, status, cmd);
+		pg_log_error("%s: error", progname);
 		exit(1);
 	}
 
@@ -1277,11 +1236,12 @@ test_specific_config_settings(int test_conns, int test_buffs)
 
 	/* Set up the test postmaster invocation */
 	printfPQExpBuffer(cmd,
-					  "\"%s\" --check %s %s "
+					  "\"%s\" --check %s %s %s"
 					  "-c max_connections=%d "
 					  "-c shared_buffers=%d "
 					  "-c dynamic_shared_memory_type=%s",
 					  backend_exec, boot_options, extra_options,
+					  term_fd_opt ? term_fd_opt : "",
 					  test_conns, test_buffs,
 					  dynamic_shared_memory_type);
 
@@ -1342,14 +1302,9 @@ setup_config(void)
 
 	conflines = readfile(conf_file);
 
-<<<<<<< HEAD
-	snprintf(repltok, sizeof(repltok), "max_connections = %d", n_connections);
-	conflines = replace_token(conflines, "#max_connections = 200", repltok);
-=======
 	snprintf(repltok, sizeof(repltok), "%d", n_connections);
 	conflines = replace_guc_value(conflines, "max_connections",
 								  repltok, false);
->>>>>>> REL_16_9
 
 	if ((n_buffers * (BLCKSZ / 1024)) % 1024 == 0)
 		snprintf(repltok, sizeof(repltok), "%dMB",
@@ -1357,12 +1312,9 @@ setup_config(void)
 	else
 		snprintf(repltok, sizeof(repltok), "%dkB",
 				 n_buffers * (BLCKSZ / 1024));
-<<<<<<< HEAD
-	conflines = replace_token(conflines, "#shared_buffers = 128MB", repltok);
-=======
+
 	conflines = replace_guc_value(conflines, "shared_buffers",
 								  repltok, false);
->>>>>>> REL_16_9
 
 	conflines = replace_guc_value(conflines, "lc_messages",
 								  lc_messages, false);
@@ -1488,18 +1440,6 @@ setup_config(void)
 									  "0640", false);
 	}
 
-<<<<<<< HEAD
-#ifdef WIN32
-	conflines = replace_token(conflines,
-							  "#update_process_title = on",
-							  "#update_process_title = off");
-#endif
-
-	snprintf(repltok, sizeof(repltok), "include = '%s'",
-			 GP_INTERNAL_AUTO_CONF_FILE_NAME);
-	conflines = replace_token(conflines, "#include = 'special.conf'", repltok);
-
-=======
 	/*
 	 * Now replace anything that's overridden via -c switches.
 	 */
@@ -1512,7 +1452,6 @@ setup_config(void)
 	}
 
 	/* ... and write out the finished postgresql.conf file */
->>>>>>> REL_16_9
 	snprintf(path, sizeof(path), "%s/postgresql.conf", pg_data);
 
 	writefile(path, conflines);
@@ -1686,8 +1625,7 @@ bootstrap_template1(void)
 	unsetenv("PGCLIENTENCODING");
 
 	snprintf(cmd, sizeof(cmd),
-<<<<<<< HEAD
-			 "\"%s\" --boot -x1 -X %u %s %s %s %s %s %s %s %s %s",
+			 "\"%s\" --boot -X %u %s %s %s %s %s %s %s %s %s",
 			 backend_exec,
 			 wal_segment_size_mb * (1024 * 1024),
 			 data_checksums ? "-k" : "",
@@ -1698,13 +1636,6 @@ bootstrap_template1(void)
 			 boot_options,
 			 extra_options,
 			 term_fd_opt ? term_fd_opt : "",
-=======
-			 "\"%s\" --boot -X %d %s %s %s %s",
-			 backend_exec,
-			 wal_segment_size_mb * (1024 * 1024),
-			 data_checksums ? "-k" : "",
-			 boot_options, extra_options,
->>>>>>> REL_16_9
 			 debug ? "-d 5" : "");
 
 
@@ -1805,114 +1736,11 @@ get_su_pwd(void)
 static void
 setup_depend(FILE *cmdfd)
 {
-<<<<<<< HEAD
-	const char *const *line;
-	static const char *const pg_depend_setup[] = {
-		/*
-		 * Make PIN entries in pg_depend for all objects made so far in the
-		 * tables that the dependency code handles.  This is overkill (the
-		 * system doesn't really depend on having every last weird datatype,
-		 * for instance) but generating only the minimum required set of
-		 * dependencies seems hard.
-		 *
-		 * Catalogs that are intentionally not scanned here are:
-		 *
-		 * pg_database: it's a feature, not a bug, that template1 is not
-		 * pinned.
-		 *
-		 * pg_extension: a pinned extension isn't really an extension, hmm?
-		 *
-		 * pg_tablespace: tablespaces don't participate in the dependency
-		 * code, and DropTableSpace() explicitly protects the built-in
-		 * tablespaces.
-		 *
-		 * First delete any already-made entries; PINs override all else, and
-		 * must be the only entries for their objects.
-		 */
-		"DELETE FROM pg_depend;\n\n",
-		"VACUUM pg_depend;\n\n",
-		"DELETE FROM pg_shdepend;\n\n",
-		"VACUUM pg_shdepend;\n\n",
-
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_class;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_proc;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_type;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_cast;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_constraint;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_conversion;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_attrdef;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_language;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_operator;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_opclass;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_opfamily;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_am;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_amop;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_amproc;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_rewrite;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_trigger;\n\n",
-
-		/*
-		 * restriction here to avoid pinning the public namespace
-		 */
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_namespace "
-		"    WHERE nspname ~ '^(pg_|gp_)';\n\n",
-
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_ts_parser;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_ts_dict;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_ts_template;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_ts_config;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_collation;\n\n",
-		"INSERT INTO pg_shdepend SELECT 0,0,0,0, tableoid,oid, 'p' "
-		" FROM pg_authid;\n\n",
-
-		/* GPDB additions */
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_foreign_data_wrapper;\n\n",
-		"INSERT INTO pg_depend SELECT 0,0,0, tableoid,oid,0, 'p' "
-		" FROM pg_foreign_server;\n\n",
-		"INSERT INTO pg_shdepend SELECT 0,0,0,0, tableoid,oid, 'p' "
-		" FROM pg_profile;\n\n",
-		"INSERT INTO pg_shdepend SELECT 0,0,0,0, tableoid,oid, 'p' "
-		" FROM pg_resgroup;\n\n",
-		"INSERT INTO pg_shdepend SELECT 0,0,0,0, tableoid,oid, 'p' "
-		" FROM pg_resourcetype;\n\n",
-		"INSERT INTO pg_shdepend SELECT 0,0,0,0, tableoid,oid, 'p' "
-		" FROM pg_resqueue;\n\n",
-
-		NULL
-	};
-
-	for (line = pg_depend_setup; *line != NULL; line++)
-		PG_CMD_PUTS(*line);
-=======
 	/*
 	 * Advance the OID counter so that subsequently-created objects aren't
 	 * pinned.
 	 */
 	PG_CMD_PUTS("SELECT pg_stop_making_pinned_objects();\n\n");
->>>>>>> REL_16_9
 }
 
 /*
@@ -2003,150 +1831,6 @@ setup_collation(FILE *cmdfd)
 static void
 setup_privileges(FILE *cmdfd)
 {
-<<<<<<< HEAD
-	char	  **line;
-	char	  **priv_lines;
-	static char *privileges_setup[] = {
-		"UPDATE pg_class "
-		"  SET relacl = (SELECT array_agg(a.acl) FROM "
-		" (SELECT E'=r/\"$POSTGRES_SUPERUSERNAME\"' as acl "
-		"  UNION SELECT unnest(pg_catalog.acldefault("
-		"    CASE WHEN relkind = " CppAsString2(RELKIND_SEQUENCE) " THEN 's' "
-		"         ELSE 'r' END::\"char\"," CppAsString2(BOOTSTRAP_SUPERUSERID) "::oid))"
-		" ) as a) "
-		"  WHERE relkind IN (" CppAsString2(RELKIND_RELATION) ", "
-		CppAsString2(RELKIND_VIEW) ", " CppAsString2(RELKIND_MATVIEW) ", "
-		CppAsString2(RELKIND_SEQUENCE) ", " CppAsString2(RELKIND_DIRECTORY_TABLE) ")"
-		"  AND relacl IS NULL;\n\n",
-		"GRANT USAGE ON SCHEMA pg_catalog TO PUBLIC;\n\n",
-		"GRANT CREATE, USAGE ON SCHEMA public TO PUBLIC;\n\n",
-		"REVOKE ALL ON pg_largeobject FROM PUBLIC;\n\n",
-		"INSERT INTO pg_init_privs "
-		"  (objoid, classoid, objsubid, initprivs, privtype)"
-		"    SELECT"
-		"        oid,"
-		"        (SELECT oid FROM pg_class WHERE relname = 'pg_class'),"
-		"        0,"
-		"        relacl,"
-		"        'i'"
-		"    FROM"
-		"        pg_class"
-		"    WHERE"
-		"        relacl IS NOT NULL"
-		"        AND relkind IN (" CppAsString2(RELKIND_RELATION) ", "
-		CppAsString2(RELKIND_VIEW) ", " CppAsString2(RELKIND_MATVIEW) ", "
-		CppAsString2(RELKIND_SEQUENCE) ", " CppAsString2(RELKIND_DIRECTORY_TABLE) ");\n\n",
-		"INSERT INTO pg_init_privs "
-		"  (objoid, classoid, objsubid, initprivs, privtype)"
-		"    SELECT"
-		"        pg_class.oid,"
-		"        (SELECT oid FROM pg_class WHERE relname = 'pg_class'),"
-		"        pg_attribute.attnum,"
-		"        pg_attribute.attacl,"
-		"        'i'"
-		"    FROM"
-		"        pg_class"
-		"        JOIN pg_attribute ON (pg_class.oid = pg_attribute.attrelid)"
-		"    WHERE"
-		"        pg_attribute.attacl IS NOT NULL"
-		"        AND pg_class.relkind IN (" CppAsString2(RELKIND_RELATION) ", "
-		CppAsString2(RELKIND_VIEW) ", " CppAsString2(RELKIND_MATVIEW) ", "
-		CppAsString2(RELKIND_SEQUENCE) ", " CppAsString2(RELKIND_DIRECTORY_TABLE) ");\n\n",
-		"INSERT INTO pg_init_privs "
-		"  (objoid, classoid, objsubid, initprivs, privtype)"
-		"    SELECT"
-		"        oid,"
-		"        (SELECT oid FROM pg_class WHERE relname = 'pg_proc'),"
-		"        0,"
-		"        proacl,"
-		"        'i'"
-		"    FROM"
-		"        pg_proc"
-		"    WHERE"
-		"        proacl IS NOT NULL;\n\n",
-		"INSERT INTO pg_init_privs "
-		"  (objoid, classoid, objsubid, initprivs, privtype)"
-		"    SELECT"
-		"        oid,"
-		"        (SELECT oid FROM pg_class WHERE relname = 'pg_type'),"
-		"        0,"
-		"        typacl,"
-		"        'i'"
-		"    FROM"
-		"        pg_type"
-		"    WHERE"
-		"        typacl IS NOT NULL;\n\n",
-		"INSERT INTO pg_init_privs "
-		"  (objoid, classoid, objsubid, initprivs, privtype)"
-		"    SELECT"
-		"        oid,"
-		"        (SELECT oid FROM pg_class WHERE relname = 'pg_language'),"
-		"        0,"
-		"        lanacl,"
-		"        'i'"
-		"    FROM"
-		"        pg_language"
-		"    WHERE"
-		"        lanacl IS NOT NULL;\n\n",
-		"INSERT INTO pg_init_privs "
-		"  (objoid, classoid, objsubid, initprivs, privtype)"
-		"    SELECT"
-		"        oid,"
-		"        (SELECT oid FROM pg_class WHERE "
-		"         relname = 'pg_largeobject_metadata'),"
-		"        0,"
-		"        lomacl,"
-		"        'i'"
-		"    FROM"
-		"        pg_largeobject_metadata"
-		"    WHERE"
-		"        lomacl IS NOT NULL;\n\n",
-		"INSERT INTO pg_init_privs "
-		"  (objoid, classoid, objsubid, initprivs, privtype)"
-		"    SELECT"
-		"        oid,"
-		"        (SELECT oid FROM pg_class WHERE relname = 'pg_namespace'),"
-		"        0,"
-		"        nspacl,"
-		"        'i'"
-		"    FROM"
-		"        pg_namespace"
-		"    WHERE"
-		"        nspacl IS NOT NULL;\n\n",
-		"INSERT INTO pg_init_privs "
-		"  (objoid, classoid, objsubid, initprivs, privtype)"
-		"    SELECT"
-		"        oid,"
-		"        (SELECT oid FROM pg_class WHERE "
-		"         relname = 'pg_foreign_data_wrapper'),"
-		"        0,"
-		"        fdwacl,"
-		"        'i'"
-		"    FROM"
-		"        pg_foreign_data_wrapper"
-		"    WHERE"
-		"        fdwacl IS NOT NULL;\n\n",
-		"INSERT INTO pg_init_privs "
-		"  (objoid, classoid, objsubid, initprivs, privtype)"
-		"    SELECT"
-		"        oid,"
-		"        (SELECT oid FROM pg_class "
-		"         WHERE relname = 'pg_foreign_server'),"
-		"        0,"
-		"        srvacl,"
-		"        'i'"
-		"    FROM"
-		"        pg_foreign_server"
-		"    WHERE"
-		"        srvacl IS NOT NULL;\n\n",
-		NULL
-	};
-
-	priv_lines = replace_token(privileges_setup, "$POSTGRES_SUPERUSERNAME",
-							   escape_quotes(username));
-	for (line = priv_lines; *line != NULL; line++)
-		PG_CMD_PUTS(*line);
-=======
 	PG_CMD_PRINTF("UPDATE pg_class "
 				  "  SET relacl = (SELECT array_agg(a.acl) FROM "
 				  " (SELECT E'=r/\"%s\"' as acl "
@@ -2156,7 +1840,7 @@ setup_privileges(FILE *cmdfd)
 				  " ) as a) "
 				  "  WHERE relkind IN (" CppAsString2(RELKIND_RELATION) ", "
 				  CppAsString2(RELKIND_VIEW) ", " CppAsString2(RELKIND_MATVIEW) ", "
-				  CppAsString2(RELKIND_SEQUENCE) ")"
+				  CppAsString2(RELKIND_SEQUENCE) ", " CppAsString2(RELKIND_DIRECTORY_TABLE) ")"
 				  "  AND relacl IS NULL;\n\n",
 				  escape_quotes(username));
 	PG_CMD_PUTS("GRANT USAGE ON SCHEMA pg_catalog, public TO PUBLIC;\n\n");
@@ -2175,7 +1859,7 @@ setup_privileges(FILE *cmdfd)
 				"        relacl IS NOT NULL"
 				"        AND relkind IN (" CppAsString2(RELKIND_RELATION) ", "
 				CppAsString2(RELKIND_VIEW) ", " CppAsString2(RELKIND_MATVIEW) ", "
-				CppAsString2(RELKIND_SEQUENCE) ");\n\n");
+				CppAsString2(RELKIND_SEQUENCE) ", " CppAsString2(RELKIND_DIRECTORY_TABLE) ");\n\n");
 	PG_CMD_PUTS("INSERT INTO pg_init_privs "
 				"  (objoid, classoid, objsubid, initprivs, privtype)"
 				"    SELECT"
@@ -2191,7 +1875,7 @@ setup_privileges(FILE *cmdfd)
 				"        pg_attribute.attacl IS NOT NULL"
 				"        AND pg_class.relkind IN (" CppAsString2(RELKIND_RELATION) ", "
 				CppAsString2(RELKIND_VIEW) ", " CppAsString2(RELKIND_MATVIEW) ", "
-				CppAsString2(RELKIND_SEQUENCE) ");\n\n");
+				CppAsString2(RELKIND_SEQUENCE) ", " CppAsString2(RELKIND_DIRECTORY_TABLE) ");\n\n");
 	PG_CMD_PUTS("INSERT INTO pg_init_privs "
 				"  (objoid, classoid, objsubid, initprivs, privtype)"
 				"    SELECT"
@@ -2279,7 +1963,6 @@ setup_privileges(FILE *cmdfd)
 				"        pg_foreign_server"
 				"    WHERE"
 				"        srvacl IS NOT NULL;\n\n");
->>>>>>> REL_16_9
 }
 
 /*
@@ -2550,27 +2233,6 @@ make_template0(FILE *cmdfd)
 static void
 make_postgres(FILE *cmdfd)
 {
-<<<<<<< HEAD
-	const char *const *line;
-	static const char *const postgres_setup[] = {
-		"CREATE DATABASE postgres;\n\n",
-		"COMMENT ON DATABASE postgres IS 'default administrative connection database';\n\n",
-		/*
-		 * Make 'postgres' a template database
-		 */
-		"UPDATE pg_database SET "
-		"	datistemplate = 't' "
-		"    WHERE datname = 'postgres';\n\n",
-		/*
-		 * Clean out dead rows in pg_database
-		 */
-		"VACUUM FULL pg_database;\n\n",
-		NULL
-	};
-
-	for (line = postgres_setup; *line; line++)
-		PG_CMD_PUTS(*line);
-=======
 	/*
 	 * Just as we did for template0, and for the same reasons, assign a fixed
 	 * OID to postgres and select the file_copy strategy.
@@ -2578,7 +2240,10 @@ make_postgres(FILE *cmdfd)
 	PG_CMD_PUTS("CREATE DATABASE postgres OID = " CppAsString2(PostgresDbOid)
 				" STRATEGY = file_copy;\n\n");
 	PG_CMD_PUTS("COMMENT ON DATABASE postgres IS 'default administrative connection database';\n\n");
->>>>>>> REL_16_9
+	PG_CMD_PUTS("UPDATE pg_database SET "
+				"	datistemplate = 't' "
+				"    WHERE datname = 'postgres';\n\n");
+	PG_CMD_PUTS("VACUUM FULL pg_database;\n\n");
 }
 
 /*
@@ -3108,32 +2773,23 @@ usage(const char *progname)
 	printf(_("  --shared_buffers=NBUFFERS number of shared buffers; or, amount of memory for\n"
 			 "                            shared buffers if kB/MB/GB suffix is appended\n"));
 	printf(_("\nLess commonly used options:\n"));
-<<<<<<< HEAD
-	printf(_("  -c, --cluster-key-command=COMMAND\n"
+	printf(_("  -C, --cluster-key-command=COMMAND\n"
 			 "                            enable cluster file encryption and set command\n"
 			 "                            to obtain the cluster key\n"));
-	printf(_("  -d, --debug               generate lots of debugging output\n"));
-	printf(_("      --discard-caches      set debug_discard_caches=1\n"));
 	printf(_("  -K, --file-encryption-method=METHOD\n"
 			 "                            cluster file encryption method\n"));
-=======
 	printf(_("  -c, --set NAME=VALUE      override default setting for server parameter\n"));
 	printf(_("  -d, --debug               generate lots of debugging output\n"));
 	printf(_("      --discard-caches      set debug_discard_caches=1\n"));
->>>>>>> REL_16_9
 	printf(_("  -L DIRECTORY              where to find the input files\n"));
 	printf(_("  -n, --no-clean            do not clean up after errors\n"));
 	printf(_("  -N, --no-sync             do not wait for changes to be written safely to disk\n"));
 	printf(_("  -R, --authprompt          prompt for a passphrase or PIN\n"));
 	printf(_("      --no-instructions     do not print instructions for next steps\n"));
 	printf(_("  -s, --show                show internal settings\n"));
-<<<<<<< HEAD
-	printf(_("  -S, --sync-only           only sync data directory\n"));
 	printf(_("  -u, --copy-encryption-keys=DATADIR\n"
 			 "                            copy the file encryption key from another cluster\n"));
-=======
 	printf(_("  -S, --sync-only           only sync database files to disk, then exit\n"));
->>>>>>> REL_16_9
 	printf(_("\nOther options:\n"));
 	printf(_("  -V, --version             output version information, then exit\n"));
 	printf(_("      --gp-version          output Cloudberry version information, then exit\n"));
@@ -3714,14 +3370,9 @@ initialize_data_directory(void)
 	fflush(stdout);
 
 	snprintf(cmd, sizeof(cmd),
-<<<<<<< HEAD
 			 "\"%s\" %s %s %s template1 >%s",
 			 backend_exec, backend_options, extra_options,
 			 term_fd_opt ? term_fd_opt : "",
-=======
-			 "\"%s\" %s %s template1 >%s",
-			 backend_exec, backend_options, extra_options,
->>>>>>> REL_16_9
 			 DEVNULL);
 
 	PG_CMD_OPEN;
@@ -3822,14 +3473,11 @@ main(int argc, char *argv[])
 		{"file-encryption-method", required_argument, NULL, 'K'},
 		{"allow-group-access", no_argument, NULL, 'g'},
 		{"discard-caches", no_argument, NULL, 14},
-<<<<<<< HEAD
-		{"cluster-key-command", required_argument, NULL, 'c'},
-		{"copy-encryption-keys", required_argument, NULL, 'u'},
-=======
 		{"locale-provider", required_argument, NULL, 15},
 		{"icu-locale", required_argument, NULL, 16},
 		{"icu-rules", required_argument, NULL, 17},
->>>>>>> REL_16_9
+		{"cluster-key-command", required_argument, NULL, 'C'},
+		{"copy-encryption-keys", required_argument, NULL, 'u'},
 		{NULL, 0, NULL, 0}
 	};
 
@@ -3876,12 +3524,7 @@ main(int argc, char *argv[])
 
 	/* process command-line options */
 
-<<<<<<< HEAD
-	while ((c = getopt_long(argc, argv, "A:c:dD:E:gkK:L:nNRsST:u:U:WX:", long_options, &option_index)) != -1)
-=======
-	while ((c = getopt_long(argc, argv, "A:c:dD:E:gkL:nNsST:U:WX:",
-							long_options, &option_index)) != -1)
->>>>>>> REL_16_9
+	while ((c = getopt_long(argc, argv, "A:c:C:dD:E:gkK:L:nNRsST:u:U:WX:", long_options, &option_index)) != -1)
 	{
 		switch (c)
 		{
@@ -4003,7 +3646,7 @@ main(int argc, char *argv[])
 			case 9:
 				pwfilename = pg_strdup(optarg);
 				break;
-			case 'c':
+			case 'C':
 				cluster_key_cmd = pg_strdup(optarg);
 				break;
 			case 'u':
@@ -4038,8 +3681,6 @@ main(int argc, char *argv[])
 										 extra_options,
 										 "-c debug_discard_caches=1");
 				break;
-<<<<<<< HEAD
-=======
 			case 15:
 				if (strcmp(optarg, "icu") == 0)
 					locale_provider = COLLPROVIDER_ICU;
@@ -4054,7 +3695,6 @@ main(int argc, char *argv[])
 			case 17:
 				icu_rules = pg_strdup(optarg);
 				break;
->>>>>>> REL_16_9
 			default:
 				/* getopt_long already emitted a complaint */
 				pg_log_error_hint("Try \"%s --help\" for more information.", progname);
