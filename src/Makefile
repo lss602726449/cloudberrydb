@@ -16,6 +16,24 @@ include Makefile.mock
 # In PostgreSQL, libpqwalreceiver is linked into a separate shared library.
 # In GPDB, it's linked as a normal object, check src/backend/replication/Makefile.
 # Remove backend/replication/libpqwalreceiver from SUBDIRS here.
+#SUBDIRS = \
+#	common \
+#	port \
+#	timezone \
+#	backend \
+#	backend/utils/mb/conversion_procs \
+#	backend/snowball \
+#	include \
+#	interfaces \
+#	backend/replication/pgoutput \
+#	fe_utils \
+#	bin
+#	pl \
+#	makefiles \
+#	test/regress \
+#	test/isolation \
+#	test/perl
+
 SUBDIRS = \
 	common \
 	port \
@@ -27,12 +45,7 @@ SUBDIRS = \
 	interfaces \
 	backend/replication/pgoutput \
 	fe_utils \
-	bin \
-	pl \
-	makefiles \
-	test/regress \
-	test/isolation \
-	test/perl
+	bin
 
 ifeq ($(with_llvm), yes)
 SUBDIRS += backend/jit/llvm
