@@ -288,6 +288,7 @@ ao_vacuum_rel_post_cleanup(Relation onerel, VacuumParams *params, BufferAccessSt
 								 &relhasindex,
 								 &total_file_segs);
 
+	/* MERGE16_FIXME: How to set limits for ao */
 	vacuum_set_xid_limits(onerel,
 						  params->freeze_min_age,
 						  params->freeze_table_age,

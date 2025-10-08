@@ -131,6 +131,9 @@ int			PostAuthDelay = 0;
 /* Time between checks that the client is still connected. */
 int			client_connection_check_interval = 0;
 
+/* flags for non-system relation kinds to restrict use */
+int			restrict_nonsystem_relation_kind;
+
 /*
  * Hook for extensions, to get notified when query cancel or DIE signal is
  * received. This allows the extension to stop whatever it's doing as

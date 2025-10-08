@@ -3822,7 +3822,7 @@ RelationBuildLocalRelation(const char *relname,
 			relfilenumber = relid;
 		else
 		{
-			relfilenumber = GetNewRelFileNode(reltablespace, NULL, relpersistence);
+			relfilenumber = GetNewRelFileNumber(reltablespace, NULL, relpersistence);
 			if (Gp_role == GP_ROLE_EXECUTE || IsBinaryUpgrade)
 				AdvanceObjectId(relid);
 		}

@@ -3,18 +3,20 @@
  * queryjumble.h
  *	  Query normalization and fingerprinting.
  *
- * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * IDENTIFICATION
- *	  src/include/nodes/queryjumble.h
+ *	  src/include/utils/queryjumble.h
  *
  *-------------------------------------------------------------------------
  */
-#ifndef QUERYJUMBLE_H
-#define QUERYJUMBLE_H
+#ifndef QUERYJUBLE_H
+#define QUERYJUBLE_H
 
 #include "nodes/parsenodes.h"
+
+#define JUMBLE_SIZE				1024	/* query serialization buffer size */
 
 /*
  * Struct for tracking locations/lengths of constants during normalization
@@ -60,15 +62,15 @@ enum ComputeQueryIdType
 };
 
 /* GUC parameters */
-extern PGDLLIMPORT int compute_query_id;
+extern int	compute_query_id;
 
 
 extern const char *CleanQuerytext(const char *query, int *location, int *len);
-extern JumbleState *JumbleQuery(Query *query);
+extern JumbleState *JumbleQuery(Query *query, const char *querytext);
 extern JumbleState *JumbleQueryDirect(Query *query, const char *querytext);
 extern void EnableQueryId(void);
 
-extern PGDLLIMPORT bool query_id_enabled;
+extern bool query_id_enabled;
 
 /*
  * Returns whether query identifier computation has been enabled, either

@@ -464,15 +464,6 @@ extern void vac_update_relstats(Relation relation,
 								bool *minmulti_updated,
 								bool in_outer_xact,
 								bool isvacuum);
-extern void vacuum_set_xid_limits(Relation rel,
-								  int freeze_min_age, int freeze_table_age,
-								  int multixact_freeze_min_age,
-								  int multixact_freeze_table_age,
-								  TransactionId *oldestXmin,
-								  TransactionId *freezeLimit,
-								  TransactionId *xidFullScanLimit,
-								  MultiXactId *multiXactCutoff,
-								  MultiXactId *mxactFullScanLimit);
 extern bool vacuum_get_cutoffs(Relation rel, const VacuumParams *params,
 							   struct VacuumCutoffs *cutoffs);
 extern bool vacuum_xid_failsafe_check(const struct VacuumCutoffs *cutoffs);
@@ -493,7 +484,15 @@ extern Size vac_max_items_to_alloc_size(int max_items);
 /* In postmaster/autovacuum.c */
 extern void AutoVacuumUpdateCostLimit(void);
 extern void VacuumUpdateCosts(void);
-
+extern void vacuum_set_xid_limits(Relation rel,
+								  int freeze_min_age, int freeze_table_age,
+								  int multixact_freeze_min_age,
+								  int multixact_freeze_table_age,
+								  TransactionId *oldestXmin,
+								  TransactionId *freezeLimit,
+								  TransactionId *xidFullScanLimit,
+								  MultiXactId *multiXactCutoff,
+								  MultiXactId *mxactFullScanLimit);
 /* in commands/vacuumparallel.c */
 extern ParallelVacuumState *parallel_vacuum_init(Relation rel, Relation *indrels,
 												 int nindexes, int nrequested_workers,

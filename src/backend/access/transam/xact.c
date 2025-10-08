@@ -1675,13 +1675,6 @@ RecordTransactionCommit(void)
 		replorigin = (replorigin_session_origin != InvalidRepOriginId &&
 					  replorigin_session_origin != DoNotReplicateId);
 
-		/*
-		 * Begin commit critical section and insert the commit XLOG record.
-		 */
-		/* Tell bufmgr and smgr to prepare for commit */
-		if (markXidCommitted)
-			BufmgrCommit();
-
 		if (isDtxPrepared)
 			SIMPLE_FAULT_INJECTOR("before_xlog_xact_distributed_commit");
 

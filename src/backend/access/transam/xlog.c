@@ -5199,11 +5199,6 @@ UpdateCatalogForStandbyPromotion(void)
 	if (MyBackendId > MaxBackends || MyBackendId <= 0)
 			elog(FATAL, "bad backend id: %d", MyBackendId);
 
-	/*
-	 * bufmgr needs another initialization call too
-	 */
-	InitBufferPoolBackend();
-
 	/* Start transaction locally */
 	old_role = Gp_role;
 	Gp_role = GP_ROLE_UTILITY;

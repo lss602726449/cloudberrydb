@@ -8819,6 +8819,7 @@ create_partial_grouping_paths(PlannerInfo *root,
 										 NIL,
 										 agg_partial_costs,
 										 dNumPartialGroups), root);
+#if 0
 			else
 				add_path(partially_grouped_rel, (Path *)
 						 create_group_path(root,
@@ -8827,6 +8828,7 @@ create_partial_grouping_paths(PlannerInfo *root,
 										   root->processed_groupClause,
 										   NIL,
 										   dNumPartialGroups), root);
+#endif
 		}
 	}
 

@@ -12200,9 +12200,6 @@
 { oid => 6039, descr => 'Statistics: Cloudberry session id of backend',
    proname => 'pg_stat_get_backend_session_id', provolatile => 's', proparallel => 'r', prorettype => 'int4', proargtypes => 'int4', prosrc => 'pg_stat_get_backend_session_id' },
 
-{ oid => 6042, descr => 'change priority of all the backends for a given session id',
-   proname => 'pg_renice_session', provolatile => 'v', proparallel => 'r', prorettype => 'int4', proargtypes => 'int4 int4', prosrc => 'pg_renice_session' },
-
 { oid => 7098, descr => 'get replication error',
    proname => 'gp_replication_error', provolatile => 'v', proparallel => 'r', prorettype => 'text', proargtypes => '', prosrc => 'gp_replication_error' },
 

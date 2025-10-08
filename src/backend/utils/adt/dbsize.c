@@ -1219,7 +1219,7 @@ pg_relation_filenode(PG_FUNCTION_ARGS)
 			if (relform->relfilenode)
 				result = relform->relfilenode;
 			else				/* Consult the relation mapper */
-				result = RelationMapOidToFilenode(relid,
+				result = RelationMapOidToFilenumber(relid,
 												  relform->relisshared);
 			break;
 
@@ -1314,7 +1314,7 @@ pg_relation_filepath(PG_FUNCTION_ARGS)
 			if (relform->relfilenode)
 				rlocator.relNumber = relform->relfilenode;
 			else				/* Consult the relation mapper */
-				rlocator.relNumber = RelationMapOidToFilenode(relid,
+				rlocator.relNumber = RelationMapOidToFilenumber(relid,
 														 relform->relisshared);
 			break;
 

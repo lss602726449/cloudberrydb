@@ -55,11 +55,6 @@ extern int	BufFileSeekBlock(BufFile *file, int64 blknum);
 extern int64 BufFileSize(BufFile *file);
 extern long BufFileAppend(BufFile *target, BufFile *source);
 
-extern BufFile *BufFileCreateShared(SharedFileSet *fileset, const char *name, struct workfile_set *work_set);
-extern void BufFileExportShared(BufFile *file);
-extern BufFile *BufFileOpenShared(SharedFileSet *fileset, const char *name,
-								  int mode);
-
 extern BufFile *BufFileCreateFileSet(FileSet *fileset, const char *name, workfile_set *work_set);
 extern void BufFileExportFileSet(BufFile *file);
 extern BufFile *BufFileOpenFileSet(FileSet *fileset, const char *name,
