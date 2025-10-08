@@ -1771,6 +1771,16 @@ pg_stat_get_snapshot_timestamp(PG_FUNCTION_ARGS)
 	PG_RETURN_TIMESTAMPTZ(ts);
 }
 
+/* Discard the active statistics snapshot */
+Datum
+pg_stat_clear_snapshot(PG_FUNCTION_ARGS)
+{
+	pgstat_clear_snapshot();
+
+	PG_RETURN_VOID();
+}
+
+
 /* Force statistics to be reported at the next occasion */
 Datum
 pg_stat_force_next_flush(PG_FUNCTION_ARGS)

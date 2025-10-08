@@ -547,7 +547,7 @@ tuplestore_end(Tuplestorestate *state)
 	if (state->myfile)
 		BufFileClose(state->myfile);
 	if (state->share_status == TSHARE_WRITER)
-		BufFileDeleteShared(state->fileset, state->shared_filename);
+		BufFileDeleteFileSet(&state->fileset->fs, state->shared_filename, false);
 	if (state->work_set)
 		workfile_mgr_close_set(state->work_set);
 	if (state->shared_filename)

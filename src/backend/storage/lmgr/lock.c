@@ -3541,6 +3541,102 @@ LockRefindAndRelease(LockMethod lockMethodTable, PGPROC *proc,
 }
 
 /*
+ * Prepare for prepare, while we're still in a transaction.
+ *
+ * This marks LOCALLOCK objects on temporary tables, so that we can
+ * ignore them while writing the prepare record. Figuring out which
+ * tables are temporary requires catalog access, hence we must do this
+ * before we start actually preparing.
+ *
+ * If new locks are taken after this, they will be considered as
+ * not temp.
+ */
+void
+PrePrepare_Locks(void)
+{
+	HASH_SEQ_STATUS status;
+	LOCALLOCK  *locallock;
+
+	/*
+	 * Scan the local locks, and set the 'istemptable' flags.
+	 */
+	hash_seq_init(&status, LockMethodLocalHash);
+	while ((locallock = (LOCALLOCK *) hash_seq_search(&status)) != NULL)
+	{
+		LOCALLOCKOWNER *lockOwners = locallock->lockOwners;
+		bool		haveSessionLock;
+		bool		haveXactLock;
+		int			i;
+
+		locallock->istemptable = false;
+
+		/*
+		 * Skip locks that would be ignored by AtPrepare_Locks() anyway.
+		 *
+		 * NOTE: these conditions should be kept in sync with AtPrepare_Locks()!
+		 */
+
+		/*
+		 * Ignore VXID locks.  We don't want those to be held by prepared
+		 * transactions, since they aren't meaningful after a restart.
+		 */
+		if (locallock->tag.lock.locktag_type == LOCKTAG_VIRTUALTRANSACTION)
+			continue;
+
+		/* Ignore it if we don't actually hold the lock */
+		if (locallock->nLocks <= 0)
+			continue;
+
+		/* Scan to see whether we hold it at session or transaction level */
+		haveSessionLock = haveXactLock = false;
+		for (i = locallock->numLockOwners - 1; i >= 0; i--)
+		{
+			if (lockOwners[i].owner == NULL)
+				haveSessionLock = true;
+			else
+				haveXactLock = true;
+		}
+
+		/* Ignore it if we have only session lock */
+		if (!haveXactLock)
+			continue;
+
+		/*
+		 * If we have both session- and transaction-level locks, fail.  This
+		 * should never happen with regular locks, since we only take those at
+		 * session level in some special operations like VACUUM.  It's
+		 * possible to hit this with advisory locks, though.
+		 *
+		 * It would be nice if we could keep the session hold and give away
+		 * the transactional hold to the prepared xact.  However, that would
+		 * require two PROCLOCK objects, and we cannot be sure that another
+		 * PROCLOCK will be available when it comes time for PostPrepare_Locks
+		 * to do the deed.  So for now, we error out while we can still do so
+		 * safely.
+		 */
+		if (haveSessionLock)
+			ereport(ERROR,
+					(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
+							errmsg("cannot PREPARE while holding both session-level and transaction-level locks on the same object")));
+
+		/* gp-change
+		 *
+		 * We allow 2PC commit transactions to include temp objects.
+		 * After PREPARE we WILL NOT transfer locks on the temp objects
+		 * into our 2PC record.  Instead, we will keep them with the proc which
+		 * will be released at the end of the session.
+		 *
+		 * There doesn't seem to be any reason not to do this.  Once the txn
+		 * is prepared, it will be committed or aborted regardless of the state
+		 * of the temp table.  and quite possibly, the temp table will be
+		 * destroyed at the end of the session, while the transaction will be
+		 * committed from another session.
+		 */
+		locallock->istemptable = LockTagIsTemp(&locallock->tag.lock);
+	}
+}
+
+/*
  * CheckForSessionAndXactLocks
  *		Check to see if transaction holds both session-level and xact-level
  *		locks on the same object; if so, throw an error.
