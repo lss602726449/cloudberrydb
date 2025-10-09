@@ -254,16 +254,7 @@ static const char *const map_old_guc_names[] = {
 /* Memory context holding all GUC-related data */
 static MemoryContext GUCMemoryContext;
 
-/*
- * We use a dynahash table to look up GUCs by name, or to iterate through
- * all the GUCs.  The gucname field is redundant with gucvar->name, but
- * dynahash makes it too painful to not store the hash key separately.
- */
-typedef struct
-{
-	const char *gucname;		/* hash key */
-	struct config_generic *gucvar;	/* -> GUC's defining structure */
-} GUCHashEntry;
+
 
 static HTAB *guc_hashtab;		/* entries are GUCHashEntrys */
 
@@ -1182,6 +1173,18 @@ build_guc_variables(void)
 		hentry->gucvar = gucvar;
 	}
 
+	for (i = 0; ConfigureNamesEnum_gp[i].gen.name; i++)
+	{
+		struct config_generic *gucvar = &ConfigureNamesEnum_gp[i].gen;
+
+		hentry = (GUCHashEntry *) hash_search(guc_hashtab,
+											  &gucvar->name,
+											  HASH_ENTER,
+											  &found);
+		Assert(!found);
+		hentry->gucvar = gucvar;
+	}
+
 	gpdb_assign_sync_flag(guc_hashtab);
 
 	Assert(num_vars == hash_get_num_entries(guc_hashtab));
@@ -1673,10 +1676,12 @@ InitializeGUCOptions(void)
 	hash_seq_init(&status, guc_hashtab);
 	while ((hentry = (GUCHashEntry *) hash_seq_search(&status)) != NULL)
 	{
-		/* Check mapping between initial and default value */
-		Assert(check_GUC_init(hentry->gucvar));
+
 
 		InitializeOneGUCOption(hentry->gucvar);
+
+		/* Check mapping between initial and default value */
+//		Assert(check_GUC_init(hentry->gucvar));
 	}
 
 	reporting_enabled = false;

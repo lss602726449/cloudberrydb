@@ -4168,7 +4168,7 @@ struct config_int ConfigureNamesInt_gp[] =
 		{"gp_resqueue_priority_local_interval", PGC_POSTMASTER, RESOURCES_MGM,
 			gettext_noop("A measure of how often a backend process must consider backing off."),
 			NULL,
-			GUC_NO_SHOW_ALL
+			GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
 		},
 		&gp_resqueue_priority_local_interval,
 		100000, 500, INT_MAX,
@@ -4187,7 +4187,7 @@ struct config_int ConfigureNamesInt_gp[] =
 		{"gp_resqueue_priority_inactivity_timeout", PGC_POSTMASTER, RESOURCES_MGM,
 			gettext_noop("If a backend does not report progress in this time (in ms), it is deemed inactive."),
 			NULL,
-			GUC_NO_SHOW_ALL
+			GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
 		},
 		&gp_resqueue_priority_inactivity_timeout,
 		2000, 500, INT_MAX,
@@ -4197,7 +4197,7 @@ struct config_int ConfigureNamesInt_gp[] =
 		{"gp_resqueue_priority_grouping_timeout", PGC_POSTMASTER, RESOURCES_MGM,
 			gettext_noop("A backend gives up on finding a better group leader after this timeout (in ms)."),
 			NULL,
-			GUC_NO_SHOW_ALL
+			GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
 		},
 		&gp_resqueue_priority_grouping_timeout,
 		1000, 1000, INT_MAX,
@@ -4811,7 +4811,7 @@ struct config_string ConfigureNamesString_gp[] =
 		{"gp_resqueue_priority_default_value", PGC_POSTMASTER, RESOURCES_MGM,
 			gettext_noop("Default weight when one cannot be associated with a statement."),
 			NULL,
-			GUC_NO_SHOW_ALL
+			GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
 		},
 		&gp_resqueue_priority_default_value,
 		"MEDIUM",
@@ -5254,6 +5254,20 @@ static int guc_array_compare(const void *a, const void *b)
 
 void gpdb_assign_sync_flag_one(struct config_generic *var, bool predefine)
 {
+	static bool init = false;
+	/* ordering guc_name_array alphabets */
+	if (!init) {
+		sync_guc_num = sizeof(sync_guc_names_array) / sizeof(char *);
+		qsort((void *) sync_guc_names_array, sync_guc_num,
+			  sizeof(char *), guc_array_compare);
+
+		unsync_guc_num = sizeof(unsync_guc_names_array) / sizeof(char *);
+		qsort((void *) unsync_guc_names_array, unsync_guc_num,
+			  sizeof(char *), guc_array_compare);
+
+		init = true;
+	}
+
 	/* if the sync flags is defined in guc variable, skip it */
 	if (var->flags & (GUC_GPDB_NEED_SYNC | GUC_GPDB_NO_SYNC))
 		return;
@@ -5295,11 +5309,14 @@ void gpdb_assign_sync_flag_one(struct config_generic *var, bool predefine)
 void gpdb_assign_sync_flag(HTAB *guc_tab)
 {
 	HASH_SEQ_STATUS status;
-	struct config_generic *var;
+	GUCHashEntry *entry;
 
 	hash_seq_init(&status, guc_tab);
-	while((var = hash_seq_search(&status)) != NULL)
+	while((entry = hash_seq_search(&status)) != NULL)
 	{
+		struct config_generic *var;
+
+		var = entry->gucvar;
 		gpdb_assign_sync_flag_one(var, true);
 	}
 }
@@ -5490,7 +5507,7 @@ check_gp_default_storage_options(char **newval, void **extra, GucSource source)
 	 * appendonly storage options.
 	 */
 
-	free(*newval);
+	guc_free(*newval);
 	*newval = storageOptToString(newopts);
 	*extra = newopts;
 

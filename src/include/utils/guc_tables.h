@@ -229,6 +229,17 @@ struct config_generic
 	int			sourceline;		/* line in source file */
 };
 
+/*
+ * We use a dynahash table to look up GUCs by name, or to iterate through
+ * all the GUCs.  The gucname field is redundant with gucvar->name, but
+ * dynahash makes it too painful to not store the hash key separately.
+ */
+typedef struct
+{
+	const char *gucname;		/* hash key */
+	struct config_generic *gucvar;	/* -> GUC's defining structure */
+} GUCHashEntry;
+
 /* bit values in status field */
 #define GUC_IS_IN_FILE		0x0001	/* found it in config file */
 /*
