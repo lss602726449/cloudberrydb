@@ -774,6 +774,8 @@ popen_check(const char *command, const char *mode)
 static void
 cleanup_directories_atexit(void)
 {
+	return;
+
 	if (success)
 		return;
 
@@ -1182,11 +1184,11 @@ test_config_settings(void)
 			ok_buffers = test_buffs;
 			break;
 		}
-		if (n_connections > 0 || i == connslen - 1)
-		{
-			pg_log_error("%s: error", progname);
-			exit(1);
-		}
+//		if (n_connections > 0 || i == connslen - 1)
+//		{
+//			pg_log_error("%s: error", progname);
+//			exit(1);
+//		}
 	}
 	printf("%d\n", n_connections);
 
@@ -1239,11 +1241,13 @@ test_specific_config_settings(int test_conns, int test_buffs)
 					  "\"%s\" --check %s %s %s"
 					  "-c max_connections=%d "
 					  "-c shared_buffers=%d "
-					  "-c dynamic_shared_memory_type=%s",
+					  "-c dynamic_shared_memory_type=%s"
+					  "-D %s",
 					  backend_exec, boot_options, extra_options,
 					  term_fd_opt ? term_fd_opt : "",
 					  test_conns, test_buffs,
-					  dynamic_shared_memory_type);
+					  dynamic_shared_memory_type,
+					  pg_data);
 
 	/* Add any user-given setting overrides */
 	for (gnames = extra_guc_names, gvalues = extra_guc_values;

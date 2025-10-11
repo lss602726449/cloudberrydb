@@ -67,6 +67,10 @@ static const MemoryContextMethods mcxt_methods[] = {
 	[MCTX_ASET_ID].get_chunk_space = AllocSetGetChunkSpace,
 	[MCTX_ASET_ID].is_empty = AllocSetIsEmpty,
 	[MCTX_ASET_ID].stats = AllocSetStats,
+	[MCTX_ASET_ID].declare_accounting_root = AllocSetDeclareAccountingRoot,
+	[MCTX_ASET_ID].get_current_usage = AllocSetGetCurrentUsage,
+	[MCTX_ASET_ID].get_peak_usage = AllocSetGetPeakUsage,
+	[MCTX_ASET_ID].set_peak_usage = AllocSetSetPeakUsage,
 #ifdef MEMORY_CONTEXT_CHECKING
 	[MCTX_ASET_ID].check = AllocSetCheck,
 #endif

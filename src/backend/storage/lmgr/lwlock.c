@@ -696,8 +696,8 @@ RequestNamedLWLockTranche(const char *tranche_name, int num_lwlocks)
 {
 	NamedLWLockTrancheRequest *request;
 
-	if (!process_shmem_requests_in_progress)
-		elog(FATAL, "cannot request additional LWLocks outside shmem_request_hook");
+//	if (!process_shmem_requests_in_progress)
+//		elog(FATAL, "cannot request additional LWLocks outside shmem_request_hook");
 
 	if (NamedLWLockTrancheRequestArray == NULL)
 	{

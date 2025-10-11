@@ -31,6 +31,11 @@ extern void AllocSetStats(MemoryContext context,
 						  MemoryStatsPrintFunc printfunc, void *passthru,
 						  MemoryContextCounters *totals,
 						  bool print_to_stderr);
+
+extern void AllocSetDeclareAccountingRoot(MemoryContext context);
+extern Size AllocSetGetCurrentUsage(MemoryContext context);
+extern Size AllocSetGetPeakUsage(MemoryContext context);
+extern Size AllocSetSetPeakUsage(MemoryContext context, Size nbytes);
 #ifdef MEMORY_CONTEXT_CHECKING
 extern void AllocSetCheck(MemoryContext context);
 #endif

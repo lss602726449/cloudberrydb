@@ -109,8 +109,6 @@
 
 typedef struct MemoryChunk
 {
-	/* size is always the size of the usable space in the chunk */
-	Size		size;
 #ifdef MEMORY_CONTEXT_CHECKING
 	Size		requested_size;
 #endif

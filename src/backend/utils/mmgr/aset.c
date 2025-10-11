@@ -384,9 +384,6 @@ static AllocSetFreeList context_freelists[2] =
 	}
 };
 
-static Size AllocSetGetPeakUsage(MemoryContext context);
-
-
 /* ----------
  * AllocSetFreeIndex -
  *
@@ -950,7 +947,7 @@ AllocSetAlloc(MemoryContext context, Size size)
 		/* Disallow access to the chunk header. */
 		VALGRIND_MAKE_MEM_NOACCESS(chunk, ALLOC_CHUNKHDRSZ);
 
-		MEMORY_ACCOUNT_INC_ALLOCATED(set, chunk->size);
+		MEMORY_ACCOUNT_INC_ALLOCATED(set, chunk_size);
 
 		return MemoryChunkGetPointer(chunk);
 	}
@@ -1001,7 +998,7 @@ AllocSetAlloc(MemoryContext context, Size size)
 		/* Disallow access to the chunk header. */
 		VALGRIND_MAKE_MEM_NOACCESS(chunk, ALLOC_CHUNKHDRSZ);
 
-		MEMORY_ACCOUNT_INC_ALLOCATED(set, chunk->size);
+		MEMORY_ACCOUNT_INC_ALLOCATED(set, GetChunkSizeFromFreeListIdx(fidx));
 
 		return MemoryChunkGetPointer(chunk);
 	}
@@ -1169,7 +1166,7 @@ AllocSetAlloc(MemoryContext context, Size size)
 	/* Disallow access to the chunk header. */
 	VALGRIND_MAKE_MEM_NOACCESS(chunk, ALLOC_CHUNKHDRSZ);
 
-	MEMORY_ACCOUNT_INC_ALLOCATED(set, chunk->size);
+	MEMORY_ACCOUNT_INC_ALLOCATED(set, chunk_size);
 
 	return MemoryChunkGetPointer(chunk);
 }
@@ -1201,7 +1198,7 @@ AllocSetFree(void *pointer)
 
 		set = block->aset;
 
-	MEMORY_ACCOUNT_DEC_ALLOCATED(set, chunk->size);
+		MEMORY_ACCOUNT_DEC_ALLOCATED(set, block->endptr - (char *) chunk);
 
 #ifdef USE_ASSERT_CHECKING
 	/*
@@ -1259,6 +1256,8 @@ AllocSetFree(void *pointer)
 		fidx = MemoryChunkGetValue(chunk);
 		Assert(FreeListIdxIsValid(fidx));
 		link = GetFreeListLink(chunk);
+
+		MEMORY_ACCOUNT_DEC_ALLOCATED(set, GetChunkSizeFromFreeListIdx(fidx));
 
 #ifdef MEMORY_CONTEXT_CHECKING
 		/* Test for someone scribbling on unused space in chunk */
@@ -1753,6 +1752,26 @@ AllocSetStats(MemoryContext context,
 	}
 }
 
+void
+AllocSetDeclareAccountingRoot(MemoryContext context)
+{
+	AllocSet	set = (AllocSet) context;
+
+	Assert(set->localAllocated == 0);
+
+	set->accountingParent = set;
+}
+
+Size
+AllocSetGetCurrentUsage(MemoryContext context)
+{
+	AllocSet	set = (AllocSet) context;
+
+	Assert(IS_MEMORY_ACCOUNT(set));
+
+	return set->currentAllocated;
+}
+
 static Size
 AllocSetGetPeakUsage_recurse(MemoryContext parent, MemoryContext context)
 {
@@ -1775,7 +1794,7 @@ AllocSetGetPeakUsage_recurse(MemoryContext parent, MemoryContext context)
 	return total;
 }
 
-static Size
+Size
 AllocSetGetPeakUsage(MemoryContext context)
 {
 	AllocSet	set = (AllocSet) context;
@@ -1788,6 +1807,21 @@ AllocSetGetPeakUsage(MemoryContext context)
 	total += AllocSetGetPeakUsage_recurse(context, context);
 
 	return total;
+}
+
+Size
+AllocSetSetPeakUsage(MemoryContext context, Size nbytes)
+{
+	AllocSet	set = (AllocSet) context;
+	Size		oldpeak;
+
+	Assert(IS_MEMORY_ACCOUNT(set));
+
+	oldpeak = set->peakAllocated;
+
+	set->peakAllocated = Max(set->currentAllocated, nbytes);
+
+	return oldpeak;
 }
 
 void
@@ -1846,6 +1880,7 @@ AllocSetTransferAccounting(MemoryContext context, MemoryContext new_parent)
 	}
 
 }
+
 
 #ifdef MEMORY_CONTEXT_CHECKING
 
