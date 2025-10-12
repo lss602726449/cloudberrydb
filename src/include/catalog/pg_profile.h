@@ -41,7 +41,7 @@
  *		typedef struct FormData_pg_profile
  * ----------------
  */
-CATALOG(pg_profile,10135,ProfileRelationId) BKI_SHARED_RELATION BKI_ROWTYPE_OID(10136,ProfileRelation_Rowtype_Id) BKI_SCHEMA_MACRO
+CATALOG(pg_profile,10135,ProfileRelationId) BKI_SHARED_RELATION BKI_ROWTYPE_OID(11145,ProfileRelation_Rowtype_Id) BKI_SCHEMA_MACRO
 {
 	Oid		oid BKI_FORCE_NOT_NULL;		/* oid */
 	NameData	prfname BKI_FORCE_NOT_NULL;	/* name of profile */

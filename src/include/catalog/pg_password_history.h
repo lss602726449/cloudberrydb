@@ -39,7 +39,7 @@
  *		typedef struct FormData_pg_password_history
  * ----------------
  */
-CATALOG(pg_password_history,10141,PasswordHistoryRelationId) BKI_SHARED_RELATION BKI_ROWTYPE_OID(10142,PasswordHistoryRelation_Rowtype_Id) BKI_SCHEMA_MACRO
+CATALOG(pg_password_history,10141,PasswordHistoryRelationId) BKI_SHARED_RELATION BKI_ROWTYPE_OID(11144,PasswordHistoryRelation_Rowtype_Id) BKI_SCHEMA_MACRO
 {
 	Oid		passhistroleid BKI_FORCE_NOT_NULL;	/* oid of role */
 #ifdef CATALOG_VARLEN

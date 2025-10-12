@@ -1198,7 +1198,7 @@ AllocSetFree(void *pointer)
 
 		set = block->aset;
 
-		MEMORY_ACCOUNT_DEC_ALLOCATED(set, block->endptr - (char *) chunk);
+		MEMORY_ACCOUNT_DEC_ALLOCATED(set, block->endptr - (char *) chunk - ALLOC_CHUNKHDRSZ);
 
 #ifdef USE_ASSERT_CHECKING
 	/*

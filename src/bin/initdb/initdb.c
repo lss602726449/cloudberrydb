@@ -774,8 +774,6 @@ popen_check(const char *command, const char *mode)
 static void
 cleanup_directories_atexit(void)
 {
-	return;
-
 	if (success)
 		return;
 

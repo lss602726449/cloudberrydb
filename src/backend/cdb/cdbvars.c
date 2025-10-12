@@ -428,7 +428,7 @@ check_gp_role(char **newval, void **extra, GucSource source)
 	if (!IsPostmasterEnvironment && newrole != GP_ROLE_UTILITY)
 	{
 		elog(LOG, "gp_role forced to 'utility' in single-user mode");
-		*newval = strdup("utility");
+		*newval = guc_strdup(ERROR, "utility");
 		return true;
 	}
 
