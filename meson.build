@@ -1963,7 +1963,7 @@ common_warning_flags = [
   '-Wmissing-format-attribute',
   '-Wimplicit-fallthrough=3',
   '-Wcast-function-type',
-  '-Wshadow=compatible-local',
+  # '-Wshadow=compatible-local',
   # This was included in -Wall/-Wformat in older GCC versions
   '-Wformat-security',
 ]

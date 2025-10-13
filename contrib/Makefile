@@ -36,7 +36,6 @@ SUBDIRS = \
 		old_snapshot	\
 		pageinspect	\
 		passwordcheck	\
-		postgres_fdw \
 		pg_buffercache	\
 		pg_freespacemap \
 		pg_prewarm	\
@@ -46,11 +45,8 @@ SUBDIRS = \
 		pgrowlocks	\
 		pgstattuple	\
 		pg_visibility	\
-<<<<<<< HEAD
-=======
 		pg_walinspect	\
 		postgres_fdw	\
->>>>>>> REL_16_9
 		seg		\
 		spi		\
 		tablefunc	\

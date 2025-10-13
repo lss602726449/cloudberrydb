@@ -10,11 +10,7 @@ EXTENSION = hstore_plpython3u
 DATA = hstore_plpython3u--1.0.sql
 
 REGRESS = hstore_plpython
-<<<<<<< HEAD
-REGRESS_PLPYTHON3_MANGLE := $(REGRESS)
 REGRESS_OPTS = --init-file=$(top_srcdir)/src/test/regress/init_file
-=======
->>>>>>> REL_16_9
 
 PG_CPPFLAGS = $(python_includespec) -DPLPYTHON_LIBNAME='"plpython$(python_majorversion)"'
 

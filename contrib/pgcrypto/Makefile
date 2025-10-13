@@ -1,15 +1,5 @@
 # contrib/pgcrypto/Makefile
 
-<<<<<<< HEAD
-INT_SRCS = internal.c internal-sha2.c blf.c rijndael.c \
-		pgp-mpi-internal.c imath.c sm4.c
-INT_TESTS = sha2
-
-OSSL_SRCS = openssl.c pgp-mpi-openssl.c sm4.c openssl_redirect.c
-OSSL_TESTS = sha2 des 3des cast5
-
-=======
->>>>>>> REL_16_9
 ZLIB_TST = pgp-compression
 ZLIB_OFF_TST = pgp-zlib-DISABLED
 
@@ -49,15 +39,10 @@ DATA = pgcrypto--1.3.sql pgcrypto--1.2--1.3.sql pgcrypto--1.1--1.2.sql \
 	pgcrypto--1.0--1.1.sql
 PGFILEDESC = "pgcrypto - cryptographic functions"
 
-<<<<<<< HEAD
 REGRESS_OPTS = --dbname=$(CONTRIB_TESTDB) --init-file=$(top_builddir)/src/test/regress/init_file
 
-REGRESS = init md5 sha1 hmac-md5 hmac-sha1 blowfish rijndael sm4 \
-	$(CF_TESTS) \
-=======
-REGRESS = init md5 sha1 hmac-md5 hmac-sha1 blowfish rijndael \
+REGRESS = init md5 sha1 hmac-md5 hmac-sha1 blowfish rijndael sm4\
 	sha2 des 3des cast5 \
->>>>>>> REL_16_9
 	crypt-des crypt-md5 crypt-blowfish crypt-xdes \
 	pgp-armor pgp-decrypt pgp-encrypt $(CF_PGP_TESTS) \
 	pgp-pubkey-decrypt pgp-pubkey-encrypt pgp-info \
