@@ -1537,22 +1537,23 @@ SearchCatCacheMiss(CatCache *cache,
 									  nkeys,
 									  cur_skey);
 
-		/*
-		 * Good place to sanity check the tuple, before adding it to cache.
-		 * So if its fetched using index, lets cross verify tuple intended is the tuple
-		 * fetched. If not fail and contain the damage which maybe caused due to
-		 * index corruption for some reason.
-		 */
-		if (scandesc->irel)
-		{
-			CrossCheckTuple(cache->id, v1, v2, v3, v4, ntp);
-		}
 
 		ct = NULL;
 		stale = false;
 
 		while (HeapTupleIsValid(ntp = systable_getnext(scandesc)))
 		{
+			/*
+			 * Good place to sanity check the tuple, before adding it to cache.
+			 * So if its fetched using index, lets cross verify tuple intended is the tuple
+			 * fetched. If not fail and contain the damage which maybe caused due to
+			 * index corruption for some reason.
+			 */
+			if (scandesc->irel)
+			{
+				CrossCheckTuple(cache->id, v1, v2, v3, v4, ntp);
+			}
+
 			ct = CatalogCacheCreateEntry(cache, ntp, NULL,
 										 hashValue, hashIndex);
 			/* upon failure, we must start the scan over */

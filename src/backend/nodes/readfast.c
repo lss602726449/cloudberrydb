@@ -268,7 +268,10 @@ _readQuery(void)
 	READ_BOOL_FIELD(canOptSelectLockingClause);
 	READ_NODE_FIELD(cteList);
 	READ_NODE_FIELD(rtable);
+	READ_NODE_FIELD(rteperminfos);
 	READ_NODE_FIELD(jointree);
+	READ_NODE_FIELD(mergeActionList);
+	READ_BOOL_FIELD(mergeUseOuterJoin);
 	READ_NODE_FIELD(targetList);
 	READ_NODE_FIELD(withCheckOptions);
 	READ_NODE_FIELD(onConflict);
@@ -2962,6 +2965,9 @@ readNodeBinary(void)
 				break;
 			case T_DropTaskStmt:
 				return_value = _readDropTaskStmt();
+				break;
+			case T_RTEPermissionInfo:
+				return_value = _readRTEPermissionInfo();
 				break;
 			default:
 				return_value = NULL; /* keep the compiler silent */

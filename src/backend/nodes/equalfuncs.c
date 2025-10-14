@@ -1054,7 +1054,10 @@ _equalQuery(const Query *a, const Query *b)
 	COMPARE_SCALAR_FIELD(isReturn);
 	COMPARE_NODE_FIELD(cteList);
 	COMPARE_NODE_FIELD(rtable);
+	COMPARE_NODE_FIELD(rteperminfos);
 	COMPARE_NODE_FIELD(jointree);
+	COMPARE_NODE_FIELD(mergeActionList);
+	COMPARE_SCALAR_FIELD(mergeUseOuterJoin);
 	COMPARE_NODE_FIELD(targetList);
 	COMPARE_SCALAR_FIELD(override);
 	COMPARE_NODE_FIELD(onConflict);
@@ -3622,6 +3625,61 @@ _equalValue(const Value *a, const Value *b)
 	return true;
 }
 
+
+static bool
+_equalInteger(const Integer *a, const Integer *b)
+{
+	COMPARE_SCALAR_FIELD(ival);
+
+	return true;
+}
+
+static bool
+_equalFloat(const Float *a, const Float *b)
+{
+	COMPARE_STRING_FIELD(fval);
+
+	return true;
+}
+
+static bool
+_equalBoolean(const Boolean *a, const Boolean *b)
+{
+	COMPARE_SCALAR_FIELD(boolval);
+
+	return true;
+}
+
+static bool
+_equalString(const String *a, const String *b)
+{
+	COMPARE_STRING_FIELD(sval);
+
+	return true;
+}
+
+static bool
+_equalBitString(const BitString *a, const BitString *b)
+{
+	COMPARE_STRING_FIELD(bsval);
+
+	return true;
+}
+
+static bool
+_equalRTEPermissionInfo(const RTEPermissionInfo *a, const RTEPermissionInfo *b)
+{
+	COMPARE_SCALAR_FIELD(relid);
+	COMPARE_SCALAR_FIELD(inh);
+	COMPARE_SCALAR_FIELD(requiredPerms);
+	COMPARE_SCALAR_FIELD(checkAsUser);
+	COMPARE_BITMAPSET_FIELD(selectedCols);
+	COMPARE_BITMAPSET_FIELD(insertedCols);
+	COMPARE_BITMAPSET_FIELD(updatedCols);
+
+	return true;
+}
+
 /*
  * equal
  *	  returns whether two nodes are equal
@@ -3846,9 +3904,20 @@ equal(const void *a, const void *b)
 			break;
 
 		case T_Integer:
+			retval = _equalInteger(a, b);
+			break;
 		case T_Float:
+			retval = _equalFloat(a, b);
+			break;
+		case T_Boolean:
+			retval = _equalBoolean(a, b);
+			break;
 		case T_String:
+			retval = _equalString(a, b);
+			break;
 		case T_BitString:
+			retval = _equalBitString(a, b);
+			break;
 		case T_Null:
 			retval = _equalValue(a, b);
 			break;
@@ -4501,6 +4570,9 @@ equal(const void *a, const void *b)
 			break;
 		case T_DropTaskStmt:
 			retval = _equalDropTaskStmt(a, b);
+			break;
+		case T_RTEPermissionInfo:
+			retval = _equalRTEPermissionInfo(a, b);
 			break;
 
 		default:

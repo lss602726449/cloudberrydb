@@ -297,7 +297,10 @@ _readQuery(void)
 	READ_BOOL_FIELD(isReturn);
 	READ_NODE_FIELD(cteList);
 	READ_NODE_FIELD(rtable);
+	READ_NODE_FIELD(rteperminfos);
 	READ_NODE_FIELD(jointree);
+	READ_NODE_FIELD(mergeActionList);
+	READ_BOOL_FIELD(mergeUseOuterJoin);
 	READ_NODE_FIELD(targetList);
 	READ_ENUM_FIELD(override, OverridingKind);
 	READ_NODE_FIELD(onConflict);
@@ -2897,6 +2900,22 @@ _readPartitionRangeDatum(void)
 	READ_DONE();
 }
 
+static RTEPermissionInfo *
+_readRTEPermissionInfo(void)
+{
+	READ_LOCALS(RTEPermissionInfo);
+
+	READ_OID_FIELD(relid);
+	READ_BOOL_FIELD(inh);
+	READ_UINT64_FIELD(requiredPerms);
+	READ_OID_FIELD(checkAsUser);
+	READ_BITMAPSET_FIELD(selectedCols);
+	READ_BITMAPSET_FIELD(insertedCols);
+	READ_BITMAPSET_FIELD(updatedCols);
+
+	READ_DONE();
+}
+
 #include "readfuncs_common.c"
 #ifndef COMPILING_BINARY_FUNCS
 /*
@@ -3414,6 +3433,8 @@ parseNodeString(void)
 		return_value = _readReturnStmt();
 	else if (MATCHX("DROPDIRECTORYTABLESTMT"))
 		return_value = _readDropDirectoryTableStmt();
+	else if (MATCHX("RTEPERMISSIONINFO"))
+		return_value = _readRTEPermissionInfo();
 	else
 	{
         ereport(ERROR,

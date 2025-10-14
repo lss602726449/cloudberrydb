@@ -1966,6 +1966,9 @@ _outNode(StringInfo str, void *obj)
 			case T_AlterDatabaseStmt:
 				_outAlterDatabaseStmt(str, obj);
 				break;
+			case T_RTEPermissionInfo:
+				_outRTEPermissionInfo(str, obj);
+				break;
 			default:
 				elog(ERROR, "could not serialize unrecognized node type: %d",
 						 (int) nodeTag(obj));

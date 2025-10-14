@@ -3534,7 +3534,10 @@ _outQuery(StringInfo str, const Query *node)
 	WRITE_BOOL_FIELD(isReturn);
 	WRITE_NODE_FIELD(cteList);
 	WRITE_NODE_FIELD(rtable);
+	WRITE_NODE_FIELD(rteperminfos);
 	WRITE_NODE_FIELD(jointree);
+	WRITE_NODE_FIELD(mergeActionList);
+	WRITE_BOOL_FIELD(mergeUseOuterJoin);
 	WRITE_NODE_FIELD(targetList);
 	WRITE_ENUM_FIELD(override, OverridingKind);
 	WRITE_NODE_FIELD(onConflict);
@@ -4269,6 +4272,20 @@ _outDropTaskStmt(StringInfo str, const DropTaskStmt *node)
 
 	WRITE_STRING_FIELD(taskname);
 	WRITE_BOOL_FIELD(missing_ok);
+}
+
+static void
+_outRTEPermissionInfo(StringInfo str, const RTEPermissionInfo *node)
+{
+	WRITE_NODE_TYPE("RTEPERMISSIONINFO");
+
+	WRITE_OID_FIELD(relid);
+	WRITE_BOOL_FIELD(inh);
+	WRITE_UINT64_FIELD(requiredPerms);
+	WRITE_OID_FIELD(checkAsUser);
+	WRITE_BITMAPSET_FIELD(selectedCols);
+	WRITE_BITMAPSET_FIELD(insertedCols);
+	WRITE_BITMAPSET_FIELD(updatedCols);
 }
 
 #include "outfuncs_common.c"
@@ -5463,6 +5480,9 @@ outNode(StringInfo str, const void *obj)
 				break;
 			case T_DropTaskStmt:
 				_outDropTaskStmt(str, obj);
+				break;
+			case T_RTEPermissionInfo:
+				_outRTEPermissionInfo(str, obj);
 				break;
 			default:
 

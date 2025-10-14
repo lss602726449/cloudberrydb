@@ -718,13 +718,16 @@ SELECT
     s.schemaname,
     s.relname,
     m.seq_scan,
+    m.last_seq_scan,
     m.seq_tup_read,
     m.idx_scan,
+    m.last_idx_scan,
     m.idx_tup_fetch,
     m.n_tup_ins,
     m.n_tup_upd,
     m.n_tup_del,
     m.n_tup_hot_upd,
+    m.n_tup_newpage_upd,
     m.n_live_tup,
     m.n_dead_tup,
     m.n_mod_since_analyze,
@@ -743,13 +746,16 @@ FROM
          allt.schemaname,
          allt.relname,
          case when d.policytype = 'r' then (sum(seq_scan)/d.numsegments)::bigint else sum(seq_scan) end seq_scan,
+         max(last_seq_scan) as last_seq_scan,
          case when d.policytype = 'r' then (sum(seq_tup_read)/d.numsegments)::bigint else sum(seq_tup_read) end seq_tup_read,
          case when d.policytype = 'r' then (sum(idx_scan)/d.numsegments)::bigint else sum(idx_scan) end idx_scan,
+         max(last_idx_scan) as last_idx_scan,
          case when d.policytype = 'r' then (sum(idx_tup_fetch)/d.numsegments)::bigint else sum(idx_tup_fetch) end idx_tup_fetch,
          case when d.policytype = 'r' then (sum(n_tup_ins)/d.numsegments)::bigint else sum(n_tup_ins) end n_tup_ins,
          case when d.policytype = 'r' then (sum(n_tup_upd)/d.numsegments)::bigint else sum(n_tup_upd) end n_tup_upd,
          case when d.policytype = 'r' then (sum(n_tup_del)/d.numsegments)::bigint else sum(n_tup_del) end n_tup_del,
          case when d.policytype = 'r' then (sum(n_tup_hot_upd)/d.numsegments)::bigint else sum(n_tup_hot_upd) end n_tup_hot_upd,
+         max(n_tup_newpage_upd) as n_tup_newpage_upd,
          case when d.policytype = 'r' then (sum(n_live_tup)/d.numsegments)::bigint else sum(n_live_tup) end n_live_tup,
          case when d.policytype = 'r' then (sum(n_dead_tup)/d.numsegments)::bigint else sum(n_dead_tup) end n_dead_tup,
          case when d.policytype = 'r' then (sum(n_mod_since_analyze)/d.numsegments)::bigint else sum(n_mod_since_analyze) end n_mod_since_analyze,
@@ -844,25 +850,38 @@ CREATE VIEW pg_stat_xact_user_tables AS
           schemaname !~ '^pg_toast';
 
 CREATE VIEW pg_statio_all_tables AS
-    SELECT
-            C.oid AS relid,
-            N.nspname AS schemaname,
-            C.relname AS relname,
-            pg_stat_get_blocks_fetched(C.oid) -
-                    pg_stat_get_blocks_hit(C.oid) AS heap_blks_read,
-            pg_stat_get_blocks_hit(C.oid) AS heap_blks_hit,
-            I.idx_blks_read AS idx_blks_read,
-            I.idx_blks_hit AS idx_blks_hit,
-            pg_stat_get_blocks_fetched(T.oid) -
-                    pg_stat_get_blocks_hit(T.oid) AS toast_blks_read,
-            pg_stat_get_blocks_hit(T.oid) AS toast_blks_hit,
-            X.idx_blks_read AS tidx_blks_read,
-            X.idx_blks_hit AS tidx_blks_hit
-    FROM pg_class C LEFT JOIN
-            pg_class T ON C.reltoastrelid = T.oid
-            LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
-    WHERE C.relkind IN ('r', 't', 'm', 'o', 'b', 'M')
-    GROUP BY C.oid, N.nspname, C.relname, T.oid, X.indexrelid;
+SELECT
+    C.oid AS relid,
+    N.nspname AS schemaname,
+    C.relname AS relname,
+    pg_stat_get_blocks_fetched(C.oid) -
+    pg_stat_get_blocks_hit(C.oid) AS heap_blks_read,
+    pg_stat_get_blocks_hit(C.oid) AS heap_blks_hit,
+    I.idx_blks_read AS idx_blks_read,
+    I.idx_blks_hit AS idx_blks_hit,
+    pg_stat_get_blocks_fetched(T.oid) -
+    pg_stat_get_blocks_hit(T.oid) AS toast_blks_read,
+    pg_stat_get_blocks_hit(T.oid) AS toast_blks_hit,
+    X.idx_blks_read AS tidx_blks_read,
+    X.idx_blks_hit AS tidx_blks_hit
+FROM pg_class C LEFT JOIN
+     pg_class T ON C.reltoastrelid = T.oid
+                LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
+                LEFT JOIN LATERAL (
+    SELECT sum(pg_stat_get_blocks_fetched(indexrelid) -
+               pg_stat_get_blocks_hit(indexrelid))::bigint
+                     AS idx_blks_read,
+            sum(pg_stat_get_blocks_hit(indexrelid))::bigint
+                     AS idx_blks_hit
+    FROM pg_index WHERE indrelid = C.oid ) I ON true
+                LEFT JOIN LATERAL (
+    SELECT sum(pg_stat_get_blocks_fetched(indexrelid) -
+               pg_stat_get_blocks_hit(indexrelid))::bigint
+                     AS idx_blks_read,
+            sum(pg_stat_get_blocks_hit(indexrelid))::bigint
+                     AS idx_blks_hit
+    FROM pg_index WHERE indrelid = T.oid ) X ON true
+WHERE C.relkind IN ('r', 't', 'm', 'o', 'b', 'M');
 
 CREATE VIEW pg_statio_sys_tables AS
     SELECT * FROM pg_statio_all_tables
@@ -901,6 +920,7 @@ SELECT
     s.relname,
     s.indexrelname,
     m.idx_scan,
+    m.last_idx_scan,
     m.idx_tup_read,
     m.idx_tup_fetch
 FROM
@@ -911,6 +931,7 @@ FROM
          relname,
          indexrelname,
          sum(idx_scan) as idx_scan,
+         max(last_idx_scan) as last_idx_scan,
          sum(idx_tup_read) as idx_tup_read,
          sum(idx_tup_fetch) as idx_tup_fetch
      FROM
@@ -1316,17 +1337,6 @@ CREATE VIEW pg_stat_database AS
         UNION ALL
         SELECT oid, datname FROM pg_database
     ) D;
-
-CREATE VIEW pg_stat_resqueues AS
-    SELECT
-        pg_catalog.gp_execution_segment() AS gp_segment_id,
-        Q.oid AS queueid,
-        Q.rsqname AS queuename,
-        pg_stat_get_queue_num_exec(Q.oid) AS n_queries_exec,
-        pg_stat_get_queue_num_wait(Q.oid) AS n_queries_wait,
-        pg_stat_get_queue_elapsed_exec(Q.oid) AS elapsed_exec,
-        pg_stat_get_queue_elapsed_wait(Q.oid) AS elapsed_wait
-    FROM pg_resqueue AS Q;
 
 -- Resource queue views
 

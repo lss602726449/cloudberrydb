@@ -192,12 +192,12 @@ F052	Intervals and datetime arithmetic			YES
 F053	OVERLAPS predicate			YES	
 F054	TIMESTAMP in DATE type precedence list			NO	
 F081	UNION and EXCEPT in views			YES	
-F111	Isolation levels other than SERIALIZABLE			YES
-F112	Isolation level READ UNCOMMITTED			NO
+F111	Isolation levels other than SERIALIZABLE			YES	
+F112	Isolation level READ UNCOMMITTED			NO	
 F113	Isolation level READ COMMITTED			YES	
-F114	Isolation level REPEATABLE READ			NO
+F114	Isolation level REPEATABLE READ			NO	
 F120	Get diagnostics statement			NO	
-F121	Basic diagnostics management			NO
+F121	Basic diagnostics management			NO	
 F122	Enhanced diagnostics management			NO	
 F123	All diagnostics			NO	
 F124	SET TRANSACTION statement: DIAGNOSTICS SIZE clause			NO	
@@ -265,16 +265,16 @@ F405	NATURAL JOIN			YES
 F406	FULL OUTER JOIN			YES	
 F407	CROSS JOIN			YES	
 F411	Time zone specification			YES	differences regarding literal interpretation
-F421	National character			YES
+F421	National character			YES	
 F431	Read-only scrollable cursors			YES	
 F432	FETCH with explicit NEXT			YES	
-F433	FETCH FIRST			NO
+F433	FETCH FIRST			NO	
 F434	FETCH LAST			YES	
-F435	FETCH PRIOR			NO
-F436	FETCH ABSOLUTE			NO
-F437	FETCH RELATIVE			NO
+F435	FETCH PRIOR			NO	
+F436	FETCH ABSOLUTE			NO	
+F437	FETCH RELATIVE			NO	
 F438	Scrollable cursors			YES	
-F441	Extended set function support			YES
+F441	Extended set function support			YES	
 F442	Mixed column references in set functions			YES	
 F451	Character set definition			NO	
 F461	Named character sets			NO	
@@ -448,20 +448,20 @@ T176	Sequence generator support			NO	supported except for NEXT VALUE FOR
 T177	Sequence generator support: simple restart option			YES	
 T178	Identity columns: simple restart option			YES	
 T180	System-versioned tables			NO	
-T181	Application-time period tables			NO
-T191	Referential action RESTRICT			NO
+T181	Application-time period tables			NO	
+T191	Referential action RESTRICT			NO	
 T200	Trigger DDL			NO	similar but not fully compatible
-T201	Comparable data types for referential constraints			NO
+T201	Comparable data types for referential constraints			NO	
 T211	Basic trigger capability			NO	
-T212	Enhanced trigger capability			NO
-T213	INSTEAD OF triggers			NO
-T214	BEFORE triggers			NO
-T215	AFTER triggers			NO
-T216	Ability to require true search condition before trigger is invoked			NO
+T212	Enhanced trigger capability			NO	
+T213	INSTEAD OF triggers			NO	
+T214	BEFORE triggers			NO	
+T215	AFTER triggers			NO	
+T216	Ability to require true search condition before trigger is invoked			NO	
 T217	TRIGGER privilege			YES	
 T218	Multiple triggers for the same event executed in the order created			NO	intentionally omitted
-T231	Sensitive cursors			YES
-T241	START TRANSACTION statement			YES
+T231	Sensitive cursors			YES	
+T241	START TRANSACTION statement			YES	
 T251	SET TRANSACTION statement: LOCAL option			NO	
 T261	Chained transactions			YES	
 T262	Multiple server transactions			NO	

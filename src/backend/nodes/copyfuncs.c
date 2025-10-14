@@ -3828,7 +3828,7 @@ _copyTriggerTransition(const TriggerTransition *from)
 static Query *
 _copyQuery(const Query *from)
 {
-	Query	   *newnode = makeNode(Query);
+	Query      *newnode = makeNode(Query);
 
 	COPY_SCALAR_FIELD(commandType);
 	COPY_SCALAR_FIELD(querySource);
@@ -3851,7 +3851,10 @@ _copyQuery(const Query *from)
 	COPY_SCALAR_FIELD(isReturn);
 	COPY_NODE_FIELD(cteList);
 	COPY_NODE_FIELD(rtable);
+	COPY_NODE_FIELD(rteperminfos);
 	COPY_NODE_FIELD(jointree);
+	COPY_NODE_FIELD(mergeActionList);
+	COPY_SCALAR_FIELD(mergeUseOuterJoin);
 	COPY_NODE_FIELD(targetList);
 	COPY_SCALAR_FIELD(override);
 	COPY_NODE_FIELD(onConflict);
@@ -6391,6 +6394,74 @@ _copyEphemeralNamedRelationInfo(const EphemeralNamedRelationInfo *from)
 	return newnode;
 }
 
+
+static Integer *
+_copyInteger(const Integer *from)
+{
+	Integer *newnode = makeNode(Integer);
+
+	COPY_SCALAR_FIELD(ival);
+
+	return newnode;
+}
+
+static Float *
+_copyFloat(const Float *from)
+{
+	Float *newnode = makeNode(Float);
+
+	COPY_STRING_FIELD(fval);
+
+	return newnode;
+}
+
+static Boolean *
+_copyBoolean(const Boolean *from)
+{
+	Boolean *newnode = makeNode(Boolean);
+
+	COPY_SCALAR_FIELD(boolval);
+
+	return newnode;
+}
+
+static String *
+_copyString(const String *from)
+{
+	String *newnode = makeNode(String);
+
+	COPY_STRING_FIELD(sval);
+
+	return newnode;
+}
+
+static BitString *
+_copyBitString(const BitString *from)
+{
+	BitString *newnode = makeNode(BitString);
+
+	COPY_STRING_FIELD(bsval);
+
+	return newnode;
+}
+
+
+static RTEPermissionInfo *
+_copyRTEPermissionInfo(const RTEPermissionInfo *from)
+{
+	RTEPermissionInfo *newnode = makeNode(RTEPermissionInfo);
+
+	COPY_SCALAR_FIELD(relid);
+	COPY_SCALAR_FIELD(inh);
+	COPY_SCALAR_FIELD(requiredPerms);
+	COPY_SCALAR_FIELD(checkAsUser);
+	COPY_BITMAPSET_FIELD(selectedCols);
+	COPY_BITMAPSET_FIELD(insertedCols);
+	COPY_BITMAPSET_FIELD(updatedCols);
+
+	return newnode;
+}
+
 /*
  * copyObjectImpl -- implementation of copyObject(); see nodes/nodes.h
  *
@@ -6837,9 +6908,20 @@ copyObjectImpl(const void *from)
 			 * VALUE NODES
 			 */
 		case T_Integer:
+			retval = _copyInteger(from);
+			break;
 		case T_Float:
+			retval = _copyFloat(from);
+			break;
+		case T_Boolean:
+			retval = _copyBoolean(from);
+			break;
 		case T_String:
+			retval = _copyString(from);
+			break;
 		case T_BitString:
+			retval = _copyBitString(from);
+			break;
 		case T_Null:
 			retval = _copyValue(from);
 			break;
@@ -7570,6 +7652,10 @@ copyObjectImpl(const void *from)
 
 		case T_EphemeralNamedRelationInfo:
 			retval = _copyEphemeralNamedRelationInfo(from);
+			break;
+
+		case T_RTEPermissionInfo:
+			retval = _copyRTEPermissionInfo(from);
 			break;
 		default:
 			elog(ERROR, "unrecognized node type: %d", (int) nodeTag(from));

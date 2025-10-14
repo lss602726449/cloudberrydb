@@ -479,11 +479,11 @@ heapgetpage(TableScanDesc sscan, BlockNumber block)
 		ItemId		lpp = PageGetItemId(page, lineoff);
 		HeapTupleData loctup;
 		bool		valid;
-		HeapTupleHeader theader = (HeapTupleHeader) PageGetItem((Page) page, lpp);
 
 		if (!ItemIdIsNormal(lpp))
 			continue;
 
+		HeapTupleHeader theader = (HeapTupleHeader) PageGetItem((Page) page, lpp);
 
 		loctup.t_tableOid = RelationGetRelid(scan->rs_base.rs_rd);
 		loctup.t_data = (HeapTupleHeader) PageGetItem(page, lpp);
