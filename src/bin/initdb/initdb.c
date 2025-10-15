@@ -301,8 +301,8 @@ static void set_info_version(void);
 static void setup_schema(FILE *cmdfd);
 static void setup_cdb_schema(FILE *cmdfd);
 static void setup_password_history(FILE *cmdfd);
-static void load_plpgsql(FILE *cmdfd);
-static void vacuum_db(FILE *cmdfd);
+//static void load_plpgsql(FILE *cmdfd);
+//static void vacuum_db(FILE *cmdfd);
 static void make_template0(FILE *cmdfd);
 static void make_postgres(FILE *cmdfd);
 static void trapsig(SIGNAL_ARGS);
@@ -2142,6 +2142,8 @@ setup_cdb_schema(FILE *cmdfd)
 			free(*line);
 		}
 
+		PG_CMD_PUTS("\n");
+		
 		free(lines);
 		free(path);
 	}
@@ -2150,30 +2152,30 @@ setup_cdb_schema(FILE *cmdfd)
 /*
  * load PL/pgSQL server-side language
  */
-static void
-load_plpgsql(FILE *cmdfd)
-{
-	PG_CMD_PUTS("CREATE EXTENSION plpgsql;\n\n");
-}
+//static void
+//load_plpgsql(FILE *cmdfd)
+//{
+//	PG_CMD_PUTS("CREATE EXTENSION plpgsql;\n\n");
+//}
 
 /*
  * GPDB: load external table support
  */
-static void
-load_exttable(FILE *cmdfd)
-{
-	PG_CMD_PUTS("CREATE EXTENSION gp_exttable_fdw;\n\n");
-}
+//static void
+//load_exttable(FILE *cmdfd)
+//{
+//	PG_CMD_PUTS("CREATE EXTENSION gp_exttable_fdw;\n\n");
+//}
 
 /*
  * clean everything up in template1
  */
-static void
-vacuum_db(FILE *cmdfd)
-{
-	/* Run analyze before VACUUM so the statistics are frozen. */
-	PG_CMD_PUTS("ANALYZE;\n\nVACUUM FREEZE;\n\n");
-}
+//static void
+//vacuum_db(FILE *cmdfd)
+//{
+//	/* Run analyze before VACUUM so the statistics are frozen. */
+//	PG_CMD_PUTS("ANALYZE;\n\nVACUUM FREEZE;\n\n");
+//}
 
 /*
  * copy template1 to template0
@@ -2226,7 +2228,7 @@ make_template0(FILE *cmdfd)
 	/*
 	 * Finally vacuum to clean up dead rows in pg_database
 	 */
-	PG_CMD_PUTS("VACUUM pg_database;\n\n");
+	// PG_CMD_PUTS("VACUUM pg_database;\n\n");
 }
 
 /*
@@ -2245,7 +2247,7 @@ make_postgres(FILE *cmdfd)
 	PG_CMD_PUTS("UPDATE pg_database SET "
 				"	datistemplate = 't' "
 				"    WHERE datname = 'postgres';\n\n");
-	PG_CMD_PUTS("VACUUM FULL pg_database;\n\n");
+	//PG_CMD_PUTS("VACUUM FULL pg_database;\n\n");
 }
 
 /*
@@ -3410,14 +3412,14 @@ initialize_data_directory(void)
 
 	setup_schema(cmdfd);
 
-	load_plpgsql(cmdfd);
-
-	load_exttable(cmdfd);
+//	load_plpgsql(cmdfd);
+//
+//	load_exttable(cmdfd);
 
 	/* sets up the Apache Cloudberry admin schema */
 	setup_cdb_schema(cmdfd);
 
-	vacuum_db(cmdfd);
+//	vacuum_db(cmdfd);
 
 	make_template0(cmdfd);
 
@@ -3427,7 +3429,7 @@ initialize_data_directory(void)
 	 * vacuum template1 to remove the dead tuples. otherwise, some mismatch error 
 	 * will be reported in gp_replica_check.
 	 */
-	vacuum_db(cmdfd);
+//	vacuum_db(cmdfd);
 
 	PG_CMD_CLOSE;
 

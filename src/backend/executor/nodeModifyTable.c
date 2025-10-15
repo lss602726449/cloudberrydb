@@ -3895,6 +3895,7 @@ ExecModifyTable(PlanState *pstate)
 	HeapTupleData oldtupdata;
 	HeapTuple	oldtuple;
 	ItemPointer tupleid;
+	bool		tuplock;
 	List	   *relinfos = NIL;
 	ListCell   *lc;
 	PartitionTupleRouting *proute = node->mt_partition_tuple_routing;
@@ -4223,6 +4224,8 @@ ExecModifyTable(PlanState *pstate)
 				break;
 
 			case CMD_UPDATE:
+				tuplock = false;
+				
 				if (!AttributeNumberIsValid(action_attno))
 				{
 					/* normal non-split UPDATE */
@@ -4237,6 +4240,7 @@ ExecModifyTable(PlanState *pstate)
 					oldSlot = resultRelInfo->ri_oldTupleSlot;
 					if (oldtuple != NULL)
 					{
+						Assert(!resultRelInfo->ri_needLockTagTuple);
 						/* Use the wholerow junk attr as the old tuple. */
 						ExecForceStoreHeapTuple(oldtuple, oldSlot, false);
 					}
@@ -4245,7 +4249,11 @@ ExecModifyTable(PlanState *pstate)
 						/* Fetch the most recent version of old tuple. */
 						Relation	relation = resultRelInfo->ri_RelationDesc;
 
-						Assert(tupleid != NULL);
+						if (resultRelInfo->ri_needLockTagTuple)
+						{
+							LockTuple(relation, tupleid, InplaceUpdateTupleLock);
+							tuplock = true;
+						}
 						if (!table_tuple_fetch_row_version(relation, tupleid,
 														   SnapshotAny,
 														   oldSlot))
@@ -4253,10 +4261,14 @@ ExecModifyTable(PlanState *pstate)
 					}
 					slot = ExecGetUpdateNewTuple(resultRelInfo, context.planSlot,
 												 oldSlot);
+					context.relaction = NULL;
 
 					/* Now apply the update. */
 					slot = ExecUpdate(&context, resultRelInfo, tupleid, oldtuple,
 									  slot, segid, node->canSetTag);
+					if (tuplock)
+						UnlockTuple(resultRelInfo->ri_RelationDesc, tupleid,
+									InplaceUpdateTupleLock);
 				}
 				else if (action == DML_INSERT)
 				{
