@@ -78,11 +78,7 @@ $node->start();
 $node->psql('postgres', 'SELECT 1/0');
 
 # might need to retry if logging collector process is slow...
-<<<<<<< HEAD
-my $max_attempts = 10 * $TestLib::timeout_default;
-=======
 my $max_attempts = 10 * $PostgreSQL::Test::Utils::timeout_default;
->>>>>>> REL_16_9
 
 my $current_logfiles;
 for (my $attempts = 0; $attempts < $max_attempts; $attempts++)
@@ -99,13 +95,9 @@ note "current_logfiles = $current_logfiles";
 
 like(
 	$current_logfiles,
-<<<<<<< HEAD
-	qr|^stderr log/gpdb-.*csv$|,
-=======
-	qr|^stderr log/postgresql-.*log
-csvlog log/postgresql-.*csv
-jsonlog log/postgresql-.*json$|,
->>>>>>> REL_16_9
+	qr|^stderr log/gpdb-.*log
+csvlog log/gpdb-.*csv
+jsonlog log/gpdb-.*json$|,
 	'current_logfiles is sane');
 
 check_log_pattern('stderr', $current_logfiles, 'division by zero', $node);
@@ -131,13 +123,9 @@ note "now current_logfiles = $new_current_logfiles";
 
 like(
 	$new_current_logfiles,
-<<<<<<< HEAD
-	qr|^stderr log/gpdb-.*csv$|,
-=======
-	qr|^stderr log/postgresql-.*log
-csvlog log/postgresql-.*csv
-jsonlog log/postgresql-.*json$|,
->>>>>>> REL_16_9
+	qr|^stderr log/gpdb-.*log
+csvlog log/gpdb-.*csv
+jsonlog log/gpdb-.*json$|,
 	'new current_logfiles is sane');
 
 # Verify that log output gets to this file, too

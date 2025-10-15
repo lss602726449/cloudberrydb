@@ -161,12 +161,8 @@ static void free_readfile(char **optlines);
 static pid_t start_postmaster(void);
 static void read_post_opts(void);
 
-<<<<<<< HEAD
 static bool is_secondary_instance(const char *pg_data);
-static WaitPMResult wait_for_postmaster_start(pgpid_t pm_pid, bool do_checkpoint);
-=======
 static WaitPMResult wait_for_postmaster_start(pid_t pm_pid, bool do_checkpoint);
->>>>>>> REL_16_9
 static bool wait_for_postmaster_stop(void);
 static bool wait_for_postmaster_promote(void);
 static bool postmaster_is_alive(pid_t pid);
@@ -455,12 +451,8 @@ free_readfile(char **optlines)
 static pid_t
 start_postmaster(void)
 {
-<<<<<<< HEAD
 	char		launcher[MAXPGPATH] = "";
 	char	   *cmd, *term_fd_opt = NULL;
-=======
-	char	   *cmd;
->>>>>>> REL_16_9
 
 #ifndef WIN32
 	pid_t		pm_pid;
@@ -529,7 +521,6 @@ start_postmaster(void)
 	 * has the same PID as the current child process.
 	 */
 	if (log_file != NULL)
-<<<<<<< HEAD
 		cmd = psprintf("exec %s \"%s\" %s%s%s < \"%s\" >> \"%s\" 2>&1",
 					   launcher, exec_path, pgdata_opt, post_opts,
 					   term_fd_opt ? term_fd_opt : "",
@@ -538,14 +529,6 @@ start_postmaster(void)
 		cmd = psprintf("exec %s \"%s\" %s%s%s < \"%s\" 2>&1",
 					   launcher, exec_path, pgdata_opt, post_opts, 
 					   term_fd_opt ? term_fd_opt : "", DEVNULL);
-=======
-		cmd = psprintf("exec \"%s\" %s%s < \"%s\" >> \"%s\" 2>&1",
-					   exec_path, pgdata_opt, post_opts,
-					   DEVNULL, log_file);
-	else
-		cmd = psprintf("exec \"%s\" %s%s < \"%s\" 2>&1",
-					   exec_path, pgdata_opt, post_opts, DEVNULL);
->>>>>>> REL_16_9
 
 	(void) execl("/bin/sh", "/bin/sh", "-c", cmd, (char *) NULL);
 
@@ -621,7 +604,6 @@ start_postmaster(void)
 		else
 			close(fd);
 
-<<<<<<< HEAD
 		cmd = psprintf("\"%s\" /C \"\"%s\" %s%s%s < \"%s\" >> \"%s\" 2>&1\"",
 					   comspec, exec_path, pgdata_opt, post_opts,
 					   term_fd_opt ? term_fd_opt : "", DEVNULL, log_file);
@@ -630,14 +612,6 @@ start_postmaster(void)
 		cmd = psprintf("\"%s\" /C \"\"%s\" %s%s%s < \"%s\" 2>&1\"",
 					   comspec, exec_path, pgdata_opt, post_opts,
 					   term_fd_opt ? term_fd_opt : "", DEVNULL);
-=======
-		cmd = psprintf("\"%s\" /D /C \"\"%s\" %s%s < \"%s\" >> \"%s\" 2>&1\"",
-					   comspec, exec_path, pgdata_opt, post_opts, DEVNULL, log_file);
-	}
-	else
-		cmd = psprintf("\"%s\" /D /C \"\"%s\" %s%s < \"%s\" 2>&1\"",
-					   comspec, exec_path, pgdata_opt, post_opts, DEVNULL);
->>>>>>> REL_16_9
 
 	if (!CreateRestrictedProcess(cmd, &pi, false))
 	{
@@ -683,11 +657,7 @@ is_secondary_instance(const char *pg_data)
  * manager checkpoint, it's got nothing to do with database checkpoints!!
  */
 static WaitPMResult
-<<<<<<< HEAD
-wait_for_postmaster_start(pgpid_t pm_pid, bool do_checkpoint)
-=======
 wait_for_postmaster_start(pid_t pm_pid, bool do_checkpoint)
->>>>>>> REL_16_9
 {
 	int			i;
 	bool		is_coordinator;
@@ -820,20 +790,12 @@ wait_for_postmaster_stop(void)
 
 	for (cnt = 0; cnt < wait_seconds * WAITS_PER_SEC; cnt++)
 	{
-<<<<<<< HEAD
-		pgpid_t		pid;
-=======
 		pid_t		pid;
->>>>>>> REL_16_9
 
 		if ((pid = get_pgpid(false)) == 0)
 			return true;		/* pid file is gone */
 
-<<<<<<< HEAD
-		if (kill((pid_t) pid, 0) != 0)
-=======
 		if (kill(pid, 0) != 0)
->>>>>>> REL_16_9
 		{
 			/*
 			 * Postmaster seems to have died.  Check the pid file once more to
@@ -865,20 +827,12 @@ wait_for_postmaster_promote(void)
 
 	for (cnt = 0; cnt < wait_seconds * WAITS_PER_SEC; cnt++)
 	{
-<<<<<<< HEAD
-		pgpid_t		pid;
-=======
 		pid_t		pid;
->>>>>>> REL_16_9
 		DBState		state;
 
 		if ((pid = get_pgpid(false)) == 0)
 			return false;		/* pid file is gone */
-<<<<<<< HEAD
-		if (kill((pid_t) pid, 0) != 0)
-=======
 		if (kill(pid, 0) != 0)
->>>>>>> REL_16_9
 			return false;		/* postmaster died */
 
 		state = get_control_dbstate();
@@ -893,11 +847,7 @@ wait_for_postmaster_promote(void)
 }
 
 
-<<<<<<< HEAD
-#if defined(HAVE_GETRLIMIT) && defined(RLIMIT_CORE)
-=======
 #if defined(HAVE_GETRLIMIT)
->>>>>>> REL_16_9
 static void
 unlimit_core_size(void)
 {
@@ -1142,12 +1092,7 @@ do_start(void)
 static void
 do_stop(void)
 {
-<<<<<<< HEAD
-	pgpid_t		pid;
-	struct stat statbuf;
-=======
 	pid_t		pid;
->>>>>>> REL_16_9
 
 	pid = get_pgpid(false);
 
@@ -1206,12 +1151,7 @@ do_stop(void)
 static void
 do_restart(void)
 {
-<<<<<<< HEAD
-	pgpid_t		pid;
-	struct stat statbuf;
-=======
 	pid_t		pid;
->>>>>>> REL_16_9
 
 	pid = get_pgpid(false);
 
@@ -2170,11 +2110,8 @@ CreateRestrictedProcess(char *cmd, PROCESS_INFORMATION *processInfo, bool as_ser
 		}
 	}
 
-<<<<<<< HEAD
     AddUserToTokenDacl(processInfo->hProcess);
 
-=======
->>>>>>> REL_16_9
 	CloseHandle(restrictedToken);
 
 	ResumeThread(processInfo->hThread);
@@ -2450,10 +2387,7 @@ adjust_data_dir(void)
 				   my_exec_path,
 				   pgdata_opt ? pgdata_opt : "",
 				   post_opts ? post_opts : "");
-<<<<<<< HEAD
-=======
 	fflush(NULL);
->>>>>>> REL_16_9
 
 	fd = popen(cmd, "r");
 	if (fd == NULL || fgets(filename, sizeof(filename), fd) == NULL || pclose(fd) != 0)

@@ -40,7 +40,8 @@ unittest-check:
 #	scripts
 
 SUBDIRS = \
-	initdb
+	initdb \
+	pg_ctl
 
 ifeq ($(PORTNAME), win32)
 SUBDIRS += pgevent
