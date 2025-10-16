@@ -103,7 +103,7 @@ usage(unsigned short int pager)
 	HELP0("  -e, --echo-queries       echo commands sent to server\n");
 	HELP0("  -E, --echo-hidden        display queries that internal commands generate\n");
 	HELP0("  -L, --log-file=FILENAME  send session log to file\n");
-	HELP0("      --ignore-log-file    do not log psql:filename prefix in log file\");
+	HELP0("      --ignore-log-file    do not log psql:filename prefix in log file\n");
 	HELP0("  -n, --no-readline        disable enhanced command line editing (readline)\n");
 	HELP0("  -o, --output=FILENAME    send query results to file (or |pipe)\n");
 	HELP0("  -q, --quiet              run quietly (no messages, only query output)\n");

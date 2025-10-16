@@ -41,7 +41,8 @@ unittest-check:
 
 SUBDIRS = \
 	initdb \
-	pg_ctl
+	pg_ctl \
+	psql
 
 ifeq ($(PORTNAME), win32)
 SUBDIRS += pgevent

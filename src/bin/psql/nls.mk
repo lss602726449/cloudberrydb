@@ -1,9 +1,5 @@
 # src/bin/psql/nls.mk
 CATALOG_NAME     = psql
-<<<<<<< HEAD
-AVAIL_LANGUAGES  = cs de el es fr it ja ko ru sv tr uk zh_CN
-=======
->>>>>>> REL_16_9
 GETTEXT_FILES    = $(FRONTEND_COMMON_GETTEXT_FILES) \
                    command.c \
                    common.c \

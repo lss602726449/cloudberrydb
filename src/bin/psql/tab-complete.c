@@ -39,8 +39,6 @@
 #include "input.h"
 #include "tab-complete.h"
 
-#define USE_READLINE
-
 /* If we don't have this, we might as well forget about the whole thing: */
 #ifdef USE_READLINE
 
@@ -919,8 +917,8 @@ static const SchemaQuery Query_for_list_of_clusterables = {
 	.catname = "pg_catalog.pg_class c",
 	.selcondition =
 	"c.relkind IN (" CppAsString2(RELKIND_RELATION) ", "
-	CppAsString2(RELKIND_MATVIEW) ", " CppAsString2(RELKIND_DIRECTORY_TABLE) ")",
 	CppAsString2(RELKIND_PARTITIONED_TABLE) ", "
+	CppAsString2(RELKIND_MATVIEW) ", " CppAsString2(RELKIND_DIRECTORY_TABLE) ")",
 	.viscondition = "pg_catalog.pg_table_is_visible(c.oid)",
 	.namespace = "c.relnamespace",
 	.result = "c.relname",
@@ -1014,6 +1012,10 @@ static const SchemaQuery Query_for_trigger_of_table = {
 #define Query_for_list_of_tags \
 "SELECT pg_catalog.quote_ident(tagname) FROM pg_catalog.pg_tag " \
 " WHERE substring(pg_catalog.quote_ident(tagname),1,%d)='%s'"
+
+#define Query_for_list_of_tasks \
+"SELECT pg_catalog.quote_ident(jobname) FROM pg_catalog.pg_task "\
+" WHERE username = current_user"
 
 #define Query_for_list_of_encodings \
 " SELECT DISTINCT pg_catalog.pg_encoding_to_char(conforencoding) "\
@@ -1268,7 +1270,7 @@ static const pgsql_thing_t words_after_create[] = {
 	{"DICTIONARY", NULL, NULL, &Query_for_list_of_ts_dictionaries, NULL, THING_NO_SHOW},
 	{"DIRECTORY TABLE", NULL, NULL, &Query_for_list_of_directory_tables},
 	{"DOMAIN", NULL, NULL, &Query_for_list_of_domains},
-	{"DYNAMIC TABLE", NULL, NULL, &Query_for_list_of_matviews, THING_NO_ALTER},
+	{"DYNAMIC TABLE", NULL, NULL, &Query_for_list_of_matviews, NULL, THING_NO_ALTER},
 	{"EVENT TRIGGER", NULL, NULL, NULL},
 	{"EXTENSION", Query_for_list_of_extensions},
 	{"EXTERNAL TABLE", NULL, NULL, NULL},
@@ -1276,7 +1278,7 @@ static const pgsql_thing_t words_after_create[] = {
 	{"FOREIGN TABLE", NULL, NULL, NULL},
 	{"FUNCTION", NULL, NULL, Query_for_list_of_functions},
 	{"GROUP", Query_for_list_of_roles},
-	{"INCREMENTAL MATERIALIZED VIEW", NULL, NULL, &Query_for_list_of_matviews, THING_NO_DROP | THING_NO_ALTER},
+	{"INCREMENTAL MATERIALIZED VIEW", NULL, NULL, &Query_for_list_of_matviews, NULL, THING_NO_DROP | THING_NO_ALTER},
 	{"INDEX", NULL, NULL, &Query_for_list_of_indexes},
 	{"LANGUAGE", Query_for_list_of_languages},
 	{"LARGE OBJECT", NULL, NULL, NULL, NULL, THING_NO_CREATE | THING_NO_DROP},
@@ -3840,7 +3842,7 @@ psql_completion(const char *text, int start, int end)
 	else if (Matches("DROP", "DYNAMIC"))
 		COMPLETE_WITH("TABLE");
 	else if (Matches("DROP", "DYNAMIC", "TABLE"))
-		COMPLETE_WITH_SCHEMA_QUERY(Query_for_list_of_matviews, NULL);
+		COMPLETE_WITH_SCHEMA_QUERY(Query_for_list_of_matviews);
 
 	/* DROP STORAGE */
 	else if (Matches("DROP", "STORAGE"))
@@ -3849,7 +3851,7 @@ psql_completion(const char *text, int start, int end)
 	else if (Matches("DROP", "DIRECTORY"))
 		COMPLETE_WITH("TABLE");
 	else if (Matches("DROP", "DIRECTORY", "TABLE"))
-		COMPLETE_WITH_SCHEMA_QUERY(Query_for_list_of_directory_tables, NULL);
+		COMPLETE_WITH_SCHEMA_QUERY(Query_for_list_of_directory_tables);
 
 	/* DROP OWNED BY */
 	else if (Matches("DROP", "OWNED"))
@@ -4522,10 +4524,9 @@ psql_completion(const char *text, int start, int end)
 	else if (Matches("REFRESH", "DYNAMIC"))
 		COMPLETE_WITH("TABLE");
 	else if (Matches("REFRESH", "DYNAMIC", "TABLE"))
-		COMPLETE_WITH_SCHEMA_QUERY(Query_for_list_of_matviews,
-								   " UNION SELECT 'CONCURRENTLY'");
+		COMPLETE_WITH_SCHEMA_QUERY(Query_for_list_of_matviews);
 	else if (Matches("REFRESH", "DYNAMIC", "TABLE", "CONCURRENTLY"))
-		COMPLETE_WITH_SCHEMA_QUERY(Query_for_list_of_matviews, NULL);
+		COMPLETE_WITH_SCHEMA_QUERY(Query_for_list_of_matviews);
 	else if (Matches("REFRESH", "DYNAMIC", "TABLE", MatchAny))
 		COMPLETE_WITH("WITH");
 	else if (Matches("REFRESH", "DYNAMIC", "TABLE", "CONCURRENTLY", MatchAny))

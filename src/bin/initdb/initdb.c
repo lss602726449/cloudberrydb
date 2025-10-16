@@ -1453,6 +1453,10 @@ setup_config(void)
 									  gvalues->str, false);
 	}
 
+	snprintf(repltok, sizeof(repltok), "include = '%s'",
+			 GP_INTERNAL_AUTO_CONF_FILE_NAME);
+	conflines = replace_token(conflines, "#include = 'special.conf'", repltok);
+
 	/* ... and write out the finished postgresql.conf file */
 	snprintf(path, sizeof(path), "%s/postgresql.conf", pg_data);
 
