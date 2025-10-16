@@ -2161,11 +2161,11 @@ load_plpgsql(FILE *cmdfd)
 /*
  * GPDB: load external table support
  */
-//static void
-//load_exttable(FILE *cmdfd)
-//{
-//	PG_CMD_PUTS("CREATE EXTENSION gp_exttable_fdw;\n\n");
-//}
+static void
+load_exttable(FILE *cmdfd)
+{
+	PG_CMD_PUTS("CREATE EXTENSION gp_exttable_fdw;\n\n");
+}
 
 /*
  * clean everything up in template1
@@ -3414,7 +3414,7 @@ initialize_data_directory(void)
 
 	load_plpgsql(cmdfd);
 
-//	load_exttable(cmdfd);
+	load_exttable(cmdfd);
 
 	/* sets up the Apache Cloudberry admin schema */
 	setup_cdb_schema(cmdfd);

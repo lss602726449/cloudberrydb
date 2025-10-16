@@ -36,7 +36,7 @@ ifeq ($(enable_pax), yes)
 	$(MAKE) -C contrib/pax_storage all
 endif
 #	$(MAKE) -C gpMgmt all
-#	$(MAKE) -C gpcontrib all
+	$(MAKE) -C gpcontrib all
 	+@echo "All of Apache Cloudberry successfully made. Ready to install."
 
 docs:
@@ -83,7 +83,7 @@ ifeq ($(with_openssl), yes)
 	$(MAKE) -C contrib/sslinfo $@
 endif
 #	$(MAKE) -C gpMgmt $@
-#	$(MAKE) -C gpcontrib $@
+	$(MAKE) -C gpcontrib $@
 	+@echo "Apache Cloudberry installation complete."
 
 install-docs:
