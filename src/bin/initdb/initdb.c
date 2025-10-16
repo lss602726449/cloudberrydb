@@ -2152,11 +2152,11 @@ setup_cdb_schema(FILE *cmdfd)
 /*
  * load PL/pgSQL server-side language
  */
-//static void
-//load_plpgsql(FILE *cmdfd)
-//{
-//	PG_CMD_PUTS("CREATE EXTENSION plpgsql;\n\n");
-//}
+static void
+load_plpgsql(FILE *cmdfd)
+{
+	PG_CMD_PUTS("CREATE EXTENSION plpgsql;\n\n");
+}
 
 /*
  * GPDB: load external table support
@@ -3412,8 +3412,8 @@ initialize_data_directory(void)
 
 	setup_schema(cmdfd);
 
-//	load_plpgsql(cmdfd);
-//
+	load_plpgsql(cmdfd);
+
 //	load_exttable(cmdfd);
 
 	/* sets up the Apache Cloudberry admin schema */

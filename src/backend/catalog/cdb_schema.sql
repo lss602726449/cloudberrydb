@@ -46,29 +46,29 @@ GRANT SELECT ON pg_catalog.gp_distributed_log TO PUBLIC;
 
 
 -- pg_tablespace_location wrapper functions to see Greenplum cluster-wide tablespace locations
--- CREATE FUNCTION gp_tablespace_segment_location (IN tblspc_oid oid, OUT gp_segment_id int, OUT tblspc_loc text)
--- RETURNS SETOF RECORD AS
--- $$
--- DECLARE
---   seg_id int;
--- BEGIN
---   EXECUTE 'select pg_catalog.gp_execution_segment()' INTO seg_id;
---   -- check if execute in entrydb QE to prevent giving wrong results
---   IF seg_id = -1 THEN
---     RAISE EXCEPTION 'Cannot execute in entrydb, this query is not currently supported by GPDB.';
---   END IF;
---   RETURN QUERY SELECT pg_catalog.gp_execution_segment() as gp_segment_id, *
---     FROM pg_catalog.pg_tablespace_location($1);
--- END;
--- $$ LANGUAGE plpgsql EXECUTE ON ALL SEGMENTS;
+CREATE FUNCTION gp_tablespace_segment_location (IN tblspc_oid oid, OUT gp_segment_id int, OUT tblspc_loc text)
+RETURNS SETOF RECORD AS
+$$
+DECLARE
+  seg_id int;
+BEGIN
+  EXECUTE 'select pg_catalog.gp_execution_segment()' INTO seg_id;
+  -- check if execute in entrydb QE to prevent giving wrong results
+  IF seg_id = -1 THEN
+    RAISE EXCEPTION 'Cannot execute in entrydb, this query is not currently supported by GPDB.';
+  END IF;
+  RETURN QUERY SELECT pg_catalog.gp_execution_segment() as gp_segment_id, *
+    FROM pg_catalog.pg_tablespace_location($1);
+END;
+$$ LANGUAGE plpgsql EXECUTE ON ALL SEGMENTS;
 
 
--- CREATE FUNCTION gp_tablespace_location (IN tblspc_oid oid, OUT gp_segment_id int, OUT tblspc_loc text)
--- RETURNS SETOF RECORD
--- AS
---   'SELECT * FROM pg_catalog.gp_tablespace_segment_location($1)
---    UNION ALL
---    SELECT pg_catalog.gp_execution_segment() as gp_segment_id, * FROM pg_catalog.pg_tablespace_location($1)'
--- LANGUAGE SQL EXECUTE ON COORDINATOR;
+CREATE FUNCTION gp_tablespace_location (IN tblspc_oid oid, OUT gp_segment_id int, OUT tblspc_loc text)
+RETURNS SETOF RECORD
+AS
+  'SELECT * FROM pg_catalog.gp_tablespace_segment_location($1)
+   UNION ALL
+   SELECT pg_catalog.gp_execution_segment() as gp_segment_id, * FROM pg_catalog.pg_tablespace_location($1)'
+LANGUAGE SQL EXECUTE ON COORDINATOR;
 
 RESET log_min_messages;
