@@ -15,12 +15,9 @@
 #ifndef PL_PERL_H
 #define PL_PERL_H
 
-<<<<<<< HEAD
-=======
 /* defines free() by way of system headers, so must be included before perl.h */
 #include "mb/pg_wchar.h"
 
->>>>>>> REL_16_9
 /*
  * Pull in Perl headers via a wrapper header, to control the scope of
  * the system_header pragma therein.

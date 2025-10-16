@@ -4319,11 +4319,7 @@ exec_stmt_execsql(PLpgSQL_execstate *estate,
 		case SPI_OK_INSERT_RETURNING:
 		case SPI_OK_UPDATE_RETURNING:
 		case SPI_OK_DELETE_RETURNING:
-<<<<<<< HEAD
-=======
 		case SPI_OK_MERGE:
-			Assert(stmt->mod_stmt);
->>>>>>> REL_16_9
 			exec_set_found(estate, (SPI_processed != 0));
 			break;
 

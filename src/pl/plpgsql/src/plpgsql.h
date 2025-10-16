@@ -896,15 +896,10 @@ typedef struct PLpgSQL_stmt_execsql
 	int			lineno;
 	unsigned int stmtid;
 	PLpgSQL_expr *sqlstmt;
-<<<<<<< HEAD
-	bool		mod_stmt;		/* is the stmt INSERT/UPDATE/DELETE? */
-=======
 	bool		mod_stmt;		/* is the stmt INSERT/UPDATE/DELETE/MERGE? */
 	bool		mod_stmt_set;	/* is mod_stmt valid yet? */
->>>>>>> REL_16_9
 	bool		into;			/* INTO supplied? */
 	bool		strict;			/* INTO STRICT flag */
-	bool		mod_stmt_set;	/* is mod_stmt valid yet? */
 	PLpgSQL_variable *target;	/* INTO target (record or row) */
 } PLpgSQL_stmt_execsql;
 

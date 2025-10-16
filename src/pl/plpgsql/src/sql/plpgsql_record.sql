@@ -267,11 +267,6 @@ create function getf1(x record) returns int language plpgsql as
 $$ begin return x.f1; end $$;
 select getf1(1);
 select getf1(row(1,2));
-<<<<<<< HEAD
-=======
-select getf1(row(1,2)::two_int4s);
-select getf1(row('foo',123,456)::more_int4s);
->>>>>>> REL_16_9
 -- the context stack is different when debug_discard_caches
 -- is set, so suppress context output
 \set SHOW_CONTEXT never

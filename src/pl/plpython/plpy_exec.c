@@ -745,11 +745,7 @@ PLy_trigger_build_args(FunctionCallInfo fcinfo, PLyProcedure *proc, HeapTuple *r
 
 	PG_TRY();
 	{
-<<<<<<< HEAD
-		pltname = PyString_FromString(tdata->tg_trigger->tgname);
-=======
 		pltname = PLyUnicode_FromString(tdata->tg_trigger->tgname);
->>>>>>> REL_16_9
 		PyDict_SetItemString(pltdata, "name", pltname);
 		Py_DECREF(pltname);
 

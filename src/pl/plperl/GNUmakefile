@@ -55,17 +55,13 @@ endif # win32
 
 SHLIB_LINK = $(perl_embed_ldflags)
 
-<<<<<<< HEAD
-REGRESS_OPTS = --dbname=$(PL_TESTDB)
-REGRESS_OPTS += --init-file=init_file
-=======
 # see https://www.postgresql.org/message-id/flat/8c4fcb72-2574-ff7c-4c25-1f032d4a2a57%40enterprisedb.com
 ifeq ($(PORTNAME), cygwin)
 SHLIB_LINK += -Wl,--export-all-symbols
 endif
 
-REGRESS_OPTS = --dbname=$(PL_TESTDB) --dlpath=$(top_builddir)/src/test/regress
->>>>>>> REL_16_9
+REGRESS_OPTS = --dbname=$(PL_TESTDB)
+REGRESS_OPTS += --init-file=init_file
 REGRESS = plperl_setup plperl plperl_lc plperl_trigger plperl_shared \
 	plperl_elog plperl_util plperl_init plperlu plperl_array \
 	plperl_call plperl_transaction plperl_env
@@ -118,11 +114,7 @@ uninstall: uninstall-lib uninstall-data
 
 install-data: installdirs
 	$(INSTALL_DATA) $(addprefix $(srcdir)/, $(DATA)) '$(DESTDIR)$(datadir)/extension/'
-<<<<<<< HEAD
-	$(INSTALL_DATA) $(srcdir)/plperl.h $(srcdir)/plperl_system.h $(srcdir)/ppport.h $(srcdir)/plperl_helpers.h '$(DESTDIR)$(includedir_server)'
-=======
 	$(INSTALL_DATA) $(srcdir)/plperl.h $(srcdir)/plperl_system.h $(srcdir)/ppport.h '$(DESTDIR)$(includedir_server)'
->>>>>>> REL_16_9
 
 uninstall-data:
 	rm -f $(addprefix '$(DESTDIR)$(datadir)/extension'/, $(notdir $(DATA)))
