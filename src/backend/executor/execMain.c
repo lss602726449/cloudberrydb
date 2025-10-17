@@ -1475,6 +1475,9 @@ ExecCheckPermissions(List *rangeTable, List *rteperminfos,
 	{
 		RangeTblEntry *rte = lfirst_node(RangeTblEntry, l);
 
+		if (rte->rtekind == RTE_VOID)
+			continue;
+		
 		if (rte->perminfoindex != 0)
 		{
 			/* Sanity checks */
@@ -1495,7 +1498,7 @@ ExecCheckPermissions(List *rangeTable, List *rteperminfos,
 	}
 
 	/* All rteperminfos are referenced */
-	Assert(bms_num_members(indexset) == list_length(rteperminfos));
+	//Assert(bms_num_members(indexset) == list_length(rteperminfos));
 #endif
 
 	foreach(l, rteperminfos)

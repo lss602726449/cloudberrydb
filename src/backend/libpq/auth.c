@@ -477,8 +477,8 @@ cmd_options_include_retrieve_conn(char* cmd_options)
 										value)));
 					}
 
-					free(name);
-					free(value);
+					pfree(name);
+					pfree(value);
 					break;
 				}
 

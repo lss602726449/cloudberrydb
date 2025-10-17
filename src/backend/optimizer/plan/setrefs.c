@@ -1695,15 +1695,7 @@ set_indexonlyscan_references(PlannerInfo *root,
 					   rtoffset,
 					   NRM_EQUAL,
 					   NUM_EXEC_QUAL((Plan *) plan));
-	plan->recheckqual = (List *)
-		fix_upper_expr(root,
-					   (Node *) plan->recheckqual,
-					   index_itlist,
-					   INDEX_VAR,
-					   rtoffset,
-					   NRM_EQUAL,
-					   NUM_EXEC_QUAL((Plan *) plan));
-
+	/* indexqual is already transformed to reference index columns */
 	plan->indexqual = fix_scan_list(root, plan->indexqual,
     									rtoffset, 1);
 	/* indexqualorig is already transformed to reference index columns */
