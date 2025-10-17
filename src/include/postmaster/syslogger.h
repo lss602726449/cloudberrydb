@@ -3,7 +3,7 @@
  * syslogger.h
  *	  Exports from postmaster/syslogger.c.
  *
- * Copyright (c) 2004-2023, PostgreSQL Global Development Group
+ * Copyright (c) 2004-2021, PostgreSQL Global Development Group
  *
  * src/include/postmaster/syslogger.h
  *
@@ -82,8 +82,6 @@ typedef struct
 	char		is_segv_msg;	/* indicate whether this is a message sent in SEGV/BUS/ILL handler */
 	int64		log_line_number;	/* indicate the order of the message */
 	int64		next;			/* next chained chunk.  also force an 8 bytes align */
-	bits8		flags;			/* bitmask of PIPE_PROTO_* */
-	char		data[FLEXIBLE_ARRAY_MEMBER];	/* data payload starts here */
 } PipeProtoHeader;
 
 #define PIPE_HEADER_UNALIGNED_SIZE  sizeof(PipeProtoHeader)
@@ -175,34 +173,26 @@ typedef struct
 	int32 frame_depth;
 } GpSegvErrorData;
 
-/* flag bits for PipeProtoHeader->flags */
-#define PIPE_PROTO_IS_LAST	0x01	/* last chunk of message? */
-/* log destinations */
-#define PIPE_PROTO_DEST_STDERR	0x10
-#define PIPE_PROTO_DEST_CSVLOG	0x20
-#define PIPE_PROTO_DEST_JSONLOG	0x40
-
 /* GUC options */
-extern PGDLLIMPORT bool Logging_collector;
-extern PGDLLIMPORT int Log_RotationAge;
-extern PGDLLIMPORT int Log_RotationSize;
+extern bool Logging_collector;
+extern int	Log_RotationAge;
+extern int	Log_RotationSize;
 extern PGDLLIMPORT char *Log_directory;
 extern PGDLLIMPORT char *Log_filename;
-extern PGDLLIMPORT bool Log_truncate_on_rotation;
-extern PGDLLIMPORT int Log_file_mode;
+extern bool Log_truncate_on_rotation;
+extern int	Log_file_mode;
 extern int gp_log_format;
 
-
 #ifndef WIN32
-extern PGDLLIMPORT int syslogPipe[2];
+extern int	syslogPipe[2];
 #else
-extern PGDLLIMPORT HANDLE syslogPipe[2];
+extern HANDLE syslogPipe[2];
 #endif
 
 
 extern int	SysLogger_Start(void);
 
-extern void write_syslogger_file(const char *buffer, int count, int destination);
+extern void write_syslogger_file(const char *buffer, int count, int dest);
 
 extern void syslogger_append_timestamp(pg_time_t stamp_time, bool amsyslogger, bool append_comma);
 extern void syslogger_append_current_timestamp(bool amsyslogger);
