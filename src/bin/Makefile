@@ -41,6 +41,8 @@ unittest-check:
 
 SUBDIRS = \
 	initdb \
+	pg_config \
+	pg_controldata \
 	pg_ctl \
 	psql
 

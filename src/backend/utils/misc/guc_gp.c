@@ -5464,7 +5464,7 @@ storageOptToString(const StdRdOptions *ao_opts)
 	}
 	appendStringInfo(&buf, "%s=%s", SOPT_CHECKSUM,
 					 ao_opts->checksum ? "true" : "false");
-	ret = strdup(buf.data);
+	ret = guc_strdup(ERROR, buf.data);
 	if (ret == NULL)
 		elog(ERROR, "out of memory");
 	pfree(buf.data);
@@ -5481,12 +5481,14 @@ check_gp_default_storage_options(char **newval, void **extra, GucSource source)
 	/* Value of "appendonly" option if one is specified. */
 	StdRdOptions *newopts;
 
-	newopts = calloc(sizeof(*newopts), 1);
+	newopts = guc_malloc(ERROR, sizeof(*newopts));
 	if (!newopts)
 		ereport(ERROR,
 				(errcode(ERRCODE_OUT_OF_MEMORY),
 				 errmsg("out of memory")));
 
+	memset(newopts, 0, sizeof(*newopts));
+	
 	resetAOStorageOpts(newopts);
 
 	/*

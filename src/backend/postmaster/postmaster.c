@@ -681,7 +681,8 @@ static void ShmemBackendArrayRemove(Backend *bn);
 #endif							/* EXEC_BACKEND */
 
 #define StartupDataBase()		StartChildProcess(StartupProcess)
-#define StartArchiver()			StartChildProcess(ArchiverProcess)
+//#define StartArchiver()			StartChildProcess(ArchiverProcess)
+#define StartArchiver()			(0)
 #define StartBackgroundWriter() StartChildProcess(BgWriterProcess)
 #define StartCheckpointer()		StartChildProcess(CheckpointerProcess)
 #define StartWalWriter()		StartChildProcess(WalWriterProcess)
@@ -2071,12 +2072,6 @@ ServerLoop(void)
 		checkPgDir("/pg_xact");
 		checkPgDir("/pg_multixact/members");
 		checkPgDir("/pg_multixact/offsets");
-
-		/*
-		 * Block all signals until we wait again.  (This makes it safe for our
-		 * signal handlers to do nontrivial work.)
-		 */
-		PG_SETMASK(&BlockSig);
 
 		/*
 		 * Latch set by signal handler, or new connection pending on any of
