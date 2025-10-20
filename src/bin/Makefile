@@ -44,7 +44,8 @@ SUBDIRS = \
 	pg_config \
 	pg_controldata \
 	pg_ctl \
-	psql
+	psql \
+	scripts
 
 ifeq ($(PORTNAME), win32)
 SUBDIRS += pgevent

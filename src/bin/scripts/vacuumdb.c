@@ -731,18 +731,10 @@ vacuum_one_database(ConnParams *cparams,
 	 */
 	if ((objfilter & OBJFILTER_TABLE) == 0)
 	{
-<<<<<<< HEAD
-		appendPQExpBufferStr(&catalog_query, " WHERE c.relkind OPERATOR(pg_catalog.=) ANY (array["
-							 CppAsString2(RELKIND_RELATION) ", "
-							 CppAsString2(RELKIND_DIRECTORY_TABLE) ", "
-							 CppAsString2(RELKIND_MATVIEW) "])\n");
-		has_where = true;
-=======
 		appendPQExpBuffer(&catalog_query,
 						  " AND c.relkind OPERATOR(pg_catalog.=) ANY (array["
 						  CppAsString2(RELKIND_RELATION) ", "
 						  CppAsString2(RELKIND_MATVIEW) "])\n");
->>>>>>> REL_16_9
 	}
 
 	/*

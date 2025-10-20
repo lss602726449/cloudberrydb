@@ -1,9 +1,5 @@
 # src/bin/scripts/nls.mk
 CATALOG_NAME     = pgscripts
-<<<<<<< HEAD
-AVAIL_LANGUAGES  = cs de el es fr ja ko ru sv tr uk zh_CN
-=======
->>>>>>> REL_16_9
 GETTEXT_FILES    = $(FRONTEND_COMMON_GETTEXT_FILES) \
                    createdb.c \
                    createuser.c \

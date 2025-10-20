@@ -328,16 +328,6 @@ reindex_one_database(ConnParams *cparams, ReindexType type,
 
 	conn = connectDatabase(cparams, progname, echo, false, false);
 
-<<<<<<< HEAD
-=======
-	if (concurrently && PQserverVersion(conn) < 120000)
-	{
-		PQfinish(conn);
-		pg_fatal("cannot use the \"%s\" option on server versions older than PostgreSQL %s",
-				 "concurrently", "12");
-	}
-
->>>>>>> REL_16_9
 	if (tablespace && PQserverVersion(conn) < 140000)
 	{
 		PQfinish(conn);
