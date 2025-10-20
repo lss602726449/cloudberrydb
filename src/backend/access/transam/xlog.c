@@ -5454,6 +5454,7 @@ StartupXLOG(void)
 
 	/* initialize shared memory variables from the checkpoint record */
 	ShmemVariableCache->nextXid = checkPoint.nextXid;
+	ShmemVariableCache->nextGxid = checkPoint.nextGxid;
 	ShmemVariableCache->nextOid = checkPoint.nextOid;
 	ShmemVariableCache->oidCount = 0;
 	MultiXactSetNextMXact(checkPoint.nextMulti, checkPoint.nextMultiOffset);
