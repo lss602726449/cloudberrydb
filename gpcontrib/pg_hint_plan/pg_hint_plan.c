@@ -53,7 +53,6 @@
 #include "utils/snapmgr.h"
 #include "utils/syscache.h"
 #include "utils/resowner.h"
-#include "utils/queryjumble.h"
 #include "catalog/pg_class.h"
 
 #include "executor/spi.h"
