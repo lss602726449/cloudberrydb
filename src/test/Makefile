@@ -18,16 +18,14 @@ SUBDIRS = perl regress isolation modules authentication recovery
 
 SUBDIRS += fsync walrep heap_checksum isolation2 fdw singlenode_regress singlenode_isolation2
 
-<<<<<<< HEAD
 # Test suites that are not safe by default but can be run if selected
 # by the user via the whitespace-separated list in variable
 # PG_TEST_EXTRA:
 ifeq ($(with_openssl),yes)
 SUBDIRS += crypto
-=======
+endif
 ifeq ($(with_icu),yes)
 SUBDIRS += icu
->>>>>>> REL_16_9
 endif
 ifeq ($(with_gssapi),yes)
 SUBDIRS += kerberos

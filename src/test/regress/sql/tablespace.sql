@@ -1,9 +1,3 @@
-<<<<<<< HEAD:src/test/regress/input/tablespace.source
--- start_matchignore
--- m/WARNING:  tablespace symlink path is too long for TAR/
--- m/DETAIL:  The symlinked path \".*\" will be truncated to 100 characters when sending a TAR to the utilities \(e.g. pg_basebackup\)/
--- end_matchignore
-=======
 -- relative tablespace locations are not allowed
 CREATE TABLESPACE regress_tblspace LOCATION 'relative'; -- fail
 
@@ -16,7 +10,6 @@ CREATE TABLESPACE regress_tblspace LOCATION ''; -- fail
 -- as a directory in pg_tblspc, rather than being a symlink
 SET allow_in_place_tablespaces = true;
 
->>>>>>> REL_16_9:src/test/regress/sql/tablespace.sql
 -- create a tablespace using WITH clause
 CREATE TABLESPACE regress_tblspacewith LOCATION '' WITH (some_nonexistent_parameter = true); -- fail
 CREATE TABLESPACE regress_tblspacewith LOCATION '' WITH (random_page_cost = 3.0); -- ok

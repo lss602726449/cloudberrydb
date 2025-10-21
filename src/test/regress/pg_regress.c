@@ -26,18 +26,10 @@
 #include <signal.h>
 #include <unistd.h>
 
-<<<<<<< HEAD
 #ifdef __linux__
 #include <mntent.h>
 #endif
 
-#ifdef HAVE_SYS_RESOURCE_H
-#include <sys/time.h>
-#include <sys/resource.h>
-#endif
-
-=======
->>>>>>> REL_16_9
 #include "common/logging.h"
 #include "common/restricted_token.h"
 #include "common/string.h"
@@ -84,9 +76,8 @@ const char *basic_diff_opts = "-w";
 const char *pretty_diff_opts = "-w -U3";
 #endif
 
-<<<<<<< HEAD
 _stringlist *setup_tests = NULL;
-=======
+
 /*
  * The width of the testname field when printing to ensure vertical alignment
  * of test runtimes. This number is somewhat arbitrarily chosen to match the
@@ -106,19 +97,16 @@ typedef enum TAPtype
 	NONE
 } TAPtype;
 
->>>>>>> REL_16_9
 /* options settable from command line */
 _stringlist *dblist = NULL;
 bool		debug = false;
 char	   *inputdir = ".";
 char	   *outputdir = ".";
-<<<<<<< HEAD
 char	   *tablespacedir = ".";
 char	   *exclude_tests_file = "";
 char	   *prehook = "";
-=======
+
 char	   *expecteddir = ".";
->>>>>>> REL_16_9
 char	   *bindir = PGBINDIR;
 char	   *launcher = NULL;
 bool        print_failure_diffs_is_enabled = false;
@@ -661,7 +649,6 @@ string_matches_pattern(const char *str, const char *pattern)
 }
 
 /*
-<<<<<<< HEAD
  * Replace all occurrences of "replace" in "string" with "replacement".
  * The StringInfo will be suitably enlarged if necessary.
  *
@@ -1109,34 +1096,6 @@ convert_sourcefiles(void)
 }
 
 /*
- * Clean out the test tablespace dir, or create it if it doesn't exist.
- *
- * On Windows, doing this cleanup here makes it possible to run the
- * regression tests under a Windows administrative user account with the
- * restricted token obtained when starting pg_regress.
- */
-static void
-prepare_testtablespace_dir(void)
-{
-	char		testtablespace[MAXPGPATH];
-
-	snprintf(testtablespace, MAXPGPATH, "%s/testtablespace", outputdir);
-
-	if (directory_exists(testtablespace))
-	{
-		if (!rmtree(testtablespace, true))
-		{
-			fprintf(stderr, _("\n%s: could not remove test tablespace \"%s\"\n"),
-					progname, testtablespace);
-			exit(2);
-		}
-	}
-	make_directory(testtablespace);
-}
-
-/*
-=======
->>>>>>> REL_16_9
  * Scan resultmap file to find which platform-specific expected files to use.
  *
  * The format of each line of the file is
@@ -1492,17 +1451,9 @@ initialize_environment(void)
 		if (!pghost)
 		{
 			/* Keep this bit in sync with libpq's default host location: */
-<<<<<<< HEAD
-#ifdef HAVE_UNIX_SOCKETS
 			if (DEFAULT_PGSOCKET_DIR[0])
 				 /* do nothing, we'll print "Unix socket" below */ ;
 			else
-#endif
-=======
-			if (DEFAULT_PGSOCKET_DIR[0])
-				 /* do nothing, we'll print "Unix socket" below */ ;
-			else
->>>>>>> REL_16_9
 				pghost = "localhost";	/* DefaultHost in fe-connect.c */
 		}
 
@@ -2556,20 +2507,6 @@ run_schedule(const char *schedule, test_start_function startfunc,
 					test_status_ok(tests[i], INSTR_TIME_GET_MILLISEC(stoptimes[i]), (num_tests > 1));
 				}
 			}
-<<<<<<< HEAD
-
-			if (statuses[i] != 0)
-				log_child_failure(statuses[i]);
-
-			INSTR_TIME_SUBTRACT(stoptimes[i], starttimes[i]);
-			status(_(" %8.0f ms"), INSTR_TIME_GET_MILLISEC(stoptimes[i]));
-
-			INSTR_TIME_SUBTRACT(diff_stop_time, diff_start_time);
-			status(_(" (diff %4.0f ms)"), INSTR_TIME_GET_MILLISEC(diff_stop_time));
-
-			status_end();
-=======
->>>>>>> REL_16_9
 		}
 
 		for (i = 0; i < num_tests; i++)
@@ -2604,16 +2541,12 @@ run_single_test(const char *test, test_start_function startfunc,
 			   *tl;
 	bool		differ = false;
 
-<<<<<<< HEAD
 	if (!cluster_healthy())
 		return;
 
 	if (should_exclude_test((char *) test))
 		return;
 
-	status(_("test %-28s ... "), test);
-=======
->>>>>>> REL_16_9
 	pid = (startfunc) (test, &resultfiles, &expectfiles, &tags);
 	INSTR_TIME_SET_CURRENT(starttime);
 	wait_for_tests(&pid, &exit_status, &stoptime, NULL, 1);
@@ -2776,15 +2709,9 @@ create_database(const char *dbname)
 	 * not mess up the tests.
 	 */
 	if (encoding)
-<<<<<<< HEAD
-		psql_command("postgres", "CREATE DATABASE \"%s\" TEMPLATE=template0 ENCODING='%s'", dbname, encoding);
-=======
-		psql_add_command(buf, "CREATE DATABASE \"%s\" TEMPLATE=template0 ENCODING='%s'%s", dbname, encoding,
-						 (nolocale) ? " LOCALE='C'" : "");
->>>>>>> REL_16_9
+		psql_add_command(buf, "CREATE DATABASE \"%s\" TEMPLATE=template0 ENCODING='%s'", dbname, encoding);
 	else
-		psql_add_command(buf, "CREATE DATABASE \"%s\" TEMPLATE=template0%s", dbname,
-						 (nolocale) ? " LOCALE='C'" : "");
+		psql_add_command(buf, "CREATE DATABASE \"%s\" TEMPLATE=template0", dbname);
 	psql_add_command(buf,
 					 "ALTER DATABASE \"%s\" SET lc_messages TO 'C';"
 					 "ALTER DATABASE \"%s\" SET lc_monetary TO 'C';"
@@ -2813,11 +2740,6 @@ create_database(const char *dbname)
 	add_stringlist_item(&loadextension, "pageinspect");
 	for (sl = loadextension; sl != NULL; sl = sl->next)
 		psql_command(dbname, "CREATE EXTENSION IF NOT EXISTS \"%s\"", sl->str);
-<<<<<<< HEAD
-	}
-
-=======
->>>>>>> REL_16_9
 }
 
 static void
@@ -2898,7 +2820,6 @@ check_external_fts()
 	if (fp == NULL) {
 		exit(2);
 	}
-	header(_("checking %s status"), "external_fts");
 
 	while (fgets(buffer, sizeof(buffer), fp) != NULL) {
 		if (strlen(buffer) > 0) {
@@ -2908,11 +2829,10 @@ check_external_fts()
 	}
 	pclose(fp);
 	if (result) {
-		status(_("%s"), on_msg);
+		note("%s", on_msg);
 	} else {
-		status(_("%s"), off_msg);
+		note("%s", off_msg);
 	}
-	status_end();
 	return result;
 }
 
@@ -2936,8 +2856,6 @@ check_feature_status(const char *feature_name, const char *feature_value,
 	char line[1024];
 	bool isEnabled = false;
 	int len;
-
-	header(_("checking %s status"), feature_name);
 
 	snprintf(statusfilename, sizeof(statusfilename), "%s/%s_status.out", outputdir, feature_name);
 
@@ -2967,15 +2885,14 @@ check_feature_status(const char *feature_name, const char *feature_value,
 		char *trimmed = trim_white_space(line);
 		if (strcmp(trimmed, feature_value) == 0)
 		{
-			status(_("%s"), on_msg);
+			note(_("%s"), on_msg);
 			isEnabled = true;
 			break;
 		}
 	}
 	if (!isEnabled)
-		status(_("%s"), off_msg);
+		note(_("%s"), off_msg);
 
-	status_end();
 	fclose(statusfile);
 	unlink(statusfilename);
 	return isEnabled;
@@ -3070,8 +2987,7 @@ regression_main(int argc, char *argv[],
 		{"load-extension", required_argument, NULL, 22},
 		{"config-auth", required_argument, NULL, 24},
 		{"max-concurrent-tests", required_argument, NULL, 25},
-<<<<<<< HEAD
-		{"make-testtablespace-dir", no_argument, NULL, 26},
+		{"expecteddir", required_argument, NULL, 26},
 
 		{"init-file", required_argument, NULL, 80},
 		{"exclude-tests", required_argument, NULL, 81},
@@ -3081,9 +2997,6 @@ regression_main(int argc, char *argv[],
 		{"tablespace-dir", required_argument, NULL, 85},
 		{"exclude-file", required_argument, NULL, 87}, /* 86 conflicts with 'V' */
 
-=======
-		{"expecteddir", required_argument, NULL, 26},
->>>>>>> REL_16_9
 		{NULL, 0, NULL, 0}
 	};
 
@@ -3552,12 +3465,6 @@ regression_main(int argc, char *argv[],
 		}
 	}
 
-#ifdef FAULT_INJECTOR
-	header(_("faultinjector enabled"));
-#else
-	header(_("faultinjector not enabled"));
-#endif
-
 	/*
 	 * Create the test database(s) and role(s)
 	 */
@@ -3597,18 +3504,12 @@ regression_main(int argc, char *argv[],
 	/*
 	 * Ready to run the tests
 	 */
-<<<<<<< HEAD
-	header(_("running regression test queries"));
-
 	for (sl = setup_tests; sl != NULL && !halt_work; sl = sl->next)
 	{
 		run_single_test(sl->str, startfunc, postfunc);
 	}
 
 	for (sl = schedulelist; sl != NULL && !halt_work; sl = sl->next)
-=======
-	for (sl = schedulelist; sl != NULL; sl = sl->next)
->>>>>>> REL_16_9
 	{
 		run_schedule(sl->str, startfunc, postfunc);
 	}
@@ -3653,20 +3554,12 @@ regression_main(int argc, char *argv[],
 
 	if (file_size(difffilename) > 0)
 	{
-<<<<<<< HEAD
 		if (print_failure_diffs_is_enabled)
 			print_contents_of_file(difffilename);
-
-		printf(_("The differences that caused some tests to fail can be viewed in the\n"
-				 "file \"%s\".  A copy of the test summary that you see\n"
-				 "above is saved in the file \"%s\".\n\n"),
-			   difffilename, logfilename);
-=======
 		diag("The differences that caused some tests to fail can be viewed in the file \"%s\".",
 			 difffilename);
 		diag("A copy of the test summary that you see above is saved in the file \"%s\".",
 			 logfilename);
->>>>>>> REL_16_9
 	}
 	else
 	{
@@ -3687,7 +3580,8 @@ regression_main(int argc, char *argv[],
  * Issue a command via psql, connecting to the specified database
  *
  */
-static void
+static
+__attribute__((format(printf, 4, 5))) void
 psql_command_output(const char *database, char *buffer, int buf_len, const char *query,...)
 {
 	char		query_formatted[1024];

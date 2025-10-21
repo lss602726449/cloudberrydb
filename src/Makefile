@@ -46,7 +46,8 @@ SUBDIRS = \
 	backend/replication/pgoutput \
 	fe_utils \
 	bin \
-	pl
+	pl \
+	test/regress
 
 ifeq ($(with_llvm), yes)
 SUBDIRS += backend/jit/llvm

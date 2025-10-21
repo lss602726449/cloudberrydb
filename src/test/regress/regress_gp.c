@@ -1238,7 +1238,7 @@ gp_execute_on_server(PG_FUNCTION_ARGS)
 	}
 
 	cdbdisp_clearCdbPgResults(&cdb_pgresults);
-	PG_RETURN_TEXT_P(CStringGetTextDatum(result_str.data));
+	PG_RETURN_TEXT_P(result_str.data);
 }
 
 /*
@@ -1257,7 +1257,7 @@ check_shared_buffer_cache_for_dboid(PG_FUNCTION_ARGS)
 	{
 		volatile BufferDesc *bufHdr = GetBufferDescriptor(i);
 
-		if (bufHdr->tag.rnode.dbNode == databaseOid)
+		if (bufHdr->tag.dbOid == databaseOid)
 			PG_RETURN_BOOL(true);
 	}
 
