@@ -72,7 +72,7 @@
 #if defined(WAIT_USE_EPOLL) || defined(WAIT_USE_POLL) || \
 	defined(WAIT_USE_KQUEUE) || defined(WAIT_USE_WIN32)
 /* don't overwrite manual choice */
-#elif defined(HAVE_SYS_EPOLL_H) && defined(HAVE_SYS_SIGNALFD_H)
+#elif defined(HAVE_SYS_EPOLL_H)
 #define WAIT_USE_EPOLL
 #elif defined(HAVE_KQUEUE)
 #define WAIT_USE_KQUEUE
@@ -82,6 +82,22 @@
 #define WAIT_USE_WIN32
 #else
 #error "no wait set implementation available"
+#endif
+
+/*
+ * By default, we use a self-pipe with poll() and a signalfd with epoll(), if
+ * available.  We avoid signalfd on illumos for now based on problem reports.
+ * For testing the choice can also be manually specified.
+ */
+#if defined(WAIT_USE_POLL) || defined(WAIT_USE_EPOLL)
+#if defined(WAIT_USE_SELF_PIPE) || defined(WAIT_USE_SIGNALFD)
+/* don't overwrite manual choice */
+#elif defined(WAIT_USE_EPOLL) && defined(HAVE_SYS_SIGNALFD_H) && \
+	!defined(__illumos__)
+#define WAIT_USE_SIGNALFD
+#else
+#define WAIT_USE_SELF_PIPE
+#endif
 #endif
 
 /* typedef in latch.h */
@@ -1644,6 +1660,9 @@ WaitEventSetWaitBlock(WaitEventSet *set, int cur_timeout,
 		if (cur_event->events == WL_LATCH_SET &&
 			cur_epoll_event->events & (EPOLLIN | EPOLLERR | EPOLLHUP))
 		{
+			/* Drain the signalfd. */
+			drain();
+
 			if (set->latch && set->latch->maybe_sleeping && set->latch->is_set)
 			{
 				occurred_events->fd = PGINVALID_SOCKET;

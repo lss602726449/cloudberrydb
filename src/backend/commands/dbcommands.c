@@ -1682,11 +1682,7 @@ dropdb(const char *dbname, bool missing_ok, bool force)
 	Oid			db_id = InvalidOid;
 	bool		db_istemplate = true;
 	Relation	pgdbrel;
-	HeapTuple	tup;
-	ScanKeyData scankey;
-	void	   *inplace_state;
-	Form_pg_database datform;
-	int			notherbackends;
+	HeapTuple	tup;	int			notherbackends;
 	int			npreparedxacts;
 	int			nslots,
 				nslots_active;
@@ -1854,7 +1850,7 @@ dropdb(const char *dbname, bool missing_ok, bool force)
 	 */
 	DeleteSharedComments(db_id, DatabaseRelationId);
 	DeleteSharedSecurityLabel(db_id, DatabaseRelationId);
-	
+
 	/*
 	 * Delete any tag description and associated dependencies.
 	 */
@@ -1873,42 +1869,6 @@ dropdb(const char *dbname, bool missing_ok, bool force)
 	dropDatabaseDependencies(db_id);
 
 	/*
-	 * Tell the cumulative stats system to forget it immediately, too.
-	 */
-	pgstat_drop_database(db_id);
-
-	/*
-	 * Except for the deletion of the catalog row, subsequent actions are not
-	 * transactional (consider DropDatabaseBuffers() discarding modified
-	 * buffers). But we might crash or get interrupted below. To prevent
-	 * accesses to a database with invalid contents, mark the database as
-	 * invalid using an in-place update.
-	 *
-	 * We need to flush the WAL before continuing, to guarantee the
-	 * modification is durable before performing irreversible filesystem
-	 * operations.
-	 */
-	ScanKeyInit(&scankey,
-				Anum_pg_database_datname,
-				BTEqualStrategyNumber, F_NAMEEQ,
-				CStringGetDatum(dbname));
-	systable_inplace_update_begin(pgdbrel, DatabaseNameIndexId, true,
-								  NULL, 1, &scankey, &tup, &inplace_state);
-	if (!HeapTupleIsValid(tup))
-		elog(ERROR, "cache lookup failed for database %u", db_id);
-	datform = (Form_pg_database) GETSTRUCT(tup);
-	datform->datconnlimit = DATCONNLIMIT_INVALID_DB;
-	systable_inplace_update_finish(inplace_state, tup);
-	XLogFlush(XactLastRecEnd);
-
-	/*
-	 * Also delete the tuple - transactionally. If this transaction commits,
-	 * the row will be gone, but if we fail, dropdb() can be invoked again.
-	 */
-	CatalogTupleDelete(pgdbrel, &tup->t_self);
-	heap_freetuple(tup);
-
-	/*
 	 * Drop db-specific replication slots.
 	 */
 	ReplicationSlotsDropDBSlots(db_id);
@@ -1923,11 +1883,6 @@ dropdb(const char *dbname, bool missing_ok, bool force)
 	/* MPP-6929: metadata tracking */
 	if (Gp_role == GP_ROLE_DISPATCH)
 		MetaTrackDropObject(DatabaseRelationId, db_id);
-
-	/*
-	 * Tell the stats collector to forget it immediately, too.
-	 */
-	pgstat_drop_database(db_id);
 
 	/*
 	 * Tell checkpointer to forget any pending fsync and unlink requests for

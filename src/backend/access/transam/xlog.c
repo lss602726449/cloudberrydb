@@ -7209,7 +7209,7 @@ CreateCheckPoint(int flags)
 		{
 			AbsorbSyncRequests();
 			pg_usleep(10000L);	/* wait for 10 msec */
-		} while (HaveVirtualXIDsDelayingChkpt(vxids, nvxids));
+		} while (HaveVirtualXIDsDelayingChkptEnd(vxids, nvxids));
 	}
 	pfree(vxids);
 
