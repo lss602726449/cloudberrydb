@@ -461,6 +461,84 @@ _readUpdateStmt(void)
 	READ_DONE();
 }
 
+
+static Integer *
+_readInteger(void)
+{
+	READ_LOCALS(Integer);
+
+	memcpy(&local_node->ival, read_str_ptr, sizeof(long));
+	read_str_ptr += sizeof(long);
+
+	READ_DONE();
+}
+
+static Boolean *
+_readBoolean(void)
+{
+	READ_LOCALS(Boolean);
+
+	memcpy(&local_node->boolval, read_str_ptr, sizeof(long));
+	read_str_ptr += sizeof(long);
+
+	READ_DONE();
+}
+
+static Float *
+_readFloat(void)
+{
+	READ_LOCALS(Float);
+
+	int slen;
+	char *nn;
+	memcpy(&slen, read_str_ptr, sizeof(int));
+	read_str_ptr += sizeof(int);
+	nn = palloc(slen + 1);
+	memcpy(nn, read_str_ptr, slen);
+	nn[slen] = '\0';
+	local_node->fval = nn;
+	read_str_ptr += slen;
+
+	READ_DONE();
+}
+
+static String *
+_readString(void)
+{
+	int slen;
+	char *nn;
+
+	READ_LOCALS(String);
+
+	memcpy(&slen, read_str_ptr, sizeof(int));
+	read_str_ptr += sizeof(int);
+	nn = palloc(slen + 1);
+	memcpy(nn, read_str_ptr, slen);
+	nn[slen] = '\0';
+	local_node->sval = nn;
+	read_str_ptr += slen;
+
+	READ_DONE();
+}
+
+static BitString *
+_readBitString(void)
+{
+	READ_LOCALS(BitString);
+
+	int slen;
+	char *nn;
+	memcpy(&slen, read_str_ptr, sizeof(int));
+	read_str_ptr += sizeof(int);
+	nn = palloc(slen + 1);
+	memcpy(nn, read_str_ptr, slen);
+	nn[slen] = '\0';
+	local_node->bsval = nn;
+	read_str_ptr += slen;
+
+	READ_DONE();
+}
+
 static A_Const *
 _readAConst(void)
 {
@@ -2628,6 +2706,21 @@ readNodeBinary(void)
 				break;
 			case T_ParamRef:
 				return_value = _readParamRef();
+				break;
+			case T_Integer:
+				return_value = _readInteger();
+				break;
+			case T_Boolean:
+				return_value = _readBoolean();
+				break;
+			case T_Float:
+				return_value = _readFloat();
+				break;
+			case T_String:
+				return_value = _readString();
+				break;
+			case T_BitString:
+				return_value = _readBitString();
 				break;
 			case T_A_Const:
 				return_value = _readAConst();
