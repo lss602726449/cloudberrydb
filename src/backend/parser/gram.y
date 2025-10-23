@@ -2125,8 +2125,8 @@ deny_day_specifier: Sconst { $$ = (Node *)makeString($1); }
 deny_point: DAY_P deny_day_specifier opt_time
 				{
 					DenyLoginPoint *n = makeNode(DenyLoginPoint);
-					n->day = (Value *)$2;
-					n->time = (Value *)$3;
+					n->day = $2;
+					n->time = $3;
 					$$ = (Node *)n;
 				}
 		;

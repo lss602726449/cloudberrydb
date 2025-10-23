@@ -458,7 +458,7 @@ does_not_exist_skipping(ObjectType objtype, Node *object)
 			break;
 		case OBJECT_STORAGE_SERVER:
 			msg = gettext_noop("storage server \"%s\" does not exist, skipping");
-			name = strVal((Value *) object);
+			name = strVal(object);
 			break;
 		case OBJECT_OPCLASS:
 			{
@@ -531,7 +531,7 @@ does_not_exist_skipping(ObjectType objtype, Node *object)
 			break;
 		case OBJECT_EXTPROTOCOL:
 			msg = gettext_noop("protocol \"%s\" does not exist, skipping");
-			name = strVal((Value *) object);
+			name = strVal(object);
 			break;
 			/* no default, to let compiler warn about missing case */
 	}

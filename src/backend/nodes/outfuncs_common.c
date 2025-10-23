@@ -738,7 +738,7 @@ unwrapStringList(List *list)
 
 	foreach(lc, list)
 	{
-		Value	   *val = (Value *) lfirst(lc);
+		String	   *val = lfirst(lc);
 
 		lfirst(lc) = strVal(val);
 		pfree(val);

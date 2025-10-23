@@ -466,52 +466,65 @@ _readAConst(void)
 {
 	READ_LOCALS(A_Const);
 
-	READ_ENUM_FIELD(val.node.type, NodeTag);
+	READ_BOOL_FIELD(isnull);
 
-	switch (local_node->val.node.type)
+	if (!local_node->isnull)
 	{
-		case T_Integer:
-			memcpy(&local_node->val.ival.ival, read_str_ptr, sizeof(long)); read_str_ptr+=sizeof(long);
-			break;
-		case T_Boolean:
-			memcpy(&local_node->val.boolval.boolval, read_str_ptr, sizeof(long)); read_str_ptr+=sizeof(long);
-			break;
-		case T_Float:
+		union ValUnion *tmp = readNodeBinary();
+
+		switch (nodeTag(tmp))
 		{
-			int slen; char * nn;
-			memcpy(&slen, read_str_ptr, sizeof(int));
-			read_str_ptr+=sizeof(int);
-			nn = palloc(slen+1);
-			memcpy(nn,read_str_ptr,slen);
-			nn[slen] = '\0';
-			local_node->val.fval.fval = nn; read_str_ptr+=slen;
+			case T_Integer:
+				memcpy(&local_node->val.ival.ival, read_str_ptr, sizeof(long));
+				read_str_ptr += sizeof(long);
+				break;
+			case T_Boolean:
+				memcpy(&local_node->val.boolval.boolval, read_str_ptr, sizeof(long));
+				read_str_ptr += sizeof(long);
+				break;
+			case T_Float:
+			{
+				int slen;
+				char *nn;
+				memcpy(&slen, read_str_ptr, sizeof(int));
+				read_str_ptr += sizeof(int);
+				nn = palloc(slen + 1);
+				memcpy(nn, read_str_ptr, slen);
+				nn[slen] = '\0';
+				local_node->val.fval.fval = nn;
+				read_str_ptr += slen;
+			}
+				break;
+			case T_String:
+			{
+				int slen;
+				char *nn;
+				memcpy(&slen, read_str_ptr, sizeof(int));
+				read_str_ptr += sizeof(int);
+				nn = palloc(slen + 1);
+				memcpy(nn, read_str_ptr, slen);
+				nn[slen] = '\0';
+				local_node->val.sval.sval = nn;
+				read_str_ptr += slen;
+			}
+				break;
+			case T_BitString:
+			{
+				int slen;
+				char *nn;
+				memcpy(&slen, read_str_ptr, sizeof(int));
+				read_str_ptr += sizeof(int);
+				nn = palloc(slen + 1);
+				memcpy(nn, read_str_ptr, slen);
+				nn[slen] = '\0';
+				local_node->val.bsval.bsval = nn;
+				read_str_ptr += slen;
+			}
+				break;
+			case T_Null:
+			default:
+				break;
 		}
-			break;
-		case T_String:
-		{
-			int slen; char * nn;
-			memcpy(&slen, read_str_ptr, sizeof(int));
-			read_str_ptr+=sizeof(int);
-			nn = palloc(slen+1);
-			memcpy(nn,read_str_ptr,slen);
-			nn[slen] = '\0';
-			local_node->val.sval.sval = nn; read_str_ptr+=slen;
-		}
-			break;
-		case T_BitString:
-		{
-			int slen; char * nn;
-			memcpy(&slen, read_str_ptr, sizeof(int));
-			read_str_ptr+=sizeof(int);
-			nn = palloc(slen+1);
-			memcpy(nn,read_str_ptr,slen);
-			nn[slen] = '\0';
-			local_node->val.bsval.bsval = nn; read_str_ptr+=slen;
-		}
-			break;
-	 	case T_Null:
-	 	default:
-	 		break;
 	}
 
     READ_LOCATION_FIELD(location);   /*CDB*/
@@ -1678,59 +1691,6 @@ _readGpDropPartitionCmd(void)
 	READ_DONE();
 }
 
-static Node *
-_readValue(NodeTag nt)
-{
-	Node * result = NULL;
-	if (nt == T_Integer)
-	{
-		long ival;
-		memcpy(&ival, read_str_ptr, sizeof(long)); read_str_ptr+=sizeof(long);
-		result = (Node *) makeInteger(ival);
-	}
-	else if (nt == T_Null)
-	{
-		Value *val = makeNode(Value);
-		val->type = T_Null;
-		result = (Node *)val;
-	}
-	else
-	{
-		int slen;
-		char * nn = NULL;
-		memcpy(&slen, read_str_ptr, sizeof(int));
-		read_str_ptr+=sizeof(int);
-
-		/*
-		 * For the String case we want to create an empty string if slen is
-		 * equal to zero, since otherwise we'll set the string to NULL, which
-		 * has a different meaning and the NULL case is handed above.
-		 */
-		if (slen > 0 || nt == T_String)
-		{
-		    nn = palloc(slen + 1);
-
-			if (slen > 0)
-			    memcpy(nn, read_str_ptr, slen);
-
-		    read_str_ptr += (slen);
-			nn[slen] = '\0';
-		}
-
-		if (nt == T_Float)
-			result = (Node *) makeFloat(nn);
-		else if (nt == T_String)
-			result = (Node *) makeString(nn);
-		else if (nt == T_BitString)
-			result = (Node *) makeBitString(nn);
-		else
-			elog(ERROR, "unknown Value node type %i", nt);
-	}
-
-	return result;
-
-}
-
 /*
  * _readGpPolicy
  */
@@ -1951,12 +1911,6 @@ readNodeBinary(void)
 		Assert(l->length==listsize);
 
 		return l;
-	}
-
-	if (nt == T_Integer || nt == T_Float || nt == T_String ||
-	   	nt == T_BitString || nt == T_Null)
-	{
-		return _readValue(nt);
 	}
 
 	switch(nt)

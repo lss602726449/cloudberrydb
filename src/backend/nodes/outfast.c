@@ -427,7 +427,6 @@ _outQuery(StringInfo str, Query *node)
 	WRITE_ENUM_FIELD(commandType, CmdType);
 	WRITE_ENUM_FIELD(querySource, QuerySource);
 	WRITE_BOOL_FIELD(canSetTag);
-
 	WRITE_NODE_FIELD(utilityStmt);
 	WRITE_INT_FIELD(resultRelation);
 	WRITE_BOOL_FIELD(hasAggs);
@@ -443,7 +442,10 @@ _outQuery(StringInfo str, Query *node)
 	WRITE_BOOL_FIELD(canOptSelectLockingClause);
 	WRITE_NODE_FIELD(cteList);
 	WRITE_NODE_FIELD(rtable);
+	WRITE_NODE_FIELD(rteperminfos);
 	WRITE_NODE_FIELD(jointree);
+	WRITE_NODE_FIELD(mergeActionList);
+	WRITE_BOOL_FIELD(mergeUseOuterJoin);
 	WRITE_NODE_FIELD(targetList);
 	WRITE_NODE_FIELD(withCheckOptions);
 	WRITE_NODE_FIELD(onConflict);
@@ -606,10 +608,9 @@ static void
 _outAConst(StringInfo str, A_Const *node)
 {
 	WRITE_NODE_TYPE("A_CONST");
-
+	WRITE_BOOL_FIELD(isnull);
 	if (!node->isnull)
 		_outNode(str, &node->val);
-
 	WRITE_LOCATION_FIELD(location);
 }
 

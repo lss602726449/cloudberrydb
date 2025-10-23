@@ -1410,15 +1410,15 @@ ResourceQueueGetPriorityWeight(Oid queueId)
 
 	foreach(le, capabilitiesList)
 	{
-		Value	   *key = NULL;
+		Integer 	   *key = NULL;
 
 		entry = (List *) lfirst(le);
 		Assert(entry);
-		key = (Value *) linitial(entry);
+		key = linitial(entry);
 		Assert(key->type == T_Integer); /* This is resource type id */
 		if (intVal(key) == PG_RESRCTYPE_PRIORITY)
 		{
-			Value	   *val = lsecond(entry);
+			String 	   *val = lsecond(entry);
 
 			Assert(val->type == T_String);
 			weight = BackoffPriorityValueToInt(strVal(val));

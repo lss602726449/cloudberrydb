@@ -3644,8 +3644,8 @@ typedef struct DropProfileStmt
 typedef struct DenyLoginPoint
 {
 	NodeTag			type;
-	Value 		   *day;
-	Value		   *time;
+	Node 		   *day;
+	Node		   *time;
 } DenyLoginPoint;
 
 typedef struct DenyLoginInterval

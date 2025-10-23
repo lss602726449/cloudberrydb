@@ -6240,34 +6240,6 @@ _copyExtensibleNode(const ExtensibleNode *from)
  *					value.h copy functions
  * ****************************************************************
  */
-static Value *
-_copyValue(const Value *from)
-{
-	Value	   *newnode = makeNode(Value);
-
-	/* See also _copyAConst when changing this code! */
-
-	COPY_SCALAR_FIELD(type);
-	switch (from->type)
-	{
-		case T_Integer:
-			COPY_SCALAR_FIELD(val.ival);
-			break;
-		case T_Float:
-		case T_String:
-		case T_BitString:
-			COPY_STRING_FIELD(val.str);
-			break;
-		case T_Null:
-			/* nothing to do */
-			break;
-		default:
-			elog(ERROR, "unrecognized node type: %d",
-				 (int) from->type);
-			break;
-	}
-	return newnode;
-}
 
 
 static ForeignKeyCacheInfo *
@@ -6921,9 +6893,6 @@ copyObjectImpl(const void *from)
 			break;
 		case T_BitString:
 			retval = _copyBitString(from);
-			break;
-		case T_Null:
-			retval = _copyValue(from);
 			break;
 
 			/*

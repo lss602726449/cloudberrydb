@@ -38,6 +38,8 @@ static void unwrapStringList(List *list);
 /* functions only used for text representation */
 #ifndef COMPILING_BINARY_FUNCS
 
+
+
 static A_Const *
 _readAConst(void)
 {
@@ -1818,7 +1820,7 @@ unwrapStringList(List *list)
 
 	foreach(lc, list)
 	{
-		Value	   *val = (Value *) lfirst(lc);
+		String	   *val = lfirst(lc);
 
 		lfirst(lc) = strVal(val);
 		pfree(val);

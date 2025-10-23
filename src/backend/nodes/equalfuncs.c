@@ -3600,33 +3600,6 @@ _equalList(const List *a, const List *b)
  */
 
 static bool
-_equalValue(const Value *a, const Value *b)
-{
-	COMPARE_SCALAR_FIELD(type);
-
-	switch (a->type)
-	{
-		case T_Integer:
-			COMPARE_SCALAR_FIELD(val.ival);
-			break;
-		case T_Float:
-		case T_String:
-		case T_BitString:
-			COMPARE_STRING_FIELD(val.str);
-			break;
-		case T_Null:
-			/* nothing to do */
-			break;
-		default:
-			elog(ERROR, "unrecognized node type: %d", (int) a->type);
-			break;
-	}
-
-	return true;
-}
-
-
-static bool
 _equalInteger(const Integer *a, const Integer *b)
 {
 	COMPARE_SCALAR_FIELD(ival);
@@ -3917,9 +3890,6 @@ equal(const void *a, const void *b)
 			break;
 		case T_BitString:
 			retval = _equalBitString(a, b);
-			break;
-		case T_Null:
-			retval = _equalValue(a, b);
 			break;
 
 			/*

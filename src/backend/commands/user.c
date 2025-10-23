@@ -129,7 +129,7 @@ static void SetCreateExtTableForRole(List* allow,
 
 static char *daysofweek[] = {"Sunday", "Monday", "Tuesday", "Wednesday",
 							 "Thursday", "Friday", "Saturday"};
-static int16 ExtractAuthInterpretDay(Value * day);
+static int16 ExtractAuthInterpretDay(Node * day);
 static void ExtractAuthIntervalClause(DefElem *defel,
 			authInterval *authInterval);
 static void AddRoleDenials(const char *rolename, Oid roleid,
@@ -3537,7 +3537,7 @@ ExtractAuthIntervalClause(DefElem *defel, authInterval *interval)
  *		or a string giving name of day in English
  */
 static int16
-ExtractAuthInterpretDay(Value * day)
+ExtractAuthInterpretDay(Node * day)
 {
 	int16   ret;
 	if (day->type == T_Integer)

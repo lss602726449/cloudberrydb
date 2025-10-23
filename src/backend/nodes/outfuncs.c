@@ -415,7 +415,6 @@ _outPlannedStmt(StringInfo str, const PlannedStmt *node)
 	WRITE_NODE_FIELD(paramExecTypes);
 	WRITE_NODE_FIELD(utilityStmt);
 	WRITE_LOCATION_FIELD(stmt_location);
-
 	WRITE_INT_FIELD(stmt_len);
 
 	WRITE_INT_ARRAY(subplan_sliceIds, list_length(node->subplans));
