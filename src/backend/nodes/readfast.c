@@ -553,53 +553,20 @@ _readAConst(void)
 		switch (nodeTag(tmp))
 		{
 			case T_Integer:
-				memcpy(&local_node->val.ival.ival, read_str_ptr, sizeof(long));
-				read_str_ptr += sizeof(long);
-				break;
-			case T_Boolean:
-				memcpy(&local_node->val.boolval.boolval, read_str_ptr, sizeof(long));
-				read_str_ptr += sizeof(long);
+				memcpy(&local_node->val, tmp, sizeof(Integer));
 				break;
 			case T_Float:
-			{
-				int slen;
-				char *nn;
-				memcpy(&slen, read_str_ptr, sizeof(int));
-				read_str_ptr += sizeof(int);
-				nn = palloc(slen + 1);
-				memcpy(nn, read_str_ptr, slen);
-				nn[slen] = '\0';
-				local_node->val.fval.fval = nn;
-				read_str_ptr += slen;
-			}
+				memcpy(&local_node->val, tmp, sizeof(Float));
+				break;
+			case T_Boolean:
+				memcpy(&local_node->val, tmp, sizeof(Boolean));
 				break;
 			case T_String:
-			{
-				int slen;
-				char *nn;
-				memcpy(&slen, read_str_ptr, sizeof(int));
-				read_str_ptr += sizeof(int);
-				nn = palloc(slen + 1);
-				memcpy(nn, read_str_ptr, slen);
-				nn[slen] = '\0';
-				local_node->val.sval.sval = nn;
-				read_str_ptr += slen;
-			}
+				memcpy(&local_node->val, tmp, sizeof(String));
 				break;
 			case T_BitString:
-			{
-				int slen;
-				char *nn;
-				memcpy(&slen, read_str_ptr, sizeof(int));
-				read_str_ptr += sizeof(int);
-				nn = palloc(slen + 1);
-				memcpy(nn, read_str_ptr, slen);
-				nn[slen] = '\0';
-				local_node->val.bsval.bsval = nn;
-				read_str_ptr += slen;
-			}
+				memcpy(&local_node->val, tmp, sizeof(BitString));
 				break;
-			case T_Null:
 			default:
 				break;
 		}
