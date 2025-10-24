@@ -270,12 +270,8 @@ page_header(PG_FUNCTION_ARGS)
 				(errcode(ERRCODE_INSUFFICIENT_PRIVILEGE),
 				 errmsg("must be superuser to use raw page functions")));
 
-<<<<<<< HEAD
-	page = (PageHeader) get_page_from_raw(raw_page);
-=======
 	page = get_page_from_raw(raw_page);
 	pageheader = (PageHeader) page;
->>>>>>> REL_16_9
 
 	/* Build a tuple descriptor for our result type */
 	if (get_call_result_type(fcinfo, NULL, &tupdesc) != TYPEFUNC_COMPOSITE)
@@ -295,14 +291,6 @@ page_header(PG_FUNCTION_ARGS)
 	}
 	else
 		values[0] = LSNGetDatum(lsn);
-<<<<<<< HEAD
-	values[1] = UInt16GetDatum(page->pd_checksum);
-	values[2] = UInt16GetDatum(page->pd_flags);
-	values[3] = UInt16GetDatum(page->pd_lower);
-	values[4] = UInt16GetDatum(page->pd_upper);
-	values[5] = UInt16GetDatum(page->pd_special);
-	values[6] = UInt32GetDatum(PageGetPageSize(page));
-=======
 	values[1] = UInt16GetDatum(pageheader->pd_checksum);
 	values[2] = UInt16GetDatum(pageheader->pd_flags);
 
@@ -332,7 +320,6 @@ page_header(PG_FUNCTION_ARGS)
 			break;
 	}
 
->>>>>>> REL_16_9
 	values[7] = UInt16GetDatum(PageGetPageLayoutVersion(page));
 	values[8] = TransactionIdGetDatum(pageheader->pd_prune_xid);
 

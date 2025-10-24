@@ -57,12 +57,8 @@ gin_metapage_info(PG_FUNCTION_ARGS)
 						   (int) MAXALIGN(sizeof(GinPageOpaqueData)),
 						   (int) PageGetSpecialSize(page))));
 
-<<<<<<< HEAD
-	opaq = (GinPageOpaque) PageGetSpecialPointer(page);
-=======
 	opaq = GinPageGetOpaque(page);
 
->>>>>>> REL_16_9
 	if (opaq->flags != GIN_META)
 		ereport(ERROR,
 				(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
@@ -131,11 +127,7 @@ gin_page_opaque_info(PG_FUNCTION_ARGS)
 						   (int) MAXALIGN(sizeof(GinPageOpaqueData)),
 						   (int) PageGetSpecialSize(page))));
 
-<<<<<<< HEAD
-	opaq = (GinPageOpaque) PageGetSpecialPointer(page);
-=======
 	opaq = GinPageGetOpaque(page);
->>>>>>> REL_16_9
 
 	/* Build a tuple descriptor for our result type */
 	if (get_call_result_type(fcinfo, NULL, &tupdesc) != TYPEFUNC_COMPOSITE)

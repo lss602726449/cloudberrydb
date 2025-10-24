@@ -2541,8 +2541,8 @@ run_single_test(const char *test, test_start_function startfunc,
 			   *tl;
 	bool		differ = false;
 
-	if (!cluster_healthy())
-		return;
+//	if (!cluster_healthy())
+//		return;
 
 	if (should_exclude_test((char *) test))
 		return;
@@ -3495,9 +3495,9 @@ regression_main(int argc, char *argv[],
             "Single node (no segments) mode enabled. Replace '@hostname@' by hostname of contentid = -1",
             "Normal cluster detected. Replace '@hostname@' by hostname of contentid = 0");
 
-	force_parallel_enabled = check_feature_status("force_parallel_mode", "on",
-			"Force parallel mode enabled. Result diffs will ignore plans.",
-			"Force parallel mode disabled. Using default answer files");
+//	force_parallel_enabled = check_feature_status("force_parallel_mode", "on",
+//			"Force parallel mode enabled. Result diffs will ignore plans.",
+//			"Force parallel mode disabled. Using default answer files");
 
 	convert_sourcefiles();
 

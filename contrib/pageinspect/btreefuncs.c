@@ -280,37 +280,7 @@ bt_page_stats_internal(PG_FUNCTION_ARGS, enum pageinspect_version ext_version)
 	relrv = makeRangeVarFromNameList(textToQualifiedNameList(relname));
 	rel = relation_openrv(relrv, AccessShareLock);
 
-<<<<<<< HEAD
-	if (!IS_INDEX(rel) || !IS_BTREE(rel))
-		ereport(ERROR,
-				(errcode(ERRCODE_WRONG_OBJECT_TYPE),
-				 errmsg("\"%s\" is not a %s index",
-						RelationGetRelationName(rel), "btree")));
-
-	/*
-	 * Reject attempts to read non-local temporary relations; we would be
-	 * likely to get wrong data since we have no visibility into the owning
-	 * session's local buffers.
-	 */
-	if (RELATION_IS_OTHER_TEMP(rel))
-		ereport(ERROR,
-				(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-				 errmsg("cannot access temporary tables of other sessions")));
-
-	if (blkno < 0 || blkno > MaxBlockNumber)
-		ereport(ERROR,
-				(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-				 errmsg("invalid block number")));
-
-	if (blkno == 0)
-		ereport(ERROR,
-				(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-				 errmsg("block 0 is a meta page")));
-
-	CHECK_RELATION_BLOCK_RANGE(rel, blkno);
-=======
 	bt_index_block_validate(rel, blkno);
->>>>>>> REL_16_9
 
 	buffer = ReadBuffer(rel, blkno);
 	LockBuffer(buffer, BUFFER_LOCK_SHARE);
@@ -679,37 +649,7 @@ bt_page_items_internal(PG_FUNCTION_ARGS, enum pageinspect_version ext_version)
 		relrv = makeRangeVarFromNameList(textToQualifiedNameList(relname));
 		rel = relation_openrv(relrv, AccessShareLock);
 
-<<<<<<< HEAD
-		if (!IS_INDEX(rel) || !IS_BTREE(rel))
-			ereport(ERROR,
-					(errcode(ERRCODE_WRONG_OBJECT_TYPE),
-					 errmsg("\"%s\" is not a %s index",
-							RelationGetRelationName(rel), "btree")));
-
-		/*
-		 * Reject attempts to read non-local temporary relations; we would be
-		 * likely to get wrong data since we have no visibility into the
-		 * owning session's local buffers.
-		 */
-		if (RELATION_IS_OTHER_TEMP(rel))
-			ereport(ERROR,
-					(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-					 errmsg("cannot access temporary tables of other sessions")));
-
-		if (blkno < 0 || blkno > MaxBlockNumber)
-			ereport(ERROR,
-					(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-					 errmsg("invalid block number")));
-
-		if (blkno == 0)
-			ereport(ERROR,
-					(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-					 errmsg("block 0 is a meta page")));
-
-		CHECK_RELATION_BLOCK_RANGE(rel, blkno);
-=======
 		bt_index_block_validate(rel, blkno);
->>>>>>> REL_16_9
 
 		buffer = ReadBuffer(rel, blkno);
 		LockBuffer(buffer, BUFFER_LOCK_SHARE);
@@ -797,11 +737,7 @@ bt_page_items_bytea(PG_FUNCTION_ARGS)
 	bytea	   *raw_page = PG_GETARG_BYTEA_P(0);
 	Datum		result;
 	FuncCallContext *fctx;
-<<<<<<< HEAD
-	struct user_args *uargs;
-=======
 	ua_page_items *uargs;
->>>>>>> REL_16_9
 
 	if (!superuser())
 		ereport(ERROR,
@@ -838,11 +774,7 @@ bt_page_items_bytea(PG_FUNCTION_ARGS)
 							   (int) MAXALIGN(sizeof(BTPageOpaqueData)),
 							   (int) PageGetSpecialSize(uargs->page))));
 
-<<<<<<< HEAD
-		opaque = (BTPageOpaque) PageGetSpecialPointer(uargs->page);
-=======
 		opaque = BTPageGetOpaque(uargs->page);
->>>>>>> REL_16_9
 
 		if (P_ISMETA(opaque))
 			ereport(ERROR,

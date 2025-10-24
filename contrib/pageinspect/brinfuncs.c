@@ -34,12 +34,9 @@ PG_FUNCTION_INFO_V1(brin_page_items);
 PG_FUNCTION_INFO_V1(brin_metapage_info);
 PG_FUNCTION_INFO_V1(brin_revmap_data);
 
-<<<<<<< HEAD
 /* GPDB specific */
 PG_FUNCTION_INFO_V1(brin_revmap_chain);
 
-=======
->>>>>>> REL_16_9
 #define IS_BRIN(r) ((r)->rd_rel->relam == BRIN_AM_OID)
 
 typedef struct brin_column_state
@@ -71,21 +68,12 @@ brin_page_type(PG_FUNCTION_ARGS)
 
 	/* verify the special space has the expected size */
 	if (PageGetSpecialSize(page) != MAXALIGN(sizeof(BrinSpecialSpace)))
-<<<<<<< HEAD
-			ereport(ERROR,
-					(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-					 errmsg("input page is not a valid %s page", "BRIN"),
-					 errdetail("Expected special size %d, got %d.",
-							   (int) MAXALIGN(sizeof(BrinSpecialSpace)),
-							   (int) PageGetSpecialSize(page))));
-=======
 		ereport(ERROR,
 				(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
 				 errmsg("input page is not a valid %s page", "BRIN"),
 				 errdetail("Expected special size %d, got %d.",
 						   (int) MAXALIGN(sizeof(BrinSpecialSpace)),
 						   (int) PageGetSpecialSize(page))));
->>>>>>> REL_16_9
 
 	switch (BrinPageType(page))
 	{
@@ -120,21 +108,12 @@ verify_brin_page(bytea *raw_page, uint16 type, const char *strtype)
 
 	/* verify the special space has the expected size */
 	if (PageGetSpecialSize(page) != MAXALIGN(sizeof(BrinSpecialSpace)))
-<<<<<<< HEAD
-			ereport(ERROR,
-					(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-					 errmsg("input page is not a valid %s page", "BRIN"),
-					 errdetail("Expected special size %d, got %d.",
-							   (int) MAXALIGN(sizeof(BrinSpecialSpace)),
-							   (int) PageGetSpecialSize(page))));
-=======
 		ereport(ERROR,
 				(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
 				 errmsg("input page is not a valid %s page", "BRIN"),
 				 errdetail("Expected special size %d, got %d.",
 						   (int) MAXALIGN(sizeof(BrinSpecialSpace)),
 						   (int) PageGetSpecialSize(page))));
->>>>>>> REL_16_9
 
 	/* verify the special space says this page is what we want */
 	if (BrinPageType(page) != type)
@@ -359,16 +338,11 @@ brin_metapage_info(PG_FUNCTION_ARGS)
 	Page		page;
 	BrinMetaPageData *meta;
 	TupleDesc	tupdesc;
-<<<<<<< HEAD
 	Datum		values[8];
 	bool		nulls[8];
 	Datum 	   *firstrevmappages;
 	Datum	   *lastrevmappages;
 	Datum	   *lastrevmappagenums;
-=======
-	Datum		values[4];
-	bool		nulls[4] = {0};
->>>>>>> REL_16_9
 	HeapTuple	htup;
 
 	if (!superuser())

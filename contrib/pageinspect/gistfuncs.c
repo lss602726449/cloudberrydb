@@ -32,11 +32,6 @@ PG_FUNCTION_INFO_V1(gist_page_items);
 PG_FUNCTION_INFO_V1(gist_page_items_bytea);
 
 #define IS_GIST(r) ((r)->rd_rel->relam == GIST_AM_OID)
-<<<<<<< HEAD
-
-#define ItemPointerGetDatum(X)	 PointerGetDatum(X)
-=======
->>>>>>> REL_16_9
 
 
 static Page verify_gist_page(bytea *raw_page);
@@ -81,6 +76,7 @@ gist_page_opaque_info(PG_FUNCTION_ARGS)
 	bytea	   *raw_page = PG_GETARG_BYTEA_P(0);
 	TupleDesc	tupdesc;
 	Page		page;
+	GISTPageOpaque opaq;
 	HeapTuple	resultTuple;
 	Datum		values[4];
 	bool		nulls[4];
@@ -97,7 +93,6 @@ gist_page_opaque_info(PG_FUNCTION_ARGS)
 
 	if (PageIsNew(page))
 		PG_RETURN_NULL();
-<<<<<<< HEAD
 
 	/* verify the special space has the expected size */
 	if (PageGetSpecialSize(page) != MAXALIGN(sizeof(GISTPageOpaqueData)))
@@ -116,8 +111,6 @@ gist_page_opaque_info(PG_FUNCTION_ARGS)
 					 errdetail("Expected %08x, got %08x.",
 							   GIST_PAGE_ID,
 							   opaq->gist_page_id)));
-=======
->>>>>>> REL_16_9
 
 	/* Build a tuple descriptor for our result type */
 	if (get_call_result_type(fcinfo, NULL, &tupdesc) != TYPEFUNC_COMPOSITE)
@@ -272,10 +265,7 @@ gist_page_items(PG_FUNCTION_ARGS)
 				 errmsg("\"%s\" is not a %s index",
 						RelationGetRelationName(indexRel), "GiST")));
 
-<<<<<<< HEAD
 	page = get_page_from_raw(raw_page);
-=======
-	page = verify_gist_page(raw_page);
 
 	if (PageIsNew(page))
 	{
@@ -303,13 +293,6 @@ gist_page_items(PG_FUNCTION_ARGS)
 
 	index_columns = pg_get_indexdef_columns_extended(indexRelid,
 													 printflags);
->>>>>>> REL_16_9
-
-	if (PageIsNew(page))
-	{
-		index_close(indexRel, AccessShareLock);
-		PG_RETURN_NULL();
-	}
 
 	/* Avoid bogus PageGetMaxOffsetNumber() call with deleted pages */
 	if (GistPageIsDeleted(page))
@@ -337,7 +320,7 @@ gist_page_items(PG_FUNCTION_ARGS)
 
 		itup = (IndexTuple) PageGetItem(page, id);
 
-		index_deform_tuple(itup, tupdesc,
+		index_deform_tuple(itup, RelationGetDescr(indexRel),
 						   itup_values, itup_isnull);
 
 		memset(nulls, 0, sizeof(nulls));

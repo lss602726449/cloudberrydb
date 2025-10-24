@@ -417,11 +417,7 @@ hash_bitmap_info(PG_FUNCTION_ARGS)
 
 	indexRel = relation_open(indexRelid, AccessShareLock);
 
-<<<<<<< HEAD
 	if (!IS_HASH(indexRel))
-=======
-	if (!IS_INDEX(indexRel) || !IS_HASH(indexRel))
->>>>>>> REL_16_9
 		ereport(ERROR,
 				(errcode(ERRCODE_WRONG_OBJECT_TYPE),
 				 errmsg("\"%s\" is not a %s index",

@@ -21,7 +21,7 @@ all:
 #	$(MAKE) -C contrib/dblink all
 #	$(MAKE) -C contrib/indexscan all
 	$(MAKE) -C contrib/interconnect all
-#	$(MAKE) -C contrib/pageinspect all  # needed by src/test/isolation
+	$(MAKE) -C contrib/pageinspect all  # needed by src/test/isolation
 #	$(MAKE) -C contrib/hstore all
 #	$(MAKE) -C contrib/pgcrypto all
 #	$(MAKE) -C contrib/btree_gin all
@@ -68,7 +68,7 @@ install:
 #	$(MAKE) -C contrib/dblink $@
 #	$(MAKE) -C contrib/indexscan $@
 	$(MAKE) -C contrib/interconnect $@
-#	$(MAKE) -C contrib/pageinspect $@  # needed by src/test/isolation
+	$(MAKE) -C contrib/pageinspect $@  # needed by src/test/isolation
 #	$(MAKE) -C contrib/hstore $@
 #	$(MAKE) -C contrib/pgcrypto $@
 #	$(MAKE) -C contrib/btree_gin $@
