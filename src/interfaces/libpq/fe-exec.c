@@ -1413,11 +1413,9 @@ pqAppendCmdQueueEntry(PGconn *conn, PGcmdQueueEntry *entry)
 			 * itself consume commands from the queue; if we're in any other
 			 * state, we don't have to do anything.
 			 */
-			if (conn->asyncStatus == PGASYNC_IDLE)
-			{
-				resetPQExpBuffer(&conn->errorMessage);
+			if (conn->asyncStatus == PGASYNC_IDLE ||
+				conn->asyncStatus == PGASYNC_PIPELINE_IDLE)
 				pqPipelineProcessQueue(conn);
-			}
 			break;
 	}
 }
@@ -3292,6 +3290,14 @@ PQsendFlushRequest(PGconn *conn)
 	{
 		return 0;
 	}
+
+	/*
+	 * Give the data a push (in pipeline mode, only if we're past the size
+	 * threshold).  In nonblock mode, don't complain if we're unable to send
+	 * it all; PQgetResult() will do any additional flushing needed.
+	 */
+	if (pqPipelineFlush(conn) < 0)
+		return 0;
 
 	return 1;
 }
