@@ -1900,11 +1900,11 @@ ExtendBufferedRelCommon(BufferManagerRelation bmr,
 										 bmr.smgr->smgr_rlocator.backend,
 										 extend_by);
 
-	if (bmr.relpersistence == RELPERSISTENCE_TEMP)
-		first_block = ExtendBufferedRelLocal(bmr, fork, flags,
-											 extend_by, extend_upto,
-											 buffers, &extend_by);
-	else
+//	if (bmr.relpersistence == RELPERSISTENCE_TEMP)
+//		first_block = ExtendBufferedRelLocal(bmr, fork, flags,
+//											 extend_by, extend_upto,
+//											 buffers, &extend_by);
+//	else
 		first_block = ExtendBufferedRelShared(bmr, fork, strategy, flags,
 											  extend_by, extend_upto,
 											  buffers, &extend_by);
