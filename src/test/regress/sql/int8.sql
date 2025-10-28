@@ -3,17 +3,8 @@
 -- Test int8 64-bit integers.
 --
 
-<<<<<<< HEAD
-INSERT INTO INT8_TBL VALUES('  123   ','  456');
-ANALYZE INT8_TBL;
-INSERT INTO INT8_TBL VALUES('123   ','4567890123456789');
-INSERT INTO INT8_TBL VALUES('4567890123456789','123');
-INSERT INTO INT8_TBL VALUES(+4567890123456789,'4567890123456789');
-INSERT INTO INT8_TBL VALUES('+4567890123456789','-4567890123456789');
-=======
 -- int8_tbl was already created and filled in test_setup.sql.
 -- Here we just try to insert bad values.
->>>>>>> REL_16_9
 
 INSERT INTO INT8_TBL(q1) VALUES ('      ');
 INSERT INTO INT8_TBL(q1) VALUES ('xxx');

@@ -2,19 +2,8 @@
 -- INT4
 --
 
-<<<<<<< HEAD
-CREATE TABLE INT4_TBL(f1 int4);
-
-INSERT INTO INT4_TBL(f1) VALUES ('   0  ');
-ANALYZE INT4_TBL;
-
-INSERT INTO INT4_TBL(f1) VALUES ('123456     ');
-
-INSERT INTO INT4_TBL(f1) VALUES ('    -123456');
-=======
 -- int4_tbl was already created and filled in test_setup.sql.
 -- Here we just try to insert bad values.
->>>>>>> REL_16_9
 
 INSERT INTO INT4_TBL(f1) VALUES ('34.5');
 INSERT INTO INT4_TBL(f1) VALUES ('1000000000000');

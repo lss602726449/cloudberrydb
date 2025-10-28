@@ -2,19 +2,8 @@
 -- INT2
 --
 
-<<<<<<< HEAD
-CREATE TABLE INT2_TBL(f1 int2);
-
-INSERT INTO INT2_TBL(f1) VALUES ('0   ');
-ANALYZE INT2_TBL;
-
-INSERT INTO INT2_TBL(f1) VALUES ('  1234 ');
-
-INSERT INTO INT2_TBL(f1) VALUES ('    -1234');
-=======
 -- int2_tbl was already created and filled in test_setup.sql.
 -- Here we just try to insert bad values.
->>>>>>> REL_16_9
 
 INSERT INTO INT2_TBL(f1) VALUES ('34.5');
 INSERT INTO INT2_TBL(f1) VALUES ('100000');
@@ -28,8 +17,6 @@ INSERT INTO INT2_TBL(f1) VALUES ('');
 
 SELECT * FROM INT2_TBL;
 
-<<<<<<< HEAD
-=======
 -- Also try it with non-error-throwing API
 SELECT pg_input_is_valid('34', 'int2');
 SELECT pg_input_is_valid('asdf', 'int2');
@@ -41,7 +28,6 @@ SELECT pg_input_is_valid(' 1 3  5 ', 'int2vector');
 SELECT * FROM pg_input_error_info('1 asdf', 'int2vector');
 SELECT * FROM pg_input_error_info('50000', 'int2vector');
 
->>>>>>> REL_16_9
 SELECT * FROM INT2_TBL AS f(a, b);
 
 SELECT * FROM (TABLE int2_tbl) AS s (a, b);

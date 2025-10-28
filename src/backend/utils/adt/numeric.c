@@ -7048,26 +7048,6 @@ zero_numeric_var(NumericVar *var)
 	var->sign = NUMERIC_POS;	/* anything but NAN... */
 }
 
-
-/*
- * zero_var() -
- *
- *	Set a variable to ZERO.
- *	Note: its dscale is not touched.
- */
-static void
-zero_var(NumericVar *var)
-{
-	digitbuf_free(var);
-	var->buf = NULL;
-	var->digits = NULL;
-	var->ndigits = 0;
-	var->weight = 0;			/* by convention; doesn't really matter */
-	var->sign = NUMERIC_POS;	/* anything but NAN... */
-}
-
-
-
 /*
  * init_var_from_str()
  *
@@ -7325,7 +7305,7 @@ set_var_from_non_decimal_integer_str(const char *str, const char *cp, int sign,
 
 	init_var(&tmp_var);
 
-	zero_var(dest);
+	zero_numeric_var(dest);
 
 	/*
 	 * Process input digits in groups that fit in int64.  Here "tmp" is the
@@ -9750,7 +9730,7 @@ div_var_int(const NumericVar *var, int ival, int ival_weight,
 	/* Result zero check */
 	if (var_ndigits == 0)
 	{
-		zero_var(result);
+		zero_numeric_var(result);
 		result->dscale = rscale;
 		return;
 	}
@@ -9866,7 +9846,7 @@ div_var_int64(const NumericVar *var, int64 ival, int ival_weight,
 	/* Result zero check */
 	if (var_ndigits == 0)
 	{
-		zero_var(result);
+		zero_numeric_var(result);
 		result->dscale = rscale;
 		return;
 	}
@@ -11349,7 +11329,7 @@ power_var_int(const NumericVar *base, int exp, int exp_dscale,
 				 errmsg("value overflows numeric format")));
 	if (f + 1 < -NUMERIC_MAX_DISPLAY_SCALE)
 	{
-		zero_var(result);
+		zero_numeric_var(result);
 		result->dscale = NUMERIC_MAX_DISPLAY_SCALE;
 		return;
 	}

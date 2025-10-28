@@ -364,7 +364,7 @@ PGTYPESnumeric_to_asc(numeric *num, int dscale)
 }
 
 /* ----------
- * zero_var() -
+ * zero_numeric_var() -
  *
  *	Set a variable to ZERO.
  *	Note: rscale and dscale are not touched.
@@ -663,7 +663,7 @@ PGTYPESnumeric_add(numeric *var1, numeric *var2, numeric *result)
 					 * result = ZERO
 					 * ----------
 					 */
-					zero_var(result);
+					zero_numeric_var(result);
 					result->rscale = Max(var1->rscale, var2->rscale);
 					result->dscale = Max(var1->dscale, var2->dscale);
 					break;
@@ -709,7 +709,7 @@ PGTYPESnumeric_add(numeric *var1, numeric *var2, numeric *result)
 					 * result = ZERO
 					 * ----------
 					 */
-					zero_var(result);
+					zero_numeric_var(result);
 					result->rscale = Max(var1->rscale, var2->rscale);
 					result->dscale = Max(var1->dscale, var2->dscale);
 					break;
@@ -795,7 +795,7 @@ PGTYPESnumeric_sub(numeric *var1, numeric *var2, numeric *result)
 					 * result = ZERO
 					 * ----------
 					 */
-					zero_var(result);
+					zero_numeric_var(result);
 					result->rscale = Max(var1->rscale, var2->rscale);
 					result->dscale = Max(var1->dscale, var2->dscale);
 					break;
@@ -841,7 +841,7 @@ PGTYPESnumeric_sub(numeric *var1, numeric *var2, numeric *result)
 					 * result = ZERO
 					 * ----------
 					 */
-					zero_var(result);
+					zero_numeric_var(result);
 					result->rscale = Max(var1->rscale, var2->rscale);
 					result->dscale = Max(var1->dscale, var2->dscale);
 					break;
@@ -1099,7 +1099,7 @@ PGTYPESnumeric_div(numeric *var1, numeric *var2, numeric *result)
 	 */
 	if (var1->ndigits == 0)
 	{
-		zero_var(result);
+		zero_numeric_var(result);
 		result->rscale = rscale;
 		return 0;
 	}
@@ -1391,7 +1391,7 @@ PGTYPESnumeric_copy(numeric *src, numeric *dst)
 
 	if (dst == NULL)
 		return -1;
-	zero_var(dst);
+	zero_numeric_var(dst);
 
 	dst->weight = src->weight;
 	dst->rscale = src->rscale;
@@ -1571,7 +1571,7 @@ PGTYPESnumeric_from_decimal(decimal *src, numeric *dst)
 {
 	int			i;
 
-	zero_var(dst);
+	zero_numeric_var(dst);
 
 	dst->weight = src->weight;
 	dst->rscale = src->rscale;
