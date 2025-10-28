@@ -6434,6 +6434,12 @@ _copyRTEPermissionInfo(const RTEPermissionInfo *from)
 	return newnode;
 }
 
+static Bitmapset *
+_copyBitmapset(const Bitmapset *from)
+{
+	return bms_copy(from);
+}
+
 /*
  * copyObjectImpl -- implementation of copyObject(); see nodes/nodes.h
  *
@@ -7625,6 +7631,9 @@ copyObjectImpl(const void *from)
 
 		case T_RTEPermissionInfo:
 			retval = _copyRTEPermissionInfo(from);
+			break;
+		case T_Bitmapset:
+			retval = _copyBitmapset(from);
 			break;
 		default:
 			elog(ERROR, "unrecognized node type: %d", (int) nodeTag(from));

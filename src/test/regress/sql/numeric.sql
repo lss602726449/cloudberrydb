@@ -1253,13 +1253,10 @@ select (-1.0) ^ 2147483647;
 select (-1.0) ^ 2147483648;
 select (-1.0) ^ 1000000000000000;
 select (-1.0) ^ 1000000000000001;
-<<<<<<< HEAD
-=======
 
 -- integer powers of 10
 select n, 10.0 ^ n as "10^n", (10.0 ^ n) * (10.0 ^ (-n)) = 1 as ok
 from generate_series(-20, 20) n;
->>>>>>> REL_16_9
 
 --
 -- Tests for raising to non-integer powers

@@ -3653,6 +3653,12 @@ _equalRTEPermissionInfo(const RTEPermissionInfo *a, const RTEPermissionInfo *b)
 	return true;
 }
 
+static bool
+_equalBitmapset(const Bitmapset *a, const Bitmapset *b)
+{
+	return bms_equal(a, b);
+}
+
 /*
  * equal
  *	  returns whether two nodes are equal
@@ -4543,6 +4549,9 @@ equal(const void *a, const void *b)
 			break;
 		case T_RTEPermissionInfo:
 			retval = _equalRTEPermissionInfo(a, b);
+			break;
+		case T_Bitmapset:
+			retval = _equalBitmapset(a, b);
 			break;
 
 		default:
