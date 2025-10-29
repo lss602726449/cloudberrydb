@@ -2272,21 +2272,9 @@ vac_update_datfrozenxid(void)
 		newMinMulti = dbform->datminmxid;
 
 	if (dirty)
-	{
-		/*
-		* GPDB_14_MERGE_FIXME
-		* Remove some codes(fetch_database_tuple) from GPDB upstream.
-		* Check if pg upstream has already fixed it or check from GPDB
-		* https://github.com/greenplum-db/gpdb/commit/373e676de819fc0cdadfb59d35d9279abe3d11d9 
-		*/
-
-		heap_inplace_update(relation, tuple);
-#ifdef FAULT_INJECTOR
-		FaultInjector_InjectFaultIfSet(
-			"vacuum_update_dat_frozen_xid", DDLNotSpecified,
-			NameStr(dbform->datname), "");
-#endif
-	}
+		systable_inplace_update_finish(inplace_state, tuple);
+	else
+		systable_inplace_update_cancel(inplace_state);
 
 	heap_freetuple(tuple);
 	table_close(relation, RowExclusiveLock);
@@ -3412,6 +3400,11 @@ vacuum_params_to_options_list(VacuumParams *params)
 	{
 		options = lappend(options, makeDefElem("skip_locked", (Node *) makeInteger(1), -1));
 		optmask &= ~VACOPT_SKIP_LOCKED;
+	}
+	if (optmask & VACOPT_PROCESS_MAIN)
+	{
+		options = lappend(options, makeDefElem("process_main", (Node *) makeInteger(1), -1));
+		optmask &= ~VACOPT_PROCESS_MAIN;
 	}
 	if (optmask & VACOPT_PROCESS_TOAST)
 	{

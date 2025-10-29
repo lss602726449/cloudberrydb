@@ -302,7 +302,7 @@ static void setup_schema(FILE *cmdfd);
 static void setup_cdb_schema(FILE *cmdfd);
 static void setup_password_history(FILE *cmdfd);
 //static void load_plpgsql(FILE *cmdfd);
-//static void vacuum_db(FILE *cmdfd);
+static void vacuum_db(FILE *cmdfd);
 static void make_template0(FILE *cmdfd);
 static void make_postgres(FILE *cmdfd);
 static void trapsig(SIGNAL_ARGS);
@@ -2174,12 +2174,12 @@ load_exttable(FILE *cmdfd)
 /*
  * clean everything up in template1
  */
-//static void
-//vacuum_db(FILE *cmdfd)
-//{
-//	/* Run analyze before VACUUM so the statistics are frozen. */
-//	PG_CMD_PUTS("ANALYZE;\n\nVACUUM FREEZE;\n\n");
-//}
+static void
+vacuum_db(FILE *cmdfd)
+{
+	/* Run analyze before VACUUM so the statistics are frozen. */
+	PG_CMD_PUTS("ANALYZE;\n\nVACUUM FREEZE;\n\n");
+}
 
 /*
  * copy template1 to template0
@@ -3423,7 +3423,7 @@ initialize_data_directory(void)
 	/* sets up the Apache Cloudberry admin schema */
 	setup_cdb_schema(cmdfd);
 
-//	vacuum_db(cmdfd);
+	vacuum_db(cmdfd);
 
 	make_template0(cmdfd);
 
