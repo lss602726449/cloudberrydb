@@ -3837,6 +3837,7 @@ numeric_power(PG_FUNCTION_ARGS)
 		 */
 		if (sign2 == 0)
 			PG_RETURN_NUMERIC(make_numeric_result(&const_one));
+
 		/*
 		 * For any odd integer value of y > 0, if x is [-]0, [-]0 shall be
 		 * returned.  For y > 0 and not an odd integer, if x is [-]0, +0 shall
@@ -3845,7 +3846,6 @@ numeric_power(PG_FUNCTION_ARGS)
 		 */
 		if (sign1 == 0 && sign2 > 0)
 			PG_RETURN_NUMERIC(make_numeric_result(&const_zero));
-
 
 		/*
 		 * If x is -1, and y is [-]Inf, 1.0 shall be returned.
@@ -11131,36 +11131,6 @@ power_var(const NumericVar *base, const NumericVar *exp, NumericVar *result)
 	quick_init_var(&abs_base);
 	quick_init_var(&ln_base);
 	quick_init_var(&ln_num);
-
-	/*
-	 * If base is negative, insist that exp be an integer.  The result is then
-	 * positive if exp is even and negative if exp is odd.
-	 */
-	if (base->sign == NUMERIC_NEG)
-	{
-		/*
-		 * Check that exp is an integer.  This error code is defined by the
-		 * SQL standard, and matches other errors in numeric_power().
-		 */
-		if (exp->ndigits > 0 && exp->ndigits > exp->weight + 1)
-			ereport(ERROR,
-					(errcode(ERRCODE_INVALID_ARGUMENT_FOR_POWER_FUNCTION),
-					 errmsg("a negative number raised to a non-integer power yields a complex result")));
-
-		/* Test if exp is odd or even */
-		if (exp->ndigits > 0 && exp->ndigits == exp->weight + 1 &&
-			(exp->digits[exp->ndigits - 1] & 1))
-			res_sign = NUMERIC_NEG;
-		else
-			res_sign = NUMERIC_POS;
-
-		/* Then work with abs(base) below */
-		set_var_from_var(base, &abs_base);
-		abs_base.sign = NUMERIC_POS;
-		base = &abs_base;
-	}
-	else
-		res_sign = NUMERIC_POS;
 
 	/*
 	 * If base is negative, insist that exp be an integer.  The result is then

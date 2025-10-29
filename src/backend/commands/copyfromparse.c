@@ -800,9 +800,9 @@ NextCopyFromRawFieldsX(CopyFromState cstate, char ***fields, int *nfields,
 			int			fldnum;
 
 			if (cstate->opts.csv_mode)
-				fldct = CopyReadAttributesCSV(cstate, stop_processing_at_field);
+				fldct = CopyReadAttributesCSV(cstate, -1);
 			else
-				fldct = CopyReadAttributesText(cstate, stop_processing_at_field);
+				fldct = CopyReadAttributesText(cstate, -1);
 
 			if (fldct != list_length(cstate->attnumlist))
 				ereport(ERROR,
@@ -855,9 +855,9 @@ NextCopyFromRawFieldsX(CopyFromState cstate, char ***fields, int *nfields,
 
 	/* Parse the line into de-escaped field values */
 	if (cstate->opts.csv_mode)
-		fldct = CopyReadAttributesCSV(cstate, -1);
+		fldct = CopyReadAttributesCSV(cstate, stop_processing_at_field);
 	else
-		fldct = CopyReadAttributesText(cstate, -1);
+		fldct = CopyReadAttributesText(cstate, stop_processing_at_field);
 
 	*fields = cstate->raw_fields;
 	*nfields = fldct;
@@ -1004,7 +1004,7 @@ NextCopyFromX(CopyFromState cstate, ExprContext *econtext,
 		 * when all fields are processed in the QD.
 		 */
 		if (fldct > attr_count)
-			ereport(ERROR,
+			ereport(PANIC,
 					(errcode(ERRCODE_BAD_COPY_FILE_FORMAT),
 							errmsg("extra data after last expected column")));
 

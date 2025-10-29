@@ -3091,7 +3091,7 @@ transformDistributedBy(ParseState *pstate,
 
 		foreach(dk, distrkeys)
 		{
-			char	   *distcolname = strVal(lfirst(dk));
+			IndexElem  *distcolname = lfirst(dk);
 			ListCell   *ip;
 			bool		found = false;
 
@@ -3102,7 +3102,7 @@ transformDistributedBy(ParseState *pstate,
 				if (!iparam->name)
 					elog(ERROR, "PRIMARY KEY on an expression index not supported");
 
-				if (strcmp(iparam->name, distcolname) == 0)
+				if (strcmp(iparam->name, distcolname->name) == 0)
 				{
 					found = true;
 					break;
@@ -3131,7 +3131,7 @@ transformDistributedBy(ParseState *pstate,
 
 		foreach(dk, distrkeys)
 		{
-			char	   *distcolname = strVal(lfirst(dk));
+			IndexElem *distcolname = lfirst(dk);
 			ListCell   *ip;
 			bool		found = false;
 
@@ -3143,7 +3143,7 @@ transformDistributedBy(ParseState *pstate,
 				if (!iparam->name)
 					elog(ERROR, "UNIQUE constraint on an expression index not supported");
 
-				if (strcmp(iparam->name, distcolname) == 0)
+				if (strcmp(iparam->name, distcolname->name) == 0)
 				{
 					found = true;
 					break;

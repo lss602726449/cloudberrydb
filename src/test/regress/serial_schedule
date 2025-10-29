@@ -10,16 +10,16 @@ test: text
 test: int2
 test: int4
 test: int8
-# test: oid
-# test: xid
+test: oid
+test: xid
 test: float4
 test: float8
 test: bit
 test: numeric
-# test: txid
-# test: uuid
-# test: enum
-# test: money
+test: txid
+test: uuid
+test: enum
+test: money
 # test: rangetypes
 # test: multirangetypes
 # test: pg_lsn
