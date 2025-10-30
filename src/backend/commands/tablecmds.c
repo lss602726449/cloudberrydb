@@ -6573,10 +6573,6 @@ ATExecCmd(List **wqueue, AlteredTableInfo *tab,
 		case AT_UnsetTags:
 			ATSetTags(rel, cmd->tags, cmd->unsettag);
 			break;
-		default:				/* oops */
-			elog(ERROR, "unrecognized alter table type: %d",
-				 (int) cmd->subtype);
-			break;
 
 		case AT_PartAdd:
 		case AT_PartDrop:
@@ -6605,6 +6601,10 @@ ATExecCmd(List **wqueue, AlteredTableInfo *tab,
 				Assert(cmd != NULL);
 				ATExecGPPartCmds(rel, cmd);
 			}
+			break;
+		default:				/* oops */
+			elog(ERROR, "unrecognized alter table type: %d",
+				 (int) cmd->subtype);
 			break;
 	}
 
@@ -6737,7 +6737,7 @@ ATParseTransformCmd(List **wqueue, AlteredTableInfo *tab, Relation rel,
 				{
 					if (Gp_role == GP_ROLE_DISPATCH)
 						cmd2 = copyObject(cmd2);
-					cmd2->subtype = true;
+					cmd2->recurse = true;
 				}
 				switch (castNode(Constraint, cmd2->def)->contype)
 				{
@@ -7999,7 +7999,6 @@ alter_table_type_to_string(AlterTableType cmdtype)
 	{
 		case AT_AddColumn:
 		case AT_AddColumnToView:
-		case AT_AddColumnRecurse:
 			return "ADD COLUMN";
 		case AT_ColumnDefault:
 		case AT_CookedColumnDefault:
