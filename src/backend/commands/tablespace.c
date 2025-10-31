@@ -328,7 +328,12 @@ CreateTableSpace(CreateTableSpaceStmt *stmt)
 	}
 
 	if (!location)
+	{
+		if (stmt->location == NULL)
+			stmt->location = "";
+
 		location = pstrdup(stmt->location);
+	}
 
 	if (stmt->filehandler)
 		fileHandler = pstrdup(stmt->filehandler);
@@ -843,8 +848,10 @@ create_tablespace_directories(const char *location, const Oid tablespaceoid)
 	elog(DEBUG5, "creating tablespace directories for tablespaceoid %d on dbid %d",
 		tablespaceoid, GpIdentity.dbid);
 
+	in_place = strlen(location) == 0;
+
 	linkloc = psprintf("pg_tblspc/%u", tablespaceoid);
-	location_with_dbid_dir = psprintf("%s/%d", location, GpIdentity.dbid);
+	location_with_dbid_dir = psprintf("%s/%d", in_place ? linkloc : location, GpIdentity.dbid);
 	location_with_version_dir = psprintf("%s/%s", location_with_dbid_dir,
 										 GP_TABLESPACE_VERSION_DIRECTORY);
 	in_place = strlen(location) == 0;
@@ -884,11 +891,11 @@ create_tablespace_directories(const char *location, const Oid tablespaceoid)
 					(errcode_for_file_access(),
 					 errmsg("could not stat directory \"%s\": %m",
 							location_with_version_dir)));
-		else if (MakePGDirectory(location_with_version_dir) < 0)
+		else if (pg_mkdir_p(location_with_version_dir, S_IRWXU) < 0)
 			ereport(ERROR,
 					(errcode_for_file_access(),
-						errmsg("could not stat directory \"%s\": %m", location_with_dbid_dir)));
-
+					 errmsg("could not create directory \"%s\": %m",
+							location_with_version_dir)));
 	}
 	else if (!S_ISDIR(st.st_mode))
 		ereport(ERROR,
@@ -910,7 +917,7 @@ create_tablespace_directories(const char *location, const Oid tablespaceoid)
 	/*
 	 * Create the symlink under PGDATA
 	 */
-	if (symlink(location_with_dbid_dir, linkloc) < 0)
+	if (!in_place && symlink(location_with_dbid_dir, linkloc) < 0)
 		ereport(ERROR,
 				(errcode_for_file_access(),
 				 errmsg("could not create symbolic link \"%s\": %m",
