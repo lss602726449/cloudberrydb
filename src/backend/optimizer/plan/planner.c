@@ -5884,7 +5884,7 @@ create_final_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 													   true, /* is_sorted */
 													   0,    /* presorted_keys */ 
 													   distinct_rel,
-													   path, path->pathtarget,
+													   input_path, input_path->pathtarget,
 													   needed_pathkeys,
 													   -1.0,
 													   parse->distinctClause,

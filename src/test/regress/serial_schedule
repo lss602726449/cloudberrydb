@@ -20,10 +20,10 @@ test: txid
 test: uuid
 test: enum
 test: money
-# test: rangetypes
-# test: multirangetypes
-# test: pg_lsn
-# test: regproc
+test: rangetypes
+test: multirangetypes
+test: pg_lsn
+test: regproc
 # test: create_function_0
 # test: strings
 # test: numerology
