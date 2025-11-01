@@ -448,9 +448,6 @@ CreateRole(ParseState *pstate, CreateRoleStmt *stmt)
 	if (denableProfile)
 		enable_profile = intVal(denableProfile->arg) != 0;
 
-
-	bypassrls = boolVal(dbypassRLS->arg);
-
 	/*
 	 * Only the super user has the privileges of profile.
 	 */

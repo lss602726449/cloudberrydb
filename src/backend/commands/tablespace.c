@@ -204,7 +204,7 @@ TablespaceCreateDbspace(Oid spcOid, Oid dbOid, bool isRedo)
 			else
 			{
 				/* Directory creation failed? */
-				if (MakePGDirectory(dir) < 0)
+				if (pg_mkdir_p(dir, S_IRWXU) < 0)
 				{
 					/* Failure other than not exists or not in WAL replay? */
 					if (errno != ENOENT || !isRedo)

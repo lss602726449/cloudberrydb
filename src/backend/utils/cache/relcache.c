@@ -1232,8 +1232,10 @@ retry:
 	else if (RELKIND_HAS_TABLE_AM(relation->rd_rel->relkind) ||
 			 relation->rd_rel->relkind == RELKIND_SEQUENCE)
 		RelationInitTableAccessMethod(relation);
-	else
-		Assert(relation->rd_rel->relam == InvalidOid);
+	/* gp partition tables may set access method for its children */
+	
+//	else
+//		Assert(relation->rd_rel->relam == InvalidOid);
 
 	/*
 	 * If it's an append-only table, get information from pg_appendonly.

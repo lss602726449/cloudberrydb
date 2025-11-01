@@ -5495,6 +5495,7 @@ ATController(AlterTableStmt *parsetree,
 			 * them here.
 			 */
 			AlteredTableInfo *tab = (AlteredTableInfo *) lfirst(lc);
+			Relation rel;
 
 			rel = relation_open(tab->relid, lockmode);
 			tab->oldDesc = CreateTupleDescCopyConstr(RelationGetDescr(rel));

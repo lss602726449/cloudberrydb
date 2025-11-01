@@ -1,7 +1,7 @@
 # src/test/regress/serial_schedule
 # This should probably be in an order similar to parallel_schedule.
 test: test_setup
-# test: tablespace
+test: tablespace
 test: boolean
 test: char
 test: name
