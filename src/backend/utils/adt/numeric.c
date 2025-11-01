@@ -4398,10 +4398,6 @@ int64_div_fast_to_numeric(int64 val1, int log10val2)
 		w++;
 	}
 
-	quick_init_var(&result);
-
-	int64_to_numericvar(val1, &result);
-
 	result.weight -= w;
 	result.dscale = rscale;
 

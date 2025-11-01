@@ -24,19 +24,18 @@ test: rangetypes
 test: multirangetypes
 test: pg_lsn
 test: regproc
-# test: create_function_0
-# test: strings
-# test: numerology
-# test: point
-# test: lseg
-# test: line
-# test: box
-# test: path
-# test: polygon
-# test: circle
-# test: date
-# test: time
-# test: timetz
+test: strings
+test: numerology
+test: point
+test: lseg
+test: line
+test: box
+test: path
+test: polygon
+test: circle
+test: date
+test: time
+test: timetz
 # test: timestamp
 # test: timestamptz
 # test: interval

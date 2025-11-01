@@ -215,7 +215,13 @@ SELECT date '4714-11-23 BC';  -- out of range
 SELECT date '5874897-12-31';
 SELECT date '5874898-01-01';  -- out of range
 
-<<<<<<< HEAD
+-- Test non-error-throwing API
+SELECT pg_input_is_valid('now', 'date');
+SELECT pg_input_is_valid('garbage', 'date');
+SELECT pg_input_is_valid('6874898-01-01', 'date');
+SELECT * FROM pg_input_error_info('garbage', 'date');
+SELECT * FROM pg_input_error_info('6874898-01-01', 'date');
+
 -- Test guc gp_allow_date_field_width_5digits
 -- should error out
 SELECT date '2020516';
@@ -226,14 +232,6 @@ SET gp_allow_date_field_width_5digits=on;
 SELECT date '2020516';
 
 RESET gp_allow_date_field_width_5digits;
-=======
--- Test non-error-throwing API
-SELECT pg_input_is_valid('now', 'date');
-SELECT pg_input_is_valid('garbage', 'date');
-SELECT pg_input_is_valid('6874898-01-01', 'date');
-SELECT * FROM pg_input_error_info('garbage', 'date');
-SELECT * FROM pg_input_error_info('6874898-01-01', 'date');
->>>>>>> REL_16_9
 
 RESET datestyle;
 
