@@ -54,7 +54,6 @@ WHERE (t1.typtype = 'c' AND t1.typrelid = 0) OR
 -- Generally anything that's not a pseudotype should have an array type.
 -- However, we do have a small number of exceptions.
 
-<<<<<<< HEAD
 SELECT p1.oid, p1.typname
 FROM pg_type as p1
 WHERE p1.typtype not in ('c','d','p') AND p1.typname NOT LIKE E'\\_%'
@@ -64,16 +63,6 @@ WHERE p1.typtype not in ('c','d','p') AND p1.typname NOT LIKE E'\\_%'
            p2.typelem = p1.oid and p1.typarray = p2.oid)
     AND typnamespace != (select oid from pg_namespace where nspname='pg_ext_aux')
 ORDER BY p1.oid;
-=======
-SELECT t1.oid, t1.typname
-FROM pg_type as t1
-WHERE t1.typtype not in ('p') AND t1.typname NOT LIKE E'\\_%'
-    AND NOT EXISTS
-    (SELECT 1 FROM pg_type as t2
-     WHERE t2.typname = ('_' || t1.typname)::name AND
-           t2.typelem = t1.oid and t1.typarray = t2.oid)
-ORDER BY t1.oid;
->>>>>>> REL_16_9
 
 -- Make sure typarray points to a "true" array type of our own base
 SELECT t1.oid, t1.typname as basetype, t2.typname as arraytype,
@@ -500,23 +489,14 @@ WHERE pronargs != 2
 
 -- every range should have a valid multirange
 
-<<<<<<< HEAD
-SELECT p1.rngtypid, p1.rngsubtype, p1.rngmultitypid
-FROM pg_range p1
-WHERE p1.rngmultitypid IS NULL OR p1.rngmultitypid = 0;
-=======
 SELECT r.rngtypid, r.rngsubtype, r.rngmultitypid
 FROM pg_range r
 WHERE r.rngmultitypid IS NULL OR r.rngmultitypid = 0;
->>>>>>> REL_16_9
 
 -- Create a table that holds all the known in-core data types and leave it
 -- around so as pg_upgrade is able to test their binary compatibility.
 CREATE TABLE tab_core_types AS SELECT
-<<<<<<< HEAD
   '1 + 2i'::complex,
-=======
->>>>>>> REL_16_9
   '(11,12)'::point,
   '(1,1),(2,2)'::line,
   '((11,11),(12,12))'::lseg,
@@ -571,37 +551,14 @@ CREATE TABLE tab_core_types AS SELECT
   'n'::information_schema.sql_identifier,
   'now'::information_schema.time_stamp,
   'YES'::information_schema.yes_or_no,
-<<<<<<< HEAD
-  'venus'::planets,
-  'i16'::insenum,
-  '(1,2)'::int4range, '{(1,2)}'::int4multirange,
-  '(3,4)'::int8range, '{(3,4)}'::int8multirange,
-  '(1,2)'::float8range, '{(1,2)}'::float8multirange,
-  '(3,4)'::numrange, '{(3,4)}'::nummultirange,
-  '(a,b)'::textrange, '{(a,b)}'::textmultirange,
-  '(12.34, 56.78)'::cashrange, '{(12.34, 56.78)}'::cashmultirange,
-=======
   '(1,2)'::int4range, '{(1,2)}'::int4multirange,
   '(3,4)'::int8range, '{(3,4)}'::int8multirange,
   '(3,4)'::numrange, '{(3,4)}'::nummultirange,
->>>>>>> REL_16_9
   '(2020-01-02, 2021-02-03)'::daterange,
   '{(2020-01-02, 2021-02-03)}'::datemultirange,
   '(2020-01-02 03:04:05, 2021-02-03 06:07:08)'::tsrange,
   '{(2020-01-02 03:04:05, 2021-02-03 06:07:08)}'::tsmultirange,
   '(2020-01-02 03:04:05, 2021-02-03 06:07:08)'::tstzrange,
-<<<<<<< HEAD
-  '{(2020-01-02 03:04:05, 2021-02-03 06:07:08)}'::tstzmultirange,
-  arrayrange(ARRAY[1,2], ARRAY[2,1]),
-  arraymultirange(arrayrange(ARRAY[1,2], ARRAY[2,1]));
-
--- Sanity check on the previous table, checking that all core types are
--- included in this table.
-SELECT oid, typname, typtype, typelem, typarray, typarray
-  FROM pg_type t
-  WHERE typtype NOT IN ('p', 'c') AND
-    -- reg* types cannot be pg_upgraded, so discard them.
-=======
   '{(2020-01-02 03:04:05, 2021-02-03 06:07:08)}'::tstzmultirange;
 
 -- Sanity check on the previous table, checking that all core types are
@@ -612,7 +569,6 @@ SELECT oid, typname, typtype, typelem, typarray
     -- Exclude pseudotypes and composite types.
     typtype NOT IN ('p', 'c') AND
     -- These reg* types cannot be pg_upgraded, so discard them.
->>>>>>> REL_16_9
     oid != ALL(ARRAY['regproc', 'regprocedure', 'regoper',
                      'regoperator', 'regconfig', 'regdictionary',
                      'regnamespace', 'regcollation']::regtype[]) AND
@@ -623,13 +579,10 @@ SELECT oid, typname, typtype, typelem, typarray
                      'pg_ndistinct', 'pg_dependencies', 'pg_mcv_list',
                      'pg_brin_bloom_summary',
                      'pg_brin_minmax_multi_summary', 'xml']::regtype[]) AND
-<<<<<<< HEAD
     -- GPDB_14_MERGE_FIXME: Discard the GP-specific type gp_hyperloglog_estimator?
     oid != 'gp_hyperloglog_estimator'::regtype AND
     -- CBDB: ignore types defined in extension namespace
     typnamespace != (select oid from pg_namespace where nspname='pg_ext_aux') AND
-=======
->>>>>>> REL_16_9
     -- Discard arrays.
     NOT EXISTS (SELECT 1 FROM pg_type u WHERE u.typarray = t.oid)
     -- Exclude everything from the table created above.  This checks
