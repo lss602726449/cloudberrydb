@@ -643,7 +643,11 @@ SELECT timestamp without time zone 'Jan 1, 4713 BC' + interval '109203489 days' 
 (1 row)
 
 SELECT timestamp without time zone '2000-01-01' - interval '2483590 days' AS "out of range";
-ERROR:  timestamp out of range
+        out of range         
+-----------------------------
+ Mon Aug 16 00:00:00 4560 BC
+(1 row)
+
 SELECT timestamp without time zone '294276-12-31 23:59:59' + interval '9223372036854775807 microseconds' AS "out of range";
 ERROR:  timestamp out of range
 SELECT timestamp without time zone '12/31/294276' - timestamp without time zone '12/23/1999' AS "106751991 Days";

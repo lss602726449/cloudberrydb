@@ -5253,13 +5253,16 @@ SELECT * FROM circle_tbl WHERE f1 && circle(point(1,-2), 1)
 EXPLAIN (COSTS OFF)
 SELECT * FROM circle_tbl WHERE f1 && circle(point(1,-2), 1)
     ORDER BY area(f1);
-                  QUERY PLAN                  
-----------------------------------------------
- Sort
-   Sort Key: (area(f1))
-   ->  Seq Scan on circle_tbl
-         Filter: (f1 && '<(1,-2),1>'::circle)
-(4 rows)
+                     QUERY PLAN                     
+----------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   Merge Key: (area(f1))
+   ->  Sort
+         Sort Key: (area(f1))
+         ->  Seq Scan on circle_tbl
+               Filter: (f1 && '<(1,-2),1>'::circle)
+ Optimizer: Postgres query optimizer
+(7 rows)
 
 SELECT * FROM circle_tbl WHERE f1 && circle(point(1,-2), 1)
     ORDER BY area(f1);
@@ -5283,13 +5286,16 @@ SELECT * FROM polygon_tbl WHERE f1 @> '((1,1),(2,2),(2,1))'::polygon
 EXPLAIN (COSTS OFF)
 SELECT * FROM polygon_tbl WHERE f1 @> '((1,1),(2,2),(2,1))'::polygon
     ORDER BY (poly_center(f1))[0];
-                       QUERY PLAN                       
---------------------------------------------------------
- Sort
-   Sort Key: ((poly_center(f1))[0])
-   ->  Seq Scan on polygon_tbl
-         Filter: (f1 @> '((1,1),(2,2),(2,1))'::polygon)
-(4 rows)
+                          QUERY PLAN                          
+--------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   Merge Key: ((poly_center(f1))[0])
+   ->  Sort
+         Sort Key: ((poly_center(f1))[0])
+         ->  Seq Scan on polygon_tbl
+               Filter: (f1 @> '((1,1),(2,2),(2,1))'::polygon)
+ Optimizer: Postgres query optimizer
+(7 rows)
 
 SELECT * FROM polygon_tbl WHERE f1 @> '((1,1),(2,2),(2,1))'::polygon
     ORDER BY (poly_center(f1))[0];
