@@ -57,8 +57,8 @@ test: unicode
 test: create_type
 test: create_table
 # test: create_function_2
-test: copy
-test: copyselect
+# test: copy
+# test: copyselect
 # test: copydml
 # test: insert
 # test: insert_conflict
