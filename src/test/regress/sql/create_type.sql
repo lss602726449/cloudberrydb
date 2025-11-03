@@ -192,16 +192,6 @@ select format_type('bpchar'::regtype, null);
 -- this behavior difference is intentional
 select format_type('bpchar'::regtype, -1);
 
-<<<<<<< HEAD
--- Create & Drop type as non-superuser
-CREATE USER user_bob;
-SET SESSION AUTHORIZATION user_bob;
-CREATE TYPE shell; -- not allowed
-CREATE TYPE compfoo as (f1 int, f2 text);
-DROP TYPE compfoo;
-RESET SESSION AUTHORIZATION;
-DROP USER user_bob;
-=======
 -- Test non-error-throwing APIs using widget, which still throws errors
 SELECT pg_input_is_valid('(1,2,3)', 'widget');
 SELECT pg_input_is_valid('(1,2)', 'widget');  -- hard error expected
@@ -240,8 +230,15 @@ INSERT INTO city VALUES
 ('Gotham', '(1000,34),(1100,334)', '123456,127,-1000,6789');
 
 TABLE city;
->>>>>>> REL_16_9
 
+-- Create & Drop type as non-superuser
+CREATE USER user_bob;
+SET SESSION AUTHORIZATION user_bob;
+CREATE TYPE shell; -- not allowed
+CREATE TYPE compfoo as (f1 int, f2 text);
+DROP TYPE compfoo;
+RESET SESSION AUTHORIZATION;
+DROP USER user_bob;
 --
 -- Test CREATE/ALTER TYPE using a type that's compatible with varchar,
 -- so we can re-use those support functions

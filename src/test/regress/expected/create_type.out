@@ -250,18 +250,6 @@ select format_type('bpchar'::regtype, -1);
  bpchar
 (1 row)
 
-<<<<<<< HEAD
--- Create & Drop type as non-superuser
-CREATE USER user_bob;
-NOTICE:  resource queue required -- using default resource queue "pg_default"
-SET SESSION AUTHORIZATION user_bob;
-CREATE TYPE shell; -- not allowed
-ERROR:  must be superuser to create a base type
-CREATE TYPE compfoo as (f1 int, f2 text);
-DROP TYPE compfoo;
-RESET SESSION AUTHORIZATION;
-DROP USER user_bob;
-=======
 -- Test non-error-throwing APIs using widget, which still throws errors
 SELECT pg_input_is_valid('(1,2,3)', 'widget');
  pg_input_is_valid 
@@ -322,7 +310,16 @@ TABLE city;
  Gotham | (1100,334),(1000,34) | 123456,127,-1000,6789
 (2 rows)
 
->>>>>>> REL_16_9
+-- Create & Drop type as non-superuser
+CREATE USER user_bob;
+NOTICE:  resource queue required -- using default resource queue "pg_default"
+SET SESSION AUTHORIZATION user_bob;
+CREATE TYPE shell; -- not allowed
+ERROR:  must be superuser to create a base type
+CREATE TYPE compfoo as (f1 int, f2 text);
+DROP TYPE compfoo;
+RESET SESSION AUTHORIZATION;
+DROP USER user_bob;
 --
 -- Test CREATE/ALTER TYPE using a type that's compatible with varchar,
 -- so we can re-use those support functions
