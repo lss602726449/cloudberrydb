@@ -8356,6 +8356,9 @@ add_paths_to_grouping_rel(PlannerInfo *root, RelOptInfo *input_rel,
 			}
 			if (input_rel->partial_pathlist && grouped_rel->consider_parallel)
 			{
+				Path	   *path = linitial(input_rel->partial_pathlist);
+				double		dNumGroups;
+
 				path = cdb_prepare_path_for_hashed_agg(root,
 														path,
 														path->pathtarget,
@@ -8508,6 +8511,7 @@ add_paths_to_grouping_rel(PlannerInfo *root, RelOptInfo *input_rel,
 
 		if (gp_eager_two_phase_agg)
 		{
+			ListCell *lc;
 			foreach(lc, grouped_rel->pathlist)
 			{
 				Path *path = (Path *) lfirst(lc);

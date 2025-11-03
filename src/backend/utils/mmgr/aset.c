@@ -1773,7 +1773,7 @@ AllocSetGetCurrentUsage(MemoryContext context)
 }
 
 static Size
-AllocSetGetPeakUsage_recurse(MemoryContext parent, MemoryContext context)
+ AllocSetGetPeakUsage_recurse(MemoryContext parent, MemoryContext context)
 {
 	MemoryContext child;
 	Size		total;
@@ -1788,7 +1788,10 @@ AllocSetGetPeakUsage_recurse(MemoryContext parent, MemoryContext context)
 		if (childset->accountingParent == (AllocSet) parent)
 			AllocSetGetPeakUsage_recurse(parent, child);
 		else
-			total += AllocSetGetPeakUsage(child);
+		{
+			if (child->methods->get_peak_usage)
+				total += child->methods->get_peak_usage(child);
+		}
 	}
 
 	return total;

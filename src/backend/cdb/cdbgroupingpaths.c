@@ -510,14 +510,21 @@ cdb_create_multistage_grouping_paths(PlannerInfo *root,
 				 * removing the origin plan's aggfilter can work around
 				 * this problem. We'll look at it again later.
 				 */
-//				ListCell   *lc;
-//				foreach(lc, root->agginfos)
-//				{
-//					AggInfo    *agginfo = (AggInfo *) lfirst(lc);
-//					Aggref	   *aggref = agginfo->representative_aggref;
-//					if (aggref->aggdistinct != NIL)
-//						aggref->aggfilter = NULL;
-//				}
+				ListCell   *lc;
+				foreach(lc, root->agginfos)
+				{
+					AggInfo    *agginfo = (AggInfo *) lfirst(lc);
+					ListCell   *lc2;
+
+					foreach(lc2, agginfo->aggrefs)
+					{
+						Aggref	   *aggref = lfirst(lc2);
+
+						if (aggref->aggdistinct != NIL)
+							aggref->aggfilter = NULL;
+					}
+
+				}
 				add_multi_dqas_hash_agg_path(root,
 											 cheapest_path,
 											 &ctx,
@@ -1913,6 +1920,7 @@ get_common_group_tles(PathTarget *target,
 
 	if (rollups)
 	{
+		ListCell   *lc;
 		bool		first = true;
 
 		foreach(lc, rollups)

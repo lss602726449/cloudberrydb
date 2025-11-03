@@ -36,19 +36,19 @@ test: circle
 test: date
 test: time
 test: timetz
-# test: timestamp
-# test: timestamptz
-# test: interval
-# test: inet
-# test: macaddr
-# test: macaddr8
-# test: tstypes
-# test: geometry
-# test: horology
-# test: regex
+test: timestamp
+test: timestamptz
+test: interval
+test: inet
+test: macaddr
+test: macaddr8
+test: tstypes
+test: geometry
+test: horology
+test: regex
 # test: oidjoins
-# test: type_sanity
-# test: opr_sanity
+test: type_sanity
+test: opr_sanity
 # test: misc_sanity
 # test: comments
 # test: expressions

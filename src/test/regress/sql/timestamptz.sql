@@ -256,14 +256,6 @@ SELECT date_bin('0 days'::interval, timestamp with time zone '1970-01-01 01:00:0
 -- disallow negative intervals
 SELECT date_bin('-2 days'::interval, timestamp with time zone '1970-01-01 01:00:00+00' , timestamp with time zone '1970-01-01 00:00:00+00');
 
-<<<<<<< HEAD
-=======
--- test overflow cases
-select date_bin('15 minutes'::interval, timestamptz '294276-12-30', timestamptz '4000-12-20 BC');
-select date_bin('200000000 days'::interval, '2024-02-01'::timestamptz, '2024-01-01'::timestamptz);
-select date_bin('365000 days'::interval, '4400-01-01 BC'::timestamptz, '4000-01-01 BC'::timestamptz);
-
->>>>>>> REL_16_9
 -- Test casting within a BETWEEN qualifier
 SELECT d1 - timestamp with time zone '1997-01-02' AS diff
   FROM TIMESTAMPTZ_TBL
