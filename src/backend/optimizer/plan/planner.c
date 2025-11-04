@@ -4254,7 +4254,12 @@ standard_qp_callback(PlannerInfo *root, void *extra)
 			root->num_groupby_pathkeys = 0;
 		}
 	}
-	else if (parse->groupClause || root->numOrderedAggs > 0)
+	/*
+	 * MERGE16_FIXME:  Remove "root->numOrderedAggs > 0" from the if clause.
+	 * It should cause some errors for dqa, but is it correct?
+	 */
+	/* else if (parse->groupClause || root->numOrderedAggs > 0) */
+	else if (parse->groupClause)
 	{
 		/*
 		 * With a plain GROUP BY list, we can remove any grouping items that
@@ -4272,6 +4277,7 @@ standard_qp_callback(PlannerInfo *root, void *extra)
 												   tlist,
 												   true,
 												   &sortable);
+
 		if (!sortable)
 		{
 			/* Can't sort; no point in considering aggregate ordering either */
