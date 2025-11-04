@@ -434,11 +434,29 @@ REINDEX (TABLESPACE regress_tblspace) TABLE tablespace_table; -- fail
 REINDEX (TABLESPACE regress_tblspace, CONCURRENTLY) TABLE tablespace_table; -- fail
 RESET ROLE;
 
+      
+-- Test that altering tablespace of a partition table should recurse into its child tables unless ONLY is specified.
+CREATE TABLE tablespace_part(a int, b int) PARTITION BY RANGE(a) (partition t1 START (1) END (100));
+ALTER TABLE tablespace_part SET TABLESPACE regress_tblspace;
+
+-- Both parent and child tables use the new tablespace
+SELECT c.relname, t.spcname FROM pg_class c LEFT JOIN pg_tablespace t ON c.reltablespace = t.oid WHERE relname LIKE 'tablespace_part%';
+
+DROP TABLE tablespace_part;
+
+CREATE TABLE tablespace_part(a int, b int) PARTITION BY RANGE(a) (partition t1 START (1) END (100));
+ALTER TABLE ONLY tablespace_part SET TABLESPACE myts;
+
+-- Only the parent table uses the new tablespace
+SELECT c.relname, t.spcname FROM pg_class c LEFT JOIN pg_tablespace t ON c.reltablespace = t.oid WHERE relname LIKE 'tablespace_part%';
+
+DROP TABLE tablespace_part;
+      
 ALTER TABLESPACE regress_tblspace RENAME TO regress_tblspace_renamed;
 
 -- Test that default_tablespace GUC is honored even after gang reset.
 CREATE OR REPLACE FUNCTION cleanupAllGangs() RETURNS BOOL
-AS '@abs_builddir@/regress@DLSUFFIX@', 'cleanupAllGangs' LANGUAGE C;
+AS 'regress.so', 'cleanupAllGangs' LANGUAGE C;
 
 SET default_tablespace TO regress_tblspace_renamed;
 
@@ -471,21 +489,3 @@ DROP SCHEMA testschema CASCADE;
 DROP ROLE regress_tablespace_user1;
 DROP ROLE regress_tablespace_user2;
 
--- Test that altering tablespace of a partition table should recurse into its child tables unless ONLY is specified.
-CREATE TABLE tablespace_part(a int, b int) PARTITION BY RANGE(a) (partition t1 START (1) END (100));
-CREATE TABLESPACE myts LOCATION '@testtablespace@';
-ALTER TABLE tablespace_part SET TABLESPACE myts;
-
--- Both parent and child tables use the new tablespace
-SELECT c.relname, t.spcname FROM pg_class c LEFT JOIN pg_tablespace t ON c.reltablespace = t.oid WHERE relname LIKE 'tablespace_part%';
-
-DROP TABLE tablespace_part;
-
-CREATE TABLE tablespace_part(a int, b int) PARTITION BY RANGE(a) (partition t1 START (1) END (100));
-ALTER TABLE ONLY tablespace_part SET TABLESPACE myts;
-
--- Only the parent table uses the new tablespace
-SELECT c.relname, t.spcname FROM pg_class c LEFT JOIN pg_tablespace t ON c.reltablespace = t.oid WHERE relname LIKE 'tablespace_part%';
-
-DROP TABLE tablespace_part;
-DROP TABLESPACE myts;
