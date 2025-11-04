@@ -711,6 +711,7 @@ _outAlterTableCmd(StringInfo str, const AlterTableCmd *node)
 	WRITE_NODE_FIELD(transform);
 	WRITE_ENUM_FIELD(behavior, DropBehavior);
 	WRITE_BOOL_FIELD(missing_ok);
+	WRITE_BOOL_FIELD(recurse);
 
 	WRITE_INT_FIELD(backendId);
 	WRITE_NODE_FIELD(policy);
