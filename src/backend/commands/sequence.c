@@ -438,7 +438,7 @@ fill_seq_with_data(Relation rel, HeapTuple tuple)
  * Initialize a sequence's relation fork with the specified tuple as content
  */
 static void
-fill_seq_fork_with_data(Relation rel, HeapTuple tuple, ForkNumber forkNum)
+	fill_seq_fork_with_data(Relation rel, HeapTuple tuple, ForkNumber forkNum)
 {
 	Buffer		buf;
 	Page		page;
@@ -452,8 +452,6 @@ fill_seq_fork_with_data(Relation rel, HeapTuple tuple, ForkNumber forkNum)
 	Assert(BufferGetBlockNumber(buf) == 0);
 
 	page = BufferGetPage(buf);
-
-	LockBuffer(buf, BUFFER_LOCK_EXCLUSIVE);
 
 	PageInit(page, BufferGetPageSize(buf), sizeof(sequence_magic));
 	sm = (sequence_magic *) PageGetSpecialPointer(page);
