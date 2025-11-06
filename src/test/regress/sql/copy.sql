@@ -2,112 +2,9 @@
 -- COPY
 --
 
-<<<<<<< HEAD:src/test/regress/input/copy.source
--- CLASS POPULATION
---	(any resemblance to real life is purely coincidental)
---
-COPY aggtest FROM '@abs_srcdir@/data/agg.data';
-
-COPY onek FROM '@abs_srcdir@/data/onek.data';
-
-COPY onek TO '@abs_builddir@/results/onek.data';
-
-DELETE FROM onek;
-
-COPY onek FROM '@abs_builddir@/results/onek.data';
-
-COPY tenk1 FROM '@abs_srcdir@/data/tenk.data';
-
--- Create a table that's identical to 'tenk1', but all the data is in a single
--- segment. This comes handy in making some PostgreSQL tests pass on GPDB,
--- where data distribution might make a difference to a test result.
-CREATE SCHEMA singleseg;
-create table singleseg.tenk1 (like tenk1, distkey int4) distributed by (distkey);
-COPY singleseg.tenk1 (unique1,unique2,two,four,ten,twenty,hundred,thousand,twothousand,fivethous,tenthous,odd,even,stringu1,stringu2,string4) FROM '@abs_srcdir@/data/tenk.data';
-
-COPY slow_emp4000 FROM '@abs_srcdir@/data/rect.data';
-
-COPY person FROM '@abs_srcdir@/data/person.data';
-
-COPY emp FROM '@abs_srcdir@/data/emp.data';
-
-COPY student FROM '@abs_srcdir@/data/student.data';
-
-COPY stud_emp FROM '@abs_srcdir@/data/stud_emp.data';
-
-COPY road FROM '@abs_srcdir@/data/streets.data';
-
-COPY real_city FROM '@abs_srcdir@/data/real_city.data';
-
-COPY hash_i4_heap FROM '@abs_srcdir@/data/hash.data';
-
-COPY hash_name_heap FROM '@abs_srcdir@/data/hash.data';
-
-COPY hash_txt_heap FROM '@abs_srcdir@/data/hash.data';
-
-COPY hash_f8_heap FROM '@abs_srcdir@/data/hash.data';
-
-COPY test_tsvector FROM '@abs_srcdir@/data/tsearch.data';
-
-COPY testjsonb FROM '@abs_srcdir@/data/jsonb.data';
-
--- the data in this file has a lot of duplicates in the index key
--- fields, leading to long bucket chains and lots of table expansion.
--- this is therefore a stress test of the bucket overflow code (unlike
--- the data in hash.data, which has unique index keys).
---
--- COPY hash_ovfl_heap FROM '@abs_srcdir@/data/hashovfl.data';
-
-COPY bt_i4_heap FROM '@abs_srcdir@/data/desc.data';
-
-COPY bt_name_heap FROM '@abs_srcdir@/data/hash.data';
-
-COPY bt_txt_heap FROM '@abs_srcdir@/data/desc.data';
-
-COPY bt_f8_heap FROM '@abs_srcdir@/data/hash.data';
-
-COPY array_op_test FROM '@abs_srcdir@/data/array.data';
-
-COPY array_index_op_test FROM '@abs_srcdir@/data/array.data';
-
--- analyze all the data we just loaded, to ensure plan consistency
--- in later tests
-
--- Force pgstat_report_stat() to send tabstat before pgstat_report_analyze.
--- Nomally this is no needed, but ORCA is very sensitive for statistics.
--- If analyze msg recevied first, n_mod_since_analyze will not be 0.
--- And since we create index for some tables later, the triggered auto-ANALYZE
--- will cause table's index statstics change and ORCA may generate different
--- plans for some queries.
-select pg_sleep(0.77);
-
-ANALYZE aggtest;
-ANALYZE onek;
-ANALYZE tenk1;
-ANALYZE slow_emp4000;
-ANALYZE person;
-ANALYZE emp;
-ANALYZE student;
-ANALYZE stud_emp;
-ANALYZE road;
-ANALYZE real_city;
-ANALYZE hash_i4_heap;
-ANALYZE hash_name_heap;
-ANALYZE hash_txt_heap;
-ANALYZE hash_f8_heap;
-ANALYZE test_tsvector;
-ANALYZE testjsonb;
-ANALYZE bt_i4_heap;
-ANALYZE bt_name_heap;
-ANALYZE bt_txt_heap;
-ANALYZE bt_f8_heap;
-ANALYZE array_op_test;
-ANALYZE array_index_op_test;
-=======
 -- directory paths are passed to us in environment variables
 \getenv abs_srcdir PG_ABS_SRCDIR
 \getenv abs_builddir PG_ABS_BUILDDIR
->>>>>>> REL_16_9:src/test/regress/sql/copy.sql
 
 --- test copying in CSV mode with various styles
 --- of embedded line ending characters
@@ -127,12 +24,7 @@ copy copytest to :'filename' csv;
 
 create temp table copytest2 (like copytest);
 
-<<<<<<< HEAD:src/test/regress/input/copy.source
-copy copytest2 from '@abs_builddir@/results/copytest.csv' csv;
-copy copytest2 from '@abs_builddir@/results/copytest.csv' csv LOG ERRORS SEGMENT REJECT LIMIT 10 ROWS;
-=======
 copy copytest2 from :'filename' csv;
->>>>>>> REL_16_9:src/test/regress/sql/copy.sql
 
 select * from copytest except select * from copytest2 order by 1,2,3;
 
@@ -162,30 +54,6 @@ this is just a line full of junk that would error out if parsed
 
 copy copytest3 to stdout csv header;
 
-<<<<<<< HEAD:src/test/regress/input/copy.source
--- test copy force quote
-
-create temp table copytest4 (id int, id1 int);
-
-insert into copytest4 values (1,2);
-insert into copytest4 values (1,3);
-insert into copytest4 values (1,4);
-
-copy (select * from copytest4) to stdout csv delimiter ',' force quote id, id1, id2;
-copy (select * from copytest4) to stdout csv delimiter ',' force quote id, id1;
-
--- test null string with CRLF for text mode
-
-CREATE TEMP TABLE venue(
-    venueid smallint not null,
-    venuename varchar(100),
-    venuecity varchar(30),
-    venuestate char(2),
-    venueseats integer) DISTRIBUTED BY (venueid);
-
-COPY venue FROM '@abs_srcdir@/data/venue_pipe.txt' WITH DELIMITER AS '|';
-SELECT count(*) FROM venue;
-=======
 create temp table copytest4 (
 	c1 int,
 	"colname with tab: 	" text);
@@ -197,7 +65,6 @@ this is just a line full of junk that would error out if parsed
 \.
 
 copy copytest4 to stdout (header);
->>>>>>> REL_16_9:src/test/regress/sql/copy.sql
 
 -- test copy from with a partitioned table
 create table parted_copytest (
@@ -332,53 +199,6 @@ copy tab_progress_reporting from :'filename'
 drop trigger check_after_tab_progress_reporting on tab_progress_reporting;
 drop function notice_after_tab_progress_reporting();
 drop table tab_progress_reporting;
-<<<<<<< HEAD:src/test/regress/input/copy.source
--- check COPY behavior
--- there are 2 fields in copy.data
--- table_1_col_dist_c1: 1 col in table < 2 fields in file
--- table_2_cols_dist_c1 and
--- table_2_cols_dist_c2: 2 cols in table = 2 fields in file
--- table_3_cols_dist_c1 and
--- table_3_cols_dist_c2 and
--- table_3_cols_dist_c3: 3 cols in table > 2 fields in file
-CREATE TABLE table_1_col_dist_c1(c1 text) distributed by (c1);
-CREATE TABLE table_2_cols_dist_c1(c1 text, c2 text) distributed by (c1);
-CREATE TABLE table_2_cols_dist_c2(c1 text, c2 text) distributed by (c2);
-CREATE TABLE table_3_cols_dist_c1(c1 text, c2 text, c3 text) distributed by (c1);
-CREATE TABLE table_3_cols_dist_c2(c1 text, c2 text, c3 text) distributed by (c2);
-CREATE TABLE table_3_cols_dist_c3(c1 text, c2 text, c3 text) distributed by (c3);
-
-COPY table_1_col_dist_c1 FROM '@abs_srcdir@/data/copy.data' DELIMITER ',';
-COPY table_2_cols_dist_c1 FROM '@abs_srcdir@/data/copy.data' DELIMITER ',';
-COPY table_2_cols_dist_c2 FROM '@abs_srcdir@/data/copy.data' DELIMITER ',';
-COPY table_3_cols_dist_c1 FROM '@abs_srcdir@/data/copy.data' DELIMITER ',';
-COPY table_3_cols_dist_c2 FROM '@abs_srcdir@/data/copy.data' DELIMITER ',';
-COPY table_3_cols_dist_c3 FROM '@abs_srcdir@/data/copy.data' DELIMITER ',';
-
-SELECT count(*) FROM table_1_col_dist_c1;
-SELECT count(*) FROM table_2_cols_dist_c1;
-SELECT count(*) FROM table_2_cols_dist_c2;
-SELECT count(*) FROM table_3_cols_dist_c1;
-SELECT count(*) FROM table_3_cols_dist_c2;
-SELECT count(*) FROM table_3_cols_dist_c3;
-
-DROP TABLE table_1_col_dist_c1;
-DROP TABLE table_2_cols_dist_c1;
-DROP TABLE table_2_cols_dist_c2;
-DROP TABLE table_3_cols_dist_c1;
-DROP TABLE table_3_cols_dist_c2;
-DROP TABLE table_3_cols_dist_c3;
-
--- special case, tables without columns
-CREATE TABLE table_no_cols();
-INSERT INTO table_no_cols DEFAULT VALUES;
-SELECT count(*) FROM table_no_cols;
-COPY table_no_cols TO '@abs_srcdir@/results/copy_no_cols.data' DELIMITER ',';
-COPY table_no_cols FROM '@abs_srcdir@/results/copy_no_cols.data' DELIMITER ',';
-SELECT count(*) FROM table_no_cols;
-COPY table_no_cols FROM '@abs_srcdir@/data/copy.data' DELIMITER ',';
-DROP TABLE table_no_cols;
-=======
 
 -- Test header matching feature
 create table header_copytest (
@@ -502,4 +322,3 @@ COPY parted_si(id, data) FROM :'filename';
 SELECT tableoid::regclass, id % 2 = 0 is_even, count(*) from parted_si GROUP BY 1, 2 ORDER BY 1;
 
 DROP TABLE parted_si;
->>>>>>> REL_16_9:src/test/regress/sql/copy.sql
