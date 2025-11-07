@@ -171,6 +171,7 @@ SELECT count(*) FROM point_tbl p WHERE p.f1 ~= '(-5, -12)';
 CREATE VIEW point_tblv AS
   SELECT * FROM point_tbl
   WHERE NOT f1 ~= '(1e-300, -1e-300)' AND (f1 <-> '(0,0)') != 'inf';
+NOTICE:  view "point_tblv" will be a temporary view
 -- In gpdb, we intentional filter out point (1e-300, -1e-300) and `inf` every order by related queries
 -- in this test case file. It is an underflow point, rank it cause randomly results( (0,0),
 -- (1e-300, -1e-300) are equal).
@@ -1356,7 +1357,7 @@ unique, btree, for table "public.unique_tbl"
  Column |  Type   | Key? | Definition 
 --------+---------+------+------------
  i      | integer | yes  | i
-unique nulls not distinct, btree, for table "public.unique_tbl"
+unique, btree, for table "public.unique_tbl"
 
 SELECT pg_get_indexdef('unique_idx3'::regclass);
                            pg_get_indexdef                            

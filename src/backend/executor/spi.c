@@ -2576,18 +2576,18 @@ _SPI_execute_plan(SPIPlanPtr plan, const SPIExecuteOptions *options,
 		{
 			RawStmt    *parsetree = plansource->raw_parse_tree;
 			const char *src = plansource->query_string;
-			List	   *querytree_list;
+			List	   *stmt_list;
 
 			/*
 			 * Parameter datatypes are driven by parserSetup hook if provided,
 			 * otherwise we use the fixed parameter list.
 			 */
 			if (parsetree == NULL)
-				querytree_list = NIL;
+				stmt_list = NIL;
 			else if (plan->parserSetup != NULL)
 			{
 				Assert(plan->nargs == 0);
-				querytree_list = pg_analyze_and_rewrite_withcb(parsetree,
+				stmt_list = pg_analyze_and_rewrite_withcb(parsetree,
 															   src,
 															   plan->parserSetup,
 															   plan->parserSetupArg,
@@ -2595,7 +2595,7 @@ _SPI_execute_plan(SPIPlanPtr plan, const SPIExecuteOptions *options,
 			}
 			else
 			{
-				querytree_list = pg_analyze_and_rewrite_fixedparams(parsetree,
+				stmt_list = pg_analyze_and_rewrite_fixedparams(parsetree,
 																	src,
 																	plan->argtypes,
 																	plan->nargs,
@@ -2617,7 +2617,7 @@ _SPI_execute_plan(SPIPlanPtr plan, const SPIExecuteOptions *options,
 
 			/* Finish filling in the CachedPlanSource */
 			CompleteCachedPlan(plansource,
-							   querytree_list,
+							   stmt_list,
 							   NULL,
 							   nodeTag(parsetree->stmt),
 							   plan->argtypes,
