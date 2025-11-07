@@ -66,7 +66,7 @@ test: create_misc
 test: create_operator
 test: create_procedure
 test: create_index
-# test: create_index_spgist
+test: create_index_spgist
 # test: create_view
 # test: index_including
 # test: index_including_gist
