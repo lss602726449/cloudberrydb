@@ -458,40 +458,9 @@ expand_insert_targetlist(PlannerInfo *root, List *tlist, Relation rel, Index spl
 			 * Again, code comparing the finished plan to the target relation
 			 * must account for this.
 			 */
-			Oid			atttype = att_tup->atttypid;
-			Oid			attcollation = att_tup->attcollation;
 			Node	   *new_expr;
 
-			if (!att_tup->attisdropped)
-			{
-				if (split_update_result_relation)
-				{
-					new_expr = (Node *) makeVar(split_update_result_relation,
-												attrno,
-												atttype,
-												att_tup->atttypmod,
-												attcollation,
-												0);
-				}
-				else
-				{
-				new_expr = (Node *) makeConst(atttype,
-											  -1,
-											  attcollation,
-											  att_tup->attlen,
-											  (Datum) 0,
-											  true, /* isnull */
-											  att_tup->attbyval);
-				new_expr = coerce_to_domain(new_expr,
-											InvalidOid, -1,
-											atttype,
-											COERCION_IMPLICIT,
-											COERCE_IMPLICIT_CAST,
-											-1,
-											false);
-				}
-			}
-			else if (att_tup->attgenerated)
+			if (att_tup->attisdropped)
 			{
 				/* Insert NULL for dropped column */
 				new_expr = (Node *) makeConst(INT4OID,
@@ -502,32 +471,47 @@ expand_insert_targetlist(PlannerInfo *root, List *tlist, Relation rel, Index spl
 											  true, /* isnull */
 											  true /* byval */ );
 			}
-			else if (att_tup->attgenerated)
-			{
-				/* Generated column, insert a NULL of the base type */
-				Oid			baseTypeId = att_tup->atttypid;
-				int32		baseTypeMod = att_tup->atttypmod;
-
-				baseTypeId = getBaseTypeAndTypmod(baseTypeId, &baseTypeMod);
-				new_expr = (Node *) makeConst(baseTypeId,
-											  baseTypeMod,
-											  att_tup->attcollation,
-											  att_tup->attlen,
-											  (Datum) 0,
-											  true, /* isnull */
-											  att_tup->attbyval);
-			}
 			else
 			{
-				/* Normal column, insert a NULL of the column datatype */
-				new_expr = coerce_null_to_domain(att_tup->atttypid,
-												 att_tup->atttypmod,
-												 att_tup->attcollation,
-												 att_tup->attlen,
-												 att_tup->attbyval);
-				/* Must run expression preprocessing on any non-const nodes */
-				if (!IsA(new_expr, Const))
-					new_expr = eval_const_expressions(root, new_expr);
+				if (split_update_result_relation)
+				{
+					new_expr = (Node *) makeVar(split_update_result_relation,
+												attrno,
+												att_tup->atttypid,
+												att_tup->atttypmod,
+												att_tup->attcollation,
+												0);
+				}
+				else
+				{
+					if (att_tup->attgenerated)
+					{
+						/* Generated column, insert a NULL of the base type */
+						Oid			baseTypeId = att_tup->atttypid;
+						int32		baseTypeMod = att_tup->atttypmod;
+
+						baseTypeId = getBaseTypeAndTypmod(baseTypeId, &baseTypeMod);
+						new_expr = (Node *) makeConst(baseTypeId,
+													  baseTypeMod,
+													  att_tup->attcollation,
+													  att_tup->attlen,
+													  (Datum) 0,
+													  true, /* isnull */
+													  att_tup->attbyval);
+					}
+					else
+					{
+						/* Normal column, insert a NULL of the column datatype */
+						new_expr = coerce_null_to_domain(att_tup->atttypid,
+														 att_tup->atttypmod,
+														 att_tup->attcollation,
+														 att_tup->attlen,
+														 att_tup->attbyval);
+						/* Must run expression preprocessing on any non-const nodes */
+						if (!IsA(new_expr, Const))
+							new_expr = eval_const_expressions(root, new_expr);
+					}
+				}
 			}
 
 			new_tle = makeTargetEntry((Expr *) new_expr,

@@ -386,19 +386,20 @@ RelationTruncate(Relation rel, BlockNumber nblocks)
 	 * to-be-truncated blocks might still exist on disk but have older
 	 * contents than expected, which can cause replay to fail. It's OK for the
 	 * blocks to not exist on disk at all, but not for them to have the wrong
-	 * contents.
-	 */
-	Assert(!MyProc->delayChkptEnd);
-	MyProc->delayChkptEnd = true;
-
-	/*
-	 * We WAL-log the truncation before actually truncating, which means
-	 * trouble if the truncation fails. If we then crash, the WAL replay
-	 * likely isn't going to succeed in the truncation either, and cause a
-	 * PANIC. It's tempting to put a critical section here, but that cure
-	 * would be worse than the disease. It would turn a usually harmless
-	 * failure to truncate, that might spell trouble at WAL replay, into a
-	 * certain PANIC.
+	 * contents. For this reason, we need to set DELAY_CHKPT_COMPLETE while
+	 * this code executes.
+	 *
+	 * Second, the call to smgrtruncate() below will in turn call
+	 * RegisterSyncRequest(). We need the sync request created by that call to
+	 * be processed before the checkpoint completes. CheckPointGuts() will
+	 * call ProcessSyncRequests(), but if we register our sync request after
+	 * that happens, then the WAL record for the truncation could end up
+	 * preceding the checkpoint record, while the actual sync doesn't happen
+	 * until the next checkpoint. To prevent that, we need to set
+	 * DELAY_CHKPT_START here. That way, if the XLOG_SMGR_TRUNCATE precedes
+	 * the redo pointer of a concurrent checkpoint, we're guaranteed that the
+	 * corresponding sync request will be processed before the checkpoint
+	 * completes.
 	 */
 	Assert((MyProc->delayChkptFlags & (DELAY_CHKPT_START | DELAY_CHKPT_COMPLETE)) == 0);
 	MyProc->delayChkptFlags |= DELAY_CHKPT_START | DELAY_CHKPT_COMPLETE;
@@ -416,6 +417,8 @@ RelationTruncate(Relation rel, BlockNumber nblocks)
 	 *
 	 * (See also pg_visibilitymap.c if changing this code.)
 	 */
+	START_CRIT_SECTION();
+
 	if (RelationNeedsWAL(rel))
 	{
 		/*
@@ -450,10 +453,12 @@ RelationTruncate(Relation rel, BlockNumber nblocks)
 	 * longer exist after truncation is complete, and then truncate the
 	 * corresponding files on disk.
 	 */
-	smgrtruncate(rel->rd_smgr, forks, nforks, blocks);
+	smgrtruncate2(RelationGetSmgr(rel), forks, nforks, old_blocks, blocks);
+
+	END_CRIT_SECTION();
 
 	/* We've done all the critical work, so checkpoints are OK now. */
-	MyProc->delayChkptEnd = false;
+	MyProc->delayChkptFlags &= ~(DELAY_CHKPT_START | DELAY_CHKPT_COMPLETE);
 
 	/*
 	 * Update upper-level FSM pages to account for the truncation. This is

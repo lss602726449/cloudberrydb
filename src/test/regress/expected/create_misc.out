@@ -2,54 +2,6 @@
 -- CREATE_MISC
 --
 --
-<<<<<<< HEAD
-INSERT INTO tenk2 SELECT * FROM tenk1;
-ANALYZE tenk2;
-CREATE TABLE onek2 AS SELECT * FROM onek;
-INSERT INTO fast_emp4000 SELECT * FROM slow_emp4000;
-ANALYZE fast_emp4000;
-SELECT *
-   INTO TABLE Bprime
-   FROM tenk1
-   WHERE unique2 < 1000;
-INSERT INTO hobbies_r (name, person)
-   SELECT 'posthacking', p.name
-   FROM person* p
-   WHERE p.name = 'mike' or p.name = 'jeff';
-INSERT INTO hobbies_r (name, person)
-   SELECT 'basketball', p.name
-   FROM person p
-   WHERE p.name = 'joe' or p.name = 'sally';
-INSERT INTO hobbies_r (name) VALUES ('skywalking');
-INSERT INTO equipment_r (name, hobby) VALUES ('advil', 'posthacking');
-INSERT INTO equipment_r (name, hobby) VALUES ('peet''s coffee', 'posthacking');
-INSERT INTO equipment_r (name, hobby) VALUES ('hightops', 'basketball');
-INSERT INTO equipment_r (name, hobby) VALUES ('guts', 'skywalking');
-INSERT INTO city VALUES
-('Podunk', '(1,2),(3,4)', '100,127,1000'),
-('Gotham', '(1000,34),(1100,334)', '123456,127,-1000,6789');
-TABLE city;
-  name  |       location       |        budget         
---------+----------------------+-----------------------
- Podunk | (3,4),(1,2)          | 100,127,1000,0
- Gotham | (1100,334),(1000,34) | 123456,127,-1000,6789
-(2 rows)
-
-SELECT *
-   INTO TABLE ramp
-   FROM road
-   WHERE name ~ '.*Ramp';
-INSERT INTO ihighway
-   SELECT *
-   FROM road
-   WHERE name ~ 'I- .*';
-INSERT INTO shighway
-   SELECT *
-   FROM road
-   WHERE name ~ 'State Hwy.*';
-UPDATE shighway
-   SET surface = 'asphalt';
-=======
 -- a is the type root
 -- b and c inherit from a (one-level single inheritance)
 -- d inherits from b and c (two-level multiple inheritance)
@@ -77,7 +29,6 @@ CREATE TABLE e_star (
 CREATE TABLE f_star (
 	f 			polygon
 ) INHERITS (e_star);
->>>>>>> REL_16_9
 INSERT INTO a_star (class, a) VALUES ('a', 1);
 INSERT INTO a_star (class, a) VALUES ('a', 2);
 INSERT INTO a_star (class) VALUES ('a');

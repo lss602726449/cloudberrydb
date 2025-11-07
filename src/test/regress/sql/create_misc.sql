@@ -14,27 +14,17 @@ CREATE TABLE a_star (
 	a 			int4
 );
 
-<<<<<<< HEAD
-INSERT INTO tenk2 SELECT * FROM tenk1;
-ANALYZE tenk2;
-=======
 CREATE TABLE b_star (
 	b 			text
 ) INHERITS (a_star);
->>>>>>> REL_16_9
 
 CREATE TABLE c_star (
 	c 			name
 ) INHERITS (a_star);
 
-<<<<<<< HEAD
-INSERT INTO fast_emp4000 SELECT * FROM slow_emp4000;
-ANALYZE fast_emp4000;
-=======
 CREATE TABLE d_star (
 	d 			float8
 ) INHERITS (b_star, c_star);
->>>>>>> REL_16_9
 
 CREATE TABLE e_star (
 	e 			int2
