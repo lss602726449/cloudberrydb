@@ -459,7 +459,7 @@ GenerationAlloc(MemoryContext context, Size size)
 			if (blksize < required_size)
 				blksize = pg_nextpower2_size_t(required_size);
 
-			block = (GenerationBlock *) malloc(blksize);
+			block = (GenerationBlock *) gp_malloc(blksize);
 
 			if (block == NULL)
 				return NULL;
@@ -603,7 +603,7 @@ GenerationBlockFree(GenerationContext *set, GenerationBlock *block)
 	wipe_mem(block, block->blksize);
 #endif
 
-	free(block);
+	gp_free(block);
 }
 
 /*

@@ -1184,7 +1184,7 @@ DispatchSetPGVariable(const char *name, List *args, bool is_local)
 						break;
 					case T_Float:
 						/* represented as a string, so just copy it */
-						appendStringInfoString(&buffer, strVal(&con->val));
+						appendStringInfo(&buffer, "%f", floatVal(&con->val));
 						break;
 					case T_String:
 						val = strVal(&con->val);
