@@ -4288,6 +4288,18 @@ _outRTEPermissionInfo(StringInfo str, const RTEPermissionInfo *node)
 	WRITE_BITMAPSET_FIELD(updatedCols);
 }
 
+static void
+_outGpPolicy(StringInfo str, const GpPolicy *node)
+{
+	WRITE_NODE_TYPE("GPPOLICY");
+
+	WRITE_ENUM_FIELD(ptype, GpPolicyType);
+	WRITE_INT_FIELD(numsegments);
+	WRITE_INT_FIELD(nattrs);
+	WRITE_ATTRNUMBER_ARRAY(attrs, node->nattrs);
+	WRITE_OID_ARRAY(opclasses, node->nattrs);
+}
+
 #include "outfuncs_common.c"
 #ifndef COMPILING_BINARY_FUNCS
 /*
@@ -5483,6 +5495,9 @@ outNode(StringInfo str, const void *obj)
 				break;
 			case T_RTEPermissionInfo:
 				_outRTEPermissionInfo(str, obj);
+				break;
+			case T_GpPolicy:
+				_outGpPolicy(str, obj);
 				break;
 			default:
 

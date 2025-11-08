@@ -818,18 +818,6 @@ _outAccessPriv(StringInfo str, AccessPriv *node)
 }
 
 static void
-_outGpPolicy(StringInfo str, GpPolicy *node)
-{
-	WRITE_NODE_TYPE("GPPOLICY");
-
-	WRITE_ENUM_FIELD(ptype, GpPolicyType);
-	WRITE_INT_FIELD(numsegments);
-	WRITE_INT_FIELD(nattrs);
-	WRITE_ATTRNUMBER_ARRAY(attrs, node->nattrs);
-	WRITE_OID_ARRAY(opclasses, node->nattrs);
-}
-
-static void
 _outAlterTableMoveAllStmt(StringInfo str, AlterTableMoveAllStmt *node)
 {
 	WRITE_NODE_TYPE("ALTERTABLESPACEMOVESTMT");

@@ -8166,6 +8166,7 @@ get_name_for_var_field(Var *var, int fieldno,
 						return dummy_name;
 					}
 					Assert(dpns->plan && (IsA(dpns->plan, CteScan) ||
+										  IsA(dpns->plan, ShareInputScan) ||
 										  IsA(dpns->plan, WorkTableScan)));
 
 					tle = get_tle_by_resno(dpns->inner_tlist, attnum);

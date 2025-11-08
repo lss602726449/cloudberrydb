@@ -352,20 +352,6 @@ setTargetTable(ParseState *pstate, RangeVar *relation,
 	pstate->p_target_nsitem = nsitem;
 
 	/*
-	 * Special check for DML on system relations,
-	 * allow DML when:
-	 * 	- in single user mode: initdb insert PIN entries to pg_depend,...
-	 * 	- in maintenance mode, upgrade mode or
-	 *  - allow_system_table_mods = true
-	 */
-	if (IsUnderPostmaster && !allowSystemTableMods
-		&& IsSystemRelation(pstate->p_target_relation))
-		ereport(ERROR,
-				(errcode(ERRCODE_WRONG_OBJECT_TYPE),
-				 errmsg("permission denied: \"%s\" is a system catalog",
-						 RelationGetRelationName(pstate->p_target_relation))));
-
-	/*
 	 * Override addRangeTableEntry's default ACL_SELECT permissions check, and
 	 * instead mark target table as requiring exactly the specified
 	 * permissions.

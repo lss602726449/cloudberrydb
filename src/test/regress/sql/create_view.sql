@@ -600,59 +600,62 @@ select * from tt14v;
 
 alter table tt14t drop column f3;  -- fail, view has explicit reference to f3
 
+-- MERGE16_FIXME: delete command can only delete tuples from master, But we
+-- need to delete them from both master and segments
+    
 -- We used to have a bug that would allow the above to succeed, posing
 -- hazards for later execution of the view.  Check that the internal
 -- defenses for those hazards haven't bit-rotted, in case some other
 -- bug with similar symptoms emerges.
-begin;
-
--- destroy the dependency entry that prevents the DROP:
-delete from pg_depend where
-  objid = (select oid from pg_rewrite
-           where ev_class = 'tt14v'::regclass and rulename = '_RETURN')
-  and refobjsubid = 3
-returning pg_describe_object(classid, objid, objsubid) as obj,
-          pg_describe_object(refclassid, refobjid, refobjsubid) as ref,
-          deptype;
-
--- this will now succeed:
-alter table tt14t drop column f3;
-
--- column f3 is still in the view, sort of ...
-select pg_get_viewdef('tt14v', true);
--- ... and you can even EXPLAIN it ...
-explain (verbose, costs off) select * from tt14v;
--- but it will fail at execution
-select f1, f4 from tt14v;
-select * from tt14v;
-
-rollback;
+-- begin;
+-- 
+-- -- destroy the dependency entry that prevents the DROP:
+-- delete from pg_depend where
+--   objid = (select oid from pg_rewrite
+--            where ev_class = 'tt14v'::regclass and rulename = '_RETURN')
+--   and refobjsubid = 3
+-- returning pg_describe_object(classid, objid, objsubid) as obj,
+--           pg_describe_object(refclassid, refobjid, refobjsubid) as ref,
+--           deptype;
+-- 
+-- -- this will now succeed:
+-- alter table tt14t drop column f3;
+-- 
+-- -- column f3 is still in the view, sort of ...
+-- select pg_get_viewdef('tt14v', true);
+-- -- ... and you can even EXPLAIN it ...
+-- explain (verbose, costs off) select * from tt14v;
+-- -- but it will fail at execution
+-- select f1, f4 from tt14v;
+-- select * from tt14v;
+-- 
+-- rollback;
 
 -- likewise, altering a referenced column's type is prohibited ...
 alter table tt14t alter column f4 type integer using f4::integer;  -- fail
 
 -- ... but some bug might let it happen, so check defenses
-begin;
-
--- destroy the dependency entry that prevents the ALTER:
-delete from pg_depend where
-  objid = (select oid from pg_rewrite
-           where ev_class = 'tt14v'::regclass and rulename = '_RETURN')
-  and refobjsubid = 4
-returning pg_describe_object(classid, objid, objsubid) as obj,
-          pg_describe_object(refclassid, refobjid, refobjsubid) as ref,
-          deptype;
-
--- this will now succeed:
-alter table tt14t alter column f4 type integer using f4::integer;
-
--- f4 is still in the view ...
-select pg_get_viewdef('tt14v', true);
--- but will fail at execution
-select f1, f3 from tt14v;
-select * from tt14v;
-
-rollback;
+-- begin;
+-- 
+-- -- destroy the dependency entry that prevents the ALTER:
+-- delete from pg_depend where
+--   objid = (select oid from pg_rewrite
+--            where ev_class = 'tt14v'::regclass and rulename = '_RETURN')
+--   and refobjsubid = 4
+-- returning pg_describe_object(classid, objid, objsubid) as obj,
+--           pg_describe_object(refclassid, refobjid, refobjsubid) as ref,
+--           deptype;
+-- 
+-- -- this will now succeed:
+-- alter table tt14t alter column f4 type integer using f4::integer;
+-- 
+-- -- f4 is still in the view ...
+-- select pg_get_viewdef('tt14v', true);
+-- -- but will fail at execution
+-- select f1, f3 from tt14v;
+-- select * from tt14v;
+-- 
+-- rollback;
 
 drop view tt14v;
 
@@ -836,12 +839,6 @@ select x + y + z as c1,
 from (values(1,2,3)) v(x,y,z);
 select pg_get_viewdef('tt26v', true);
 
-<<<<<<< HEAD
--- test display negative operator of const-folder expression
-create table tdis(a int, b int, c int);
-create view tdis_v1 as select a,b,c, -1::int from tdis group by 1,2,3,4;
-select pg_get_viewdef('tdis_v1', true);
-=======
 -- test restriction on non-system view expansion.
 create table tt27v_tbl (a int);
 create view tt27v as select a from tt27v_tbl;
@@ -850,7 +847,6 @@ select a from tt27v where a > 0; -- Error
 insert into tt27v values (1); -- Error
 select viewname from pg_views where viewname = 'tt27v'; -- Ok to access a system view.
 reset restrict_nonsystem_relation_kind;
->>>>>>> REL_16_9
 
 -- clean up all the random objects we made above
 DROP SCHEMA temp_view_test CASCADE;

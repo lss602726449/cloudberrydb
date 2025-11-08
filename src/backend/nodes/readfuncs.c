@@ -2917,6 +2917,25 @@ _readRTEPermissionInfo(void)
 	READ_DONE();
 }
 
+/*
+ * _readGpPolicy
+ */
+static GpPolicy *
+_readGpPolicy(void)
+{
+	READ_LOCALS(GpPolicy);
+
+	READ_ENUM_FIELD(ptype, GpPolicyType);
+
+	READ_INT_FIELD(numsegments);
+
+	READ_INT_FIELD(nattrs);
+	READ_ATTRNUMBER_ARRAY(attrs, local_node->nattrs);
+	READ_OID_ARRAY(opclasses, local_node->nattrs);
+
+	READ_DONE();
+}
+
 #include "readfuncs_common.c"
 #ifndef COMPILING_BINARY_FUNCS
 /*
@@ -3436,6 +3455,8 @@ parseNodeString(void)
 		return_value = _readDropDirectoryTableStmt();
 	else if (MATCHX("RTEPERMISSIONINFO"))
 		return_value = _readRTEPermissionInfo();
+	else if (MATCHX("GPPOLICY"))
+		return_value = _readGpPolicy();
 	else
 	{
         ereport(ERROR,

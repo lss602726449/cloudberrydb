@@ -1736,25 +1736,6 @@ _readGpDropPartitionCmd(void)
 	READ_DONE();
 }
 
-/*
- * _readGpPolicy
- */
-static GpPolicy *
-_readGpPolicy(void)
-{
-	READ_LOCALS(GpPolicy);
-
-	READ_ENUM_FIELD(ptype, GpPolicyType);
-
-	READ_INT_FIELD(numsegments);
-
-	READ_INT_FIELD(nattrs);
-	READ_ATTRNUMBER_ARRAY(attrs, local_node->nattrs);
-	READ_OID_ARRAY(opclasses, local_node->nattrs);
-
-	READ_DONE();
-}
-
 static GpSplitPartitionCmd *
 _readGpSplitPartitionCmd(void)
 {
