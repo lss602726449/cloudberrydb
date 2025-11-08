@@ -631,6 +631,7 @@ _readConstraint(void)
 	READ_NODE_FIELD(raw_expr);
 	READ_STRING_FIELD(cooked_expr);
 	READ_CHAR_FIELD(generated_when);
+	READ_BOOL_FIELD(nulls_not_distinct);
 
 	READ_NODE_FIELD(keys);
 	READ_NODE_FIELD(including);

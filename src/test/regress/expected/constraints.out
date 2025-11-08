@@ -7,15 +7,8 @@
 --  - UNIQUE clauses
 --  - EXCLUDE clauses
 --
-<<<<<<< HEAD:src/test/regress/output/constraints.source
--- start_matchsubs
--- m/DETAIL:  Failing row contains \(.*\)/
--- s/DETAIL:  Failing row contains \(.*\)/DETAIL:  Failing row contains (#####)/
--- end_matchsubs
-=======
 -- directory paths are passed to us in environment variables
 \getenv abs_srcdir PG_ABS_SRCDIR
->>>>>>> REL_16_9:src/test/regress/expected/constraints.out
 --
 -- DEFAULT syntax
 --
@@ -343,7 +336,7 @@ ERROR:  new row for relation "insert_tbl" violates check constraint "insert_tbl_
 DETAIL:  Failing row contains (4, try again, -7).
 INSERT INTO INSERT_TBL(y,z) SELECT yd, -8 FROM tmp WHERE yd = 'try again';
 ERROR:  new row for relation "insert_tbl" violates check constraint "insert_tbl_check"
-DETAIL:  Failing row contains (8, try again, -8).
+DETAIL:  Failing row contains (5, try again, -8).
 -- GPDB: Fixup
 INSERT INTO INSERT_TBL VALUES (7, 'try again', -7);
 SELECT * FROM INSERT_TBL;
@@ -680,10 +673,15 @@ DROP TABLE parted_fk_naming;
 CREATE TEMP TABLE t (a integer, b integer) PARTITION BY HASH (a, b);
 CREATE TEMP TABLE tp (a integer, b integer, PRIMARY KEY (a, b), UNIQUE (b, a));
 ALTER TABLE t ATTACH PARTITION tp FOR VALUES WITH (MODULUS 1, REMAINDER 0);
+ERROR:  distribution policy for "tp" must be the same as that for "t"
 CREATE UNIQUE INDEX t_a_idx ON t (a, b);
 CREATE UNIQUE INDEX t_b_idx ON t (b, a);
 ALTER INDEX t_a_idx ATTACH PARTITION tp_pkey;
+ERROR:  cannot attach index "tp_pkey" as a partition of index "t_a_idx"
+DETAIL:  Index "tp_pkey" is not an index on any partition of table "t".
 ALTER INDEX t_b_idx ATTACH PARTITION tp_b_a_key;
+ERROR:  cannot attach index "tp_b_a_key" as a partition of index "t_b_idx"
+DETAIL:  Index "tp_b_a_key" is not an index on any partition of table "t".
 SELECT conname, conparentid, conislocal, coninhcount
   FROM pg_constraint WHERE conname IN ('tp_pkey', 'tp_b_a_key')
   ORDER BY conname DESC;
@@ -694,6 +692,7 @@ SELECT conname, conparentid, conislocal, coninhcount
 (2 rows)
 
 ALTER TABLE t DETACH PARTITION tp;
+ERROR:  relation "tp" is not a partition of relation "t"
 DROP TABLE t, tp;
 CREATE TEMP TABLE t (a integer) PARTITION BY LIST (a);
 CREATE TEMP TABLE tp (a integer PRIMARY KEY);

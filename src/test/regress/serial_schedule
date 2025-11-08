@@ -70,10 +70,10 @@ test: create_index_spgist
 test: create_view
 test: index_including
 test: index_including_gist
-# test: create_aggregate
+test: create_aggregate
 # test: create_function_3
-# test: create_cast
-# test: constraints
+test: create_cast
+test: constraints
 # test: triggers
 # test: select
 # test: inherit

@@ -4133,6 +4133,7 @@ _outConstraint(StringInfo str, const Constraint *node)
 	WRITE_NODE_FIELD(raw_expr);
 	WRITE_STRING_FIELD(cooked_expr);
 	WRITE_CHAR_FIELD(generated_when);
+	WRITE_BOOL_FIELD(nulls_not_distinct);
 
 	WRITE_NODE_FIELD(keys);
 	WRITE_NODE_FIELD(including);
