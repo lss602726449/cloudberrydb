@@ -362,7 +362,8 @@ _copyModifyTable(const ModifyTable *from)
 	COPY_NODE_FIELD(exclRelTlist);
 	COPY_SCALAR_FIELD(splitUpdate);
 	COPY_SCALAR_FIELD(forceTupleRouting);
-
+	COPY_NODE_FIELD(mergeActionLists);
+	
 	return newnode;
 }
 
@@ -6441,6 +6442,21 @@ _copyBitmapset(const Bitmapset *from)
 	return bms_copy(from);
 }
 
+static MergeAction *
+_copyMergeAction(const MergeAction *from)
+{
+	MergeAction *newnode = makeNode(MergeAction);
+
+	COPY_SCALAR_FIELD(matched);
+	COPY_SCALAR_FIELD(commandType);
+	COPY_SCALAR_FIELD(override);
+	COPY_NODE_FIELD(qual);
+	COPY_NODE_FIELD(targetList);
+	COPY_NODE_FIELD(updateColnos);
+
+	return newnode;
+}
+
 /*
  * copyObjectImpl -- implementation of copyObject(); see nodes/nodes.h
  *
@@ -7635,6 +7651,9 @@ copyObjectImpl(const void *from)
 			break;
 		case T_Bitmapset:
 			retval = _copyBitmapset(from);
+			break;
+		case T_MergeAction:
+			retval = _copyMergeAction(from);
 			break;
 		default:
 			elog(ERROR, "unrecognized node type: %d", (int) nodeTag(from));

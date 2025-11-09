@@ -1616,18 +1616,14 @@ select * from parent; select * from child;
 (0 rows)
 
 update parent set val1 = 'b' where aid = 1; -- should fail
-<<<<<<< HEAD
-ERROR:  function cannot execute on a QE slice because it issues a non-SELECT statement
+ERROR:  function cannot execute on a QE slice because it issues a non-SELECT statement  (seg1 127.0.1.1:7003 pid=464640)
 CONTEXT:  SQL statement "delete from child where child.aid = new.aid and child.val1 = new.val1"
 PL/pgSQL function parent_upd_func() line 5 at SQL statement
-=======
-ERROR:  tuple to be updated was already modified by an operation triggered by the current command
-HINT:  Consider using an AFTER trigger instead of a BEFORE trigger to propagate changes to other rows.
 merge into parent p using (values (1)) as v(id) on p.aid = v.id
   when matched then update set val1 = 'b'; -- should fail
-ERROR:  tuple to be updated or deleted was already modified by an operation triggered by the current command
-HINT:  Consider using an AFTER trigger instead of a BEFORE trigger to propagate changes to other rows.
->>>>>>> REL_16_9
+ERROR:  function cannot execute on a QE slice because it issues a non-SELECT statement  (seg1 127.0.1.1:7003 pid=553339)
+CONTEXT:  SQL statement "delete from child where child.aid = new.aid and child.val1 = new.val1"
+PL/pgSQL function parent_upd_func() line 5 at SQL statement
 select * from parent; select * from child;
  aid | val1 | val2 | val3 | val4 | bcnt 
 -----+------+------+------+------+------
@@ -1639,18 +1635,14 @@ select * from parent; select * from child;
 (0 rows)
 
 delete from parent where aid = 1; -- should fail
-<<<<<<< HEAD
-ERROR:  function cannot execute on a QE slice because it issues a non-SELECT statement
+ERROR:  function cannot execute on a QE slice because it issues a non-SELECT statement  (seg1 127.0.1.1:7003 pid=464640)
 CONTEXT:  SQL statement "delete from child where aid = old.aid"
 PL/pgSQL function parent_del_func() line 3 at SQL statement
-=======
-ERROR:  tuple to be deleted was already modified by an operation triggered by the current command
-HINT:  Consider using an AFTER trigger instead of a BEFORE trigger to propagate changes to other rows.
 merge into parent p using (values (1)) as v(id) on p.aid = v.id
   when matched then delete; -- should fail
-ERROR:  tuple to be updated or deleted was already modified by an operation triggered by the current command
-HINT:  Consider using an AFTER trigger instead of a BEFORE trigger to propagate changes to other rows.
->>>>>>> REL_16_9
+ERROR:  function cannot execute on a QE slice because it issues a non-SELECT statement  (seg1 127.0.1.1:7003 pid=553339)
+CONTEXT:  SQL statement "delete from child where aid = old.aid"
+PL/pgSQL function parent_del_func() line 3 at SQL statement
 select * from parent; select * from child;
  aid | val1 | val2 | val3 | val4 | bcnt 
 -----+------+------+------+------+------
@@ -2046,13 +2038,9 @@ ERROR:  trigger "trg1" for relation "trigpart3" already exists
 drop table trigpart3;
 -- check display of unrelated triggers
 create trigger samename after delete on trigpart execute function trigger_nothing();
-<<<<<<< HEAD
 ERROR:  Triggers for statements are not yet supported
 create trigger samename after delete on trigpart1 execute function trigger_nothing();
 ERROR:  Triggers for statements are not yet supported
-=======
-create trigger samename after delete on trigpart1 execute function trigger_nothing();
->>>>>>> REL_16_9
 \d trigpart1
              Table "public.trigpart1"
  Column |  Type   | Collation | Nullable | Default 
@@ -2061,10 +2049,6 @@ create trigger samename after delete on trigpart1 execute function trigger_nothi
  b      | integer |           |          | 
 Partition of: trigpart FOR VALUES FROM (0) TO (1000)
 Triggers:
-<<<<<<< HEAD
-=======
-    samename AFTER DELETE ON trigpart1 FOR EACH STATEMENT EXECUTE FUNCTION trigger_nothing()
->>>>>>> REL_16_9
     trg1 AFTER INSERT ON trigpart1 FOR EACH ROW EXECUTE FUNCTION trigger_nothing(), ON TABLE trigpart
 
 drop table trigpart;
@@ -2220,30 +2204,19 @@ create or replace function trigger_notice() returns trigger as $$
   $$ language plpgsql;
 create trigger parted_trig_before_stmt before insert or update or delete on parted_trig
    for each statement execute procedure trigger_notice();
+ERROR:  Triggers for statements are not yet supported
 create trigger parted_trig_before_row before insert or update or delete on parted_trig
    for each row execute procedure trigger_notice();
 create trigger parted_trig_after_row after insert or update or delete on parted_trig
    for each row execute procedure trigger_notice();
 create trigger parted_trig_after_stmt after insert or update or delete on parted_trig
    for each statement execute procedure trigger_notice();
+ERROR:  Triggers for statements are not yet supported
 update parted_trig set a = 2 where a = 1;
-NOTICE:  trigger parted_trig_before_stmt on parted_trig BEFORE UPDATE for STATEMENT
-NOTICE:  trigger parted_trig_before_row on parted_trig1 BEFORE UPDATE for ROW
-NOTICE:  trigger parted_trig_before_row on parted_trig1 BEFORE DELETE for ROW
-NOTICE:  trigger parted_trig_before_row on parted_trig2 BEFORE INSERT for ROW
-NOTICE:  trigger parted_trig_after_row on parted_trig1 AFTER DELETE for ROW
-NOTICE:  trigger parted_trig_after_row on parted_trig2 AFTER INSERT for ROW
-NOTICE:  trigger parted_trig_after_stmt on parted_trig AFTER UPDATE for STATEMENT
+ERROR:  UPDATE on distributed key column not allowed on relation with update triggers
 -- update action in merge should behave the same
 merge into parted_trig using (select 1) as ss on true
   when matched and a = 2 then update set a = 1;
-NOTICE:  trigger parted_trig_before_stmt on parted_trig BEFORE UPDATE for STATEMENT
-NOTICE:  trigger parted_trig_before_row on parted_trig2 BEFORE UPDATE for ROW
-NOTICE:  trigger parted_trig_before_row on parted_trig2 BEFORE DELETE for ROW
-NOTICE:  trigger parted_trig_before_row on parted_trig1 BEFORE INSERT for ROW
-NOTICE:  trigger parted_trig_after_row on parted_trig2 AFTER DELETE for ROW
-NOTICE:  trigger parted_trig_after_row on parted_trig1 AFTER INSERT for ROW
-NOTICE:  trigger parted_trig_after_stmt on parted_trig AFTER UPDATE for STATEMENT
 drop table parted_trig;
 -- Verify propagation of trigger arguments to partitions
 create table parted_trig (a int) partition by list (a);
@@ -2629,27 +2602,27 @@ create trigger tg after insert on parent
   for each row execute procedure trig_nothing();
 create trigger tg_stmt after insert on parent
   for statement execute procedure trig_nothing();
+ERROR:  Triggers for statements are not yet supported
 select tgrelid::regclass, tgname, tgenabled from pg_trigger
   where tgrelid in ('parent'::regclass, 'child1'::regclass)
   order by tgrelid::regclass::text, tgname;
- tgrelid | tgname  | tgenabled 
----------+---------+-----------
- child1  | tg      | O
- parent  | tg      | O
- parent  | tg_stmt | O
-(3 rows)
+ tgrelid | tgname | tgenabled 
+---------+--------+-----------
+ child1  | tg     | O
+ parent  | tg     | O
+(2 rows)
 
 alter table only parent enable always trigger tg;	-- no recursion because ONLY
 alter table parent enable always trigger tg_stmt;	-- no recursion because statement trigger
+ERROR:  trigger "tg_stmt" for table "parent" does not exist
 select tgrelid::regclass, tgname, tgenabled from pg_trigger
   where tgrelid in ('parent'::regclass, 'child1'::regclass)
   order by tgrelid::regclass::text, tgname;
- tgrelid | tgname  | tgenabled 
----------+---------+-----------
- child1  | tg      | O
- parent  | tg      | A
- parent  | tg_stmt | A
-(3 rows)
+ tgrelid | tgname | tgenabled 
+---------+--------+-----------
+ child1  | tg     | O
+ parent  | tg     | A
+(2 rows)
 
 -- The following is a no-op for the parent trigger but not so
 -- for the child trigger, so recursion should be applied.
@@ -2657,28 +2630,24 @@ alter table parent enable always trigger tg;
 select tgrelid::regclass, tgname, tgenabled from pg_trigger
   where tgrelid in ('parent'::regclass, 'child1'::regclass)
   order by tgrelid::regclass::text, tgname;
- tgrelid | tgname  | tgenabled 
----------+---------+-----------
- child1  | tg      | A
- parent  | tg      | A
- parent  | tg_stmt | A
-(3 rows)
+ tgrelid | tgname | tgenabled 
+---------+--------+-----------
+ child1  | tg     | A
+ parent  | tg     | A
+(2 rows)
 
 -- This variant malfunctioned in some releases.
 alter table parent disable trigger user;
 select tgrelid::regclass, tgname, tgenabled from pg_trigger
   where tgrelid in ('parent'::regclass, 'child1'::regclass)
   order by tgrelid::regclass::text, tgname;
- tgrelid | tgname  | tgenabled 
----------+---------+-----------
- child1  | tg      | D
- parent  | tg      | D
- parent  | tg_stmt | D
-(3 rows)
+ tgrelid | tgname | tgenabled 
+---------+--------+-----------
+ child1  | tg     | D
+ parent  | tg     | D
+(2 rows)
 
 drop table parent, child1;
-<<<<<<< HEAD
-=======
 -- Check processing of foreign key triggers
 create table parent (a int primary key, f int references parent)
   partition by list (a);
@@ -2689,14 +2658,14 @@ select tgrelid::regclass, rtrim(tgname, '0123456789') as tgname,
   order by tgrelid::regclass::text, tgfoid;
  tgrelid |         tgname          |         tgfoid         | tgenabled 
 ---------+-------------------------+------------------------+-----------
- child1  | RI_ConstraintTrigger_c_ | "RI_FKey_check_ins"    | O
- child1  | RI_ConstraintTrigger_c_ | "RI_FKey_check_upd"    | O
- child1  | RI_ConstraintTrigger_a_ | "RI_FKey_noaction_del" | O
- child1  | RI_ConstraintTrigger_a_ | "RI_FKey_noaction_upd" | O
- parent  | RI_ConstraintTrigger_c_ | "RI_FKey_check_ins"    | O
- parent  | RI_ConstraintTrigger_c_ | "RI_FKey_check_upd"    | O
- parent  | RI_ConstraintTrigger_a_ | "RI_FKey_noaction_del" | O
- parent  | RI_ConstraintTrigger_a_ | "RI_FKey_noaction_upd" | O
+ child1  | RI_ConstraintTrigger_c_ | "RI_FKey_check_ins"    | D
+ child1  | RI_ConstraintTrigger_c_ | "RI_FKey_check_upd"    | D
+ child1  | RI_ConstraintTrigger_a_ | "RI_FKey_noaction_del" | D
+ child1  | RI_ConstraintTrigger_a_ | "RI_FKey_noaction_upd" | D
+ parent  | RI_ConstraintTrigger_c_ | "RI_FKey_check_ins"    | D
+ parent  | RI_ConstraintTrigger_c_ | "RI_FKey_check_upd"    | D
+ parent  | RI_ConstraintTrigger_a_ | "RI_FKey_noaction_del" | D
+ parent  | RI_ConstraintTrigger_a_ | "RI_FKey_noaction_upd" | D
 (8 rows)
 
 alter table parent disable trigger all;
@@ -2717,7 +2686,6 @@ select tgrelid::regclass, rtrim(tgname, '0123456789') as tgname,
 (8 rows)
 
 drop table parent, child1;
->>>>>>> REL_16_9
 -- Verify that firing state propagates correctly on creation, too
 CREATE TABLE trgfire (i int) PARTITION BY RANGE (i);
 CREATE TABLE trgfire1 PARTITION OF trgfire FOR VALUES FROM (1) TO (10);
@@ -2994,26 +2962,27 @@ create table trans_tab_child2 partition of trans_tab_parent for values in ('BBB1
 create trigger trans_tab_parent_update_trig
   after update on trans_tab_parent referencing old table as old_table
   for each statement execute procedure dump_update_old();
+ERROR:  Triggers for statements are not yet supported
 create trigger trans_tab_parent_insert_trig
   after insert on trans_tab_parent referencing new table as new_table
   for each statement execute procedure dump_insert();
+ERROR:  Triggers for statements are not yet supported
 create trigger trans_tab_parent_delete_trig
   after delete on trans_tab_parent referencing old table as old_table
   for each statement execute procedure dump_delete();
+ERROR:  Triggers for statements are not yet supported
 insert into trans_tab_parent values ('AAA1'), ('BBB1');
-NOTICE:  trigger = trans_tab_parent_insert_trig, new table = (AAA1), (BBB1)
 -- should not trigger access to new table when moving across partitions.
 update trans_tab_parent set a = 'BBB2' where a = 'AAA1';
-NOTICE:  trigger = trans_tab_parent_update_trig, old table = (AAA1)
 drop trigger trans_tab_parent_update_trig on trans_tab_parent;
+ERROR:  trigger "trans_tab_parent_update_trig" for table "trans_tab_parent" does not exist
 create trigger trans_tab_parent_update_trig
   after update on trans_tab_parent referencing new table as new_table
   for each statement execute procedure dump_update_new();
+ERROR:  Triggers for statements are not yet supported
 -- should not trigger access to old table when moving across partitions.
 update trans_tab_parent set a = 'AAA2' where a = 'BBB1';
-NOTICE:  trigger = trans_tab_parent_update_trig, new table = (AAA2)
 delete from trans_tab_parent;
-NOTICE:  trigger = trans_tab_parent_delete_trig, old table = (AAA2), (BBB2)
 -- clean up
 drop table trans_tab_parent, trans_tab_child1, trans_tab_child2;
 drop function dump_update_new, dump_update_old;
@@ -3365,12 +3334,15 @@ create table merge_target_table (a int primary key, b text);
 create trigger merge_target_table_insert_trig
   after insert on merge_target_table referencing new table as new_table
   for each statement execute procedure dump_insert();
+ERROR:  Triggers for statements are not yet supported
 create trigger merge_target_table_update_trig
   after update on merge_target_table referencing old table as old_table new table as new_table
   for each statement execute procedure dump_update();
+ERROR:  Triggers for statements are not yet supported
 create trigger merge_target_table_delete_trig
   after delete on merge_target_table referencing old table as old_table
   for each statement execute procedure dump_delete();
+ERROR:  Triggers for statements are not yet supported
 create table merge_source_table (a int, b text);
 insert into merge_source_table
   values (1, 'initial1'), (2, 'initial2'),
@@ -3380,7 +3352,6 @@ using merge_source_table s
 on t.a = s.a
 when not matched then
   insert values (a, b);
-NOTICE:  trigger = merge_target_table_insert_trig, new table = (1,initial1), (2,initial2), (3,initial3), (4,initial4)
 merge into merge_target_table t
 using merge_source_table s
 on t.a = s.a
@@ -3390,9 +3361,6 @@ when matched and s.a > 2 then
 	delete
 when not matched then
   insert values (a, b);
-NOTICE:  trigger = merge_target_table_delete_trig, old table = (3,initial3), (4,initial4)
-NOTICE:  trigger = merge_target_table_update_trig, old table = (1,initial1), (2,initial2), new table = (1,"initial1 updated by merge"), (2,"initial2 updated by merge")
-NOTICE:  trigger = merge_target_table_insert_trig, new table = <NULL>
 merge into merge_target_table t
 using merge_source_table s
 on t.a = s.a
@@ -3402,9 +3370,6 @@ when matched and s.a > 2 then
 	delete
 when not matched then
   insert values (a, b);
-NOTICE:  trigger = merge_target_table_delete_trig, old table = <NULL>
-NOTICE:  trigger = merge_target_table_update_trig, old table = (1,"initial1 updated by merge"), (2,"initial2 updated by merge"), new table = (1,"initial1 updated by merge updated again by merge"), (2,"initial2 updated by merge updated again by merge")
-NOTICE:  trigger = merge_target_table_insert_trig, new table = (3,initial3), (4,initial4)
 drop table merge_source_table, merge_target_table;
 -- cleanup
 drop function dump_insert();
@@ -3546,17 +3511,10 @@ return null;
 end; $$;
 create trigger but_trigger after update on convslot_test_child
 referencing new table as new_table
-<<<<<<< HEAD
-for each statement execute function trigger_function2();
+for each statement execute function convslot_trig2();
 ERROR:  Triggers for statements are not yet supported
 update convslot_test_parent set col1 = col1 || '1';
-create or replace function trigger_function3()
-=======
-for each statement execute function convslot_trig2();
-update convslot_test_parent set col1 = col1 || '1';
-NOTICE:  trigger = but_trigger, new table = (11,tutu), (31,tutu)
 create function convslot_trig3()
->>>>>>> REL_16_9
 returns trigger
 language plpgsql
 AS $$
@@ -3569,21 +3527,13 @@ return null;
 end; $$;
 create trigger but_trigger2 after update on convslot_test_child
 referencing old table as old_table new table as new_table
-<<<<<<< HEAD
-for each statement execute function trigger_function3();
-ERROR:  Triggers for statements are not yet supported
-=======
 for each statement execute function convslot_trig3();
->>>>>>> REL_16_9
+ERROR:  Triggers for statements are not yet supported
 update convslot_test_parent set col1 = col1 || '1';
 create trigger bdt_trigger after delete on convslot_test_child
 referencing old table as old_table
-<<<<<<< HEAD
-for each statement execute function trigger_function1();
-ERROR:  Triggers for statements are not yet supported
-=======
 for each statement execute function convslot_trig1();
->>>>>>> REL_16_9
+ERROR:  Triggers for statements are not yet supported
 delete from convslot_test_parent;
 drop table convslot_test_child, convslot_test_parent;
 drop function convslot_trig1();
@@ -3596,18 +3546,20 @@ partition by range (id);
 create table convslot_test_part (val int, id int not null);
 alter table convslot_test_parent
   attach partition convslot_test_part for values from (1) to (1000);
+ERROR:  distribution policy for "convslot_test_part" must be the same as that for "convslot_test_parent"
 create function convslot_trig4() returns trigger as
 $$begin raise exception 'BOOM!'; end$$ language plpgsql;
 create trigger convslot_test_parent_update
     after update on convslot_test_parent
     referencing old table as old_rows new table as new_rows
     for each statement execute procedure convslot_trig4();
+ERROR:  Triggers for statements are not yet supported
 insert into convslot_test_parent (id, val) values (1, 2);
+ERROR:  no partition of relation "convslot_test_parent" found for row  (seg1 127.0.1.1:7003 pid=464640)
+DETAIL:  Partition key of the failing row contains (id) = (1).
 begin;
 savepoint svp;
 update convslot_test_parent set val = 3;  -- error expected
-ERROR:  BOOM!
-CONTEXT:  PL/pgSQL function convslot_trig4() line 1 at RAISE
 rollback to savepoint svp;
 rollback;
 drop table convslot_test_parent;
@@ -3641,7 +3593,7 @@ ERROR:  syntax error at or near "only"
 LINE 1: alter trigger a on only grandparent rename to b;
                            ^
 alter trigger b on middle rename to c;	-- can't rename trigger on partition
-ERROR:  cannot rename trigger "b" on table "middle"
+ERROR:  cannot rename trigger "b" on table "middle" (trigger.c:1608)
 HINT:  Rename the trigger on the partitioned table "grandparent" instead.
 create trigger c after insert on middle
 for each row execute procedure f();
@@ -3649,8 +3601,11 @@ alter trigger b on grandparent rename to c;
 ERROR:  trigger "c" for relation "middle" already exists
 -- Rename cascading does not affect statement triggers
 create trigger p after insert on grandparent for each statement execute function f();
+ERROR:  Triggers for statements are not yet supported
 create trigger p after insert on middle for each statement execute function f();
+ERROR:  Triggers for statements are not yet supported
 alter trigger p on grandparent rename to q;
+ERROR:  trigger "p" for table "grandparent" does not exist
 select tgrelid::regclass, tgname,
 (select tgname from pg_trigger tr where tr.oid = pg_trigger.tgparentid) parent_tgname
 from pg_trigger where tgrelid in (select relid from pg_partition_tree('grandparent'))
@@ -3664,9 +3619,7 @@ order by tgname, tgrelid::regclass::text COLLATE "C";
  chi         | c      | c
  cho         | c      | c
  middle      | c      | 
- middle      | p      | 
- grandparent | q      | 
-(9 rows)
+(7 rows)
 
 drop table grandparent;
 -- Trigger renaming does not recurse on legacy inheritance

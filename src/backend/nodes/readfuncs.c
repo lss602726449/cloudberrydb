@@ -1781,6 +1781,7 @@ _readModifyTable(void)
 	READ_UINT_FIELD(exclRelRTI);
 	READ_NODE_FIELD(exclRelTlist);
 	READ_BOOL_FIELD(forceTupleRouting);
+	READ_NODE_FIELD(mergeActionLists);
 
 	READ_DONE();
 }
@@ -2936,6 +2937,21 @@ _readGpPolicy(void)
 	READ_DONE();
 }
 
+static MergeAction *
+_readMergeAction(void)
+{
+	READ_LOCALS(MergeAction);
+
+	READ_BOOL_FIELD(matched);
+	READ_ENUM_FIELD(commandType, CmdType);
+	READ_ENUM_FIELD(override, OverridingKind);
+	READ_NODE_FIELD(qual);
+	READ_NODE_FIELD(targetList);
+	READ_NODE_FIELD(updateColnos);
+
+	READ_DONE();
+}
+
 #include "readfuncs_common.c"
 #ifndef COMPILING_BINARY_FUNCS
 /*
@@ -3457,6 +3473,8 @@ parseNodeString(void)
 		return_value = _readRTEPermissionInfo();
 	else if (MATCHX("GPPOLICY"))
 		return_value = _readGpPolicy();
+	else if (MATCHX("MERGEACTION"))
+		return_value = _readMergeAction();
 	else
 	{
         ereport(ERROR,

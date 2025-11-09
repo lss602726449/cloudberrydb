@@ -53,10 +53,8 @@ test: misc_sanity
 test: comments
 test: expressions
 test: unicode
-# test: create_function_1
 test: create_type
 test: create_table
-# test: create_function_2
 test: copy
 test: copyselect
 test: copydml
@@ -71,10 +69,9 @@ test: create_view
 test: index_including
 test: index_including_gist
 test: create_aggregate
-# test: create_function_3
 test: create_cast
 test: constraints
-# test: triggers
+test: triggers
 # test: select
 # test: inherit
 # test: typed_table

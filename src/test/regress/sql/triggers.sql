@@ -1941,8 +1941,6 @@ select tgrelid::regclass, tgname, tgenabled from pg_trigger
   order by tgrelid::regclass::text, tgname;
 drop table parent, child1;
 
-<<<<<<< HEAD
-=======
 -- Check processing of foreign key triggers
 create table parent (a int primary key, f int references parent)
   partition by list (a);
@@ -1958,7 +1956,6 @@ select tgrelid::regclass, rtrim(tgname, '0123456789') as tgname,
   order by tgrelid::regclass::text, tgfoid;
 drop table parent, child1;
 
->>>>>>> REL_16_9
 -- Verify that firing state propagates correctly on creation, too
 CREATE TABLE trgfire (i int) PARTITION BY RANGE (i);
 CREATE TABLE trgfire1 PARTITION OF trgfire FOR VALUES FROM (1) TO (10);

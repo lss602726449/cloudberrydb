@@ -3660,6 +3660,19 @@ _equalBitmapset(const Bitmapset *a, const Bitmapset *b)
 	return bms_equal(a, b);
 }
 
+static bool
+_equalMergeAction(const MergeAction *a, const MergeAction *b)
+{
+	COMPARE_SCALAR_FIELD(matched);
+	COMPARE_SCALAR_FIELD(commandType);
+	COMPARE_SCALAR_FIELD(override);
+	COMPARE_NODE_FIELD(qual);
+	COMPARE_NODE_FIELD(targetList);
+	COMPARE_NODE_FIELD(updateColnos);
+
+	return true;
+}
+
 /*
  * equal
  *	  returns whether two nodes are equal
@@ -4553,6 +4566,9 @@ equal(const void *a, const void *b)
 			break;
 		case T_Bitmapset:
 			retval = _equalBitmapset(a, b);
+			break;
+		case T_MergeAction:
+			retval = _equalMergeAction(a, b);
 			break;
 
 		default:

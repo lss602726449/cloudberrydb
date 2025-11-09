@@ -2964,6 +2964,9 @@ readNodeBinary(void)
 			case T_RTEPermissionInfo:
 				return_value = _readRTEPermissionInfo();
 				break;
+			case T_MergeAction:
+				return_value = _readMergeAction();
+				break;
 			default:
 				return_value = NULL; /* keep the compiler silent */
 				elog(ERROR, "could not deserialize unrecognized node type: %d",

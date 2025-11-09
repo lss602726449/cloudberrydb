@@ -4577,7 +4577,7 @@ ExecInitModifyTable(ModifyTable *node, EState *estate, int eflags)
 	 */
 	outerPlanState(mtstate) = ExecInitNode(subplan, estate, eflags);
 
-	if (operation == CMD_UPDATE || operation == CMD_DELETE)
+	if (operation == CMD_UPDATE || operation == CMD_DELETE || operation == CMD_MERGE)
 	{
 		/* Extra GPDB junk columns */
 		mtstate->mt_segid_attno =

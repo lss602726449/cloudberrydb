@@ -564,6 +564,7 @@ _outModifyTable(StringInfo str, const ModifyTable *node)
 	WRITE_UINT_FIELD(exclRelRTI);
 	WRITE_NODE_FIELD(exclRelTlist);
 	WRITE_BOOL_FIELD(forceTupleRouting);
+	WRITE_NODE_FIELD(mergeActionLists);
 }
 
 static void
@@ -4301,6 +4302,19 @@ _outGpPolicy(StringInfo str, const GpPolicy *node)
 	WRITE_OID_ARRAY(opclasses, node->nattrs);
 }
 
+static void
+_outMergeAction(StringInfo str, const MergeAction *node)
+{
+	WRITE_NODE_TYPE("MERGEACTION");
+
+	WRITE_BOOL_FIELD(matched);
+	WRITE_ENUM_FIELD(commandType, CmdType);
+	WRITE_ENUM_FIELD(override, OverridingKind);
+	WRITE_NODE_FIELD(qual);
+	WRITE_NODE_FIELD(targetList);
+	WRITE_NODE_FIELD(updateColnos);
+}
+
 #include "outfuncs_common.c"
 #ifndef COMPILING_BINARY_FUNCS
 /*
@@ -5499,6 +5513,9 @@ outNode(StringInfo str, const void *obj)
 				break;
 			case T_GpPolicy:
 				_outGpPolicy(str, obj);
+				break;
+			case T_MergeAction:
+				_outMergeAction(str, obj);
 				break;
 			default:
 
