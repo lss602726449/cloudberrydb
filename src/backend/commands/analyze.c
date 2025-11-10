@@ -935,6 +935,7 @@ do_analyze_rel(Relation onerel, VacuumParams *params,
 				 */
 				if (onerel->rd_rel->relkind == RELKIND_RELATION && onerel->rd_rel->relispartition)
 				{
+					MemoryContext old_context;
 					Datum *hll_values;
 
 					old_context = MemoryContextSwitchTo(stats->anl_context);
