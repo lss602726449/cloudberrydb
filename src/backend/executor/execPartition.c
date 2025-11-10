@@ -193,8 +193,6 @@ static char *ExecBuildSlotPartitionKeyDescription(Relation rel,
 												  int maxfieldlen);
 static List *adjust_partition_colnos(List *colnos, ResultRelInfo *leaf_part_rri);
 static List *adjust_partition_colnos_using_map(List *colnos, AttrMap *attrMap);
-static PartitionPruneState *CreatePartitionPruneState(PlanState *planstate,
-													  PartitionPruneInfo *pruneinfo);
 static void InitPartitionPruneContext(PartitionPruneContext *context,
 									  List *pruning_steps,
 									  PartitionDesc partdesc,
@@ -1947,7 +1945,7 @@ ExecInitPartitionPruning(PlanState *planstate,
  * re-evaluate which partitions match the pruning steps provided in each
  * PartitionedRelPruneInfo.
  */
-static PartitionPruneState *
+PartitionPruneState *
 CreatePartitionPruneState(PlanState *planstate, PartitionPruneInfo *pruneinfo)
 {
 	EState	   *estate = planstate->state;

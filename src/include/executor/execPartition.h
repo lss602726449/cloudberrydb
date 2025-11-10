@@ -148,4 +148,7 @@ extern PartitionPruneState *ExecInitPartitionPruning(PlanState *planstate,
 													 PartitionPruneInfo *pruneinfo,
 													 Bitmapset **initially_valid_subplans);
 
+extern PartitionPruneState *CreatePartitionPruneState(PlanState *planstate,
+													  PartitionPruneInfo *pruneinfo);
+
 #endif							/* EXECPARTITION_H */

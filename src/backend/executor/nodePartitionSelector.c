@@ -78,7 +78,6 @@ PartitionSelectorState *
 ExecInitPartitionSelector(PartitionSelector *node, EState *estate, int eflags)
 {
 	PartitionSelectorState *psstate;
-	Bitmapset  *validsubplans;
 
 	/* check for unsupported flags */
 	Assert (!(eflags & (EXEC_FLAG_MARK | EXEC_FLAG_BACKWARD)));
@@ -103,8 +102,7 @@ ExecInitPartitionSelector(PartitionSelector *node, EState *estate, int eflags)
 
 	/* Create the working data structure for pruning. */
 	/* MERGE16_FIXME: This use of ExecInitPartitionPruning may be incorrect */
-	psstate->prune_state = ExecInitPartitionPruning(&psstate->ps, node->paramid,
-														 node->part_prune_info, &validsubplans);
+	psstate->prune_state = CreatePartitionPruneState(&psstate->ps, node->part_prune_info);
 
 	return psstate;
 }

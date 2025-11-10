@@ -72,8 +72,8 @@ test: create_aggregate
 test: create_cast
 test: constraints
 test: triggers
-# test: select
-# test: inherit
+test: select
+test: inherit
 # test: typed_table
 # test: vacuum
 # test: drop_if_exists
