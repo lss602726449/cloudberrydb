@@ -590,6 +590,7 @@ _readVar(void)
 	READ_OID_FIELD(vartype);
 	READ_INT_FIELD(vartypmod);
 	READ_OID_FIELD(varcollid);
+	READ_BITMAPSET_FIELD(varnullingrels);
 	READ_UINT_FIELD(varlevelsup);
 	READ_UINT_FIELD(varnosyn);
 	READ_INT_FIELD(varattnosyn);

@@ -74,10 +74,10 @@ test: constraints
 test: triggers
 test: select
 test: inherit
-# test: typed_table
-# test: vacuum
-# test: drop_if_exists
-# test: updatable_views
+test: typed_table
+test: vacuum
+test: drop_if_exists
+test: updatable_views
 # test: roleattributes
 # test: create_am
 # test: hash_func

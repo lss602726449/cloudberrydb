@@ -1966,6 +1966,7 @@ _copyVar(const Var *from)
 	COPY_SCALAR_FIELD(vartype);
 	COPY_SCALAR_FIELD(vartypmod);
 	COPY_SCALAR_FIELD(varcollid);
+	COPY_BITMAPSET_FIELD(varnullingrels);
 	COPY_SCALAR_FIELD(varlevelsup);
 	COPY_SCALAR_FIELD(varnosyn);
 	COPY_SCALAR_FIELD(varattnosyn);

@@ -196,6 +196,7 @@ _equalVar(const Var *a, const Var *b)
 	COMPARE_SCALAR_FIELD(vartypmod);
 	COMPARE_SCALAR_FIELD(varcollid);
 	COMPARE_SCALAR_FIELD(varlevelsup);
+	COMPARE_BITMAPSET_FIELD(varnullingrels);
 
 	/*
 	 * varnosyn/varattnosyn are intentionally ignored here, because Vars with

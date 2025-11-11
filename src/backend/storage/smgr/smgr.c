@@ -872,7 +872,7 @@ smgrtruncate2(SMgrRelation reln, ForkNumber *forknum, int nforks,
 		/* Make the cached size is invalid if we encounter an error. */
 		reln->smgr_cached_nblocks[forknum[i]] = InvalidBlockNumber;
 
-		(*reln->smgr).smgr_truncate(reln, forknum[i], *old_nblocks, nblocks[i]);
+		(*reln->smgr).smgr_truncate(reln, forknum[i], old_nblocks[i], nblocks[i]);
 
 		/*
 		 * We might as well update the local smgr_cached_nblocks values. The

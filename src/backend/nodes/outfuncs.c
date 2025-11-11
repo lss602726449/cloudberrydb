@@ -1375,6 +1375,7 @@ _outVar(StringInfo str, const Var *node)
 	WRITE_OID_FIELD(vartype);
 	WRITE_INT_FIELD(vartypmod);
 	WRITE_OID_FIELD(varcollid);
+	WRITE_BITMAPSET_FIELD(varnullingrels);
 	WRITE_UINT_FIELD(varlevelsup);
 	WRITE_UINT_FIELD(varnosyn);
 	WRITE_INT_FIELD(varattnosyn);
