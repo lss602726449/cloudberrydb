@@ -4985,7 +4985,7 @@ consider_groupingsets_paths(PlannerInfo *root,
 		path = cdb_prepare_path_for_hashed_agg(root,
 											   path,
 											   path->pathtarget,
-											   parse->groupClause,
+											   root->processed_groupClause,
 											   gd->rollups);
 
 		/*
@@ -5032,7 +5032,7 @@ consider_groupingsets_paths(PlannerInfo *root,
 		path = cdb_prepare_path_for_hashed_agg(root,
 											   path,
 											   path->pathtarget,
-											   parse->groupClause,
+											   root->processed_groupClause,
 											   srd->new_rollups);
 
 
@@ -5064,7 +5064,7 @@ consider_groupingsets_paths(PlannerInfo *root,
 										   path->pathtarget,
 										   root->group_pathkeys,
 										   -1.0,
-										   parse->groupClause,
+										   root->processed_groupClause,
 										   gd->rollups);
 
 	/*
@@ -8060,7 +8060,7 @@ add_paths_to_grouping_rel(PlannerInfo *root, RelOptInfo *input_rel,
 												   path->pathtarget,
 												   root->group_pathkeys,
 												   -1.0,
-												   parse->groupClause,
+												   root->processed_groupClause,
 												   gd ? gd->rollups : NIL);
 
 			/*
@@ -8153,7 +8153,7 @@ add_paths_to_grouping_rel(PlannerInfo *root, RelOptInfo *input_rel,
 														path->pathtarget,
 														root->group_pathkeys,
 														-1.0,
-														parse->groupClause,
+														root->processed_groupClause,
 														gd ? gd->rollups : NIL);
 
 				/*
@@ -8240,7 +8240,7 @@ add_paths_to_grouping_rel(PlannerInfo *root, RelOptInfo *input_rel,
 													   path->pathtarget,
 													   root->group_pathkeys,
 													   -1.0,
-													   parse->groupClause,
+													   root->processed_groupClause,
 													   NIL);
 
 				/*
@@ -8310,7 +8310,7 @@ add_paths_to_grouping_rel(PlannerInfo *root, RelOptInfo *input_rel,
 			path = cdb_prepare_path_for_hashed_agg(root,
 												   cheapest_path,
 												   cheapest_path->pathtarget,
-												   parse->groupClause,
+												   root->processed_groupClause,
 												   NIL);
 
 			/*
@@ -8368,7 +8368,7 @@ add_paths_to_grouping_rel(PlannerInfo *root, RelOptInfo *input_rel,
 				path = cdb_prepare_path_for_hashed_agg(root,
 														path,
 														path->pathtarget,
-														parse->groupClause,
+														root->processed_groupClause,
 														NIL);
 
 				/*
@@ -8423,7 +8423,7 @@ add_paths_to_grouping_rel(PlannerInfo *root, RelOptInfo *input_rel,
 			path = cdb_prepare_path_for_hashed_agg(root,
 												   path,
 												   path->pathtarget,
-												   parse->groupClause,
+												   root->processed_groupClause,
 												   NIL);
 
 			/*

@@ -3002,7 +3002,7 @@ create_rel_agg_info(PlannerInfo *root, RelOptInfo *rel)
 	if ((list_length(target->exprs) + list_length(grp_exprs_extra)) == 0)
 		return NULL;
 
-	group_clauses_final = root->parse->groupClause;
+	group_clauses_final = root->processed_groupClause;
 
 	/*
 	 * If the aggregation target should have extra grouping expressions (in
@@ -3017,7 +3017,7 @@ create_rel_agg_info(PlannerInfo *root, RelOptInfo *rel)
 		 * We'll have to add some clauses, but query group clause must be
 		 * preserved.
 		 */
-		group_clauses_final = list_copy(root->parse->groupClause);
+		group_clauses_final = list_copy(root->processed_groupClause);
 
 		/*
 		 * Always start at root->max_sortgroupref. The extra grouping
