@@ -445,7 +445,8 @@ ExecVacuum(ParseState *pstate, VacuumStmt *vacstmt, bool isTopLevel, bool auto_s
 							   VACOPT_VERBOSE |
 							   VACOPT_PROCESS_MAIN |
 							   VACOPT_PROCESS_TOAST |
-							   VACOPT_ONLY_DATABASE_STATS))
+							   VACOPT_ONLY_DATABASE_STATS |
+								VACOPT_UPDATE_DATFROZENXID))
 			ereport(ERROR,
 					(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
 					 errmsg("ONLY_DATABASE_STATS cannot be specified with other VACUUM options")));
@@ -3401,11 +3402,14 @@ vacuum_params_to_options_list(VacuumParams *params)
 		options = lappend(options, makeDefElem("skip_locked", (Node *) makeInteger(1), -1));
 		optmask &= ~VACOPT_SKIP_LOCKED;
 	}
-	if (optmask & VACOPT_PROCESS_MAIN)
+	if (!(optmask & VACOPT_PROCESS_MAIN))
 	{
-		options = lappend(options, makeDefElem("process_main", (Node *) makeInteger(1), -1));
+		options = lappend(options, makeDefElem("process_main", (Node *) makeInteger(0), -1));
 		optmask &= ~VACOPT_PROCESS_MAIN;
 	}
+	else
+		optmask &= ~VACOPT_PROCESS_MAIN;
+	
 	if (optmask & VACOPT_PROCESS_TOAST)
 	{
 		/* GPDB_14_MERGE_FIXME: skip_toast is replaced by process_toast, need to check */
@@ -3417,6 +3421,18 @@ vacuum_params_to_options_list(VacuumParams *params)
 		options = lappend(options, makeDefElem("disable_page_skipping", (Node *) makeInteger(1), -1));
 		optmask &= ~VACOPT_DISABLE_PAGE_SKIPPING;
 	}
+
+	if ((optmask & VACOPT_SKIP_DATABASE_STATS))
+	{
+		options = lappend(options, makeDefElem("skip_database_stats", (Node *) makeInteger(1), -1));
+		optmask &= ~VACOPT_SKIP_DATABASE_STATS;
+	}
+	if ((optmask & VACOPT_ONLY_DATABASE_STATS))
+	{
+		options = lappend(options, makeDefElem("only_database_stats", (Node *) makeInteger(1), -1));
+		optmask &= ~VACOPT_ONLY_DATABASE_STATS;
+	}
+
 
 	if (optmask & VACUUM_AO_PHASE_MASK)
 	{

@@ -748,6 +748,35 @@ do_analyze_rel(Relation onerel, VacuumParams *params,
 		}
 	}
 
+	{
+		List *tableOIDs;
+		/*
+		 * Find all members of inheritance set.  We only need AccessShareLock on
+		 * the children.
+		 */
+		tableOIDs =
+				find_all_inheritors(RelationGetRelid(onerel), AccessShareLock, NULL);
+
+		/*
+		 * Check that there's at least one descendant, else fail.  This could
+		 * happen despite analyze_rel's relhassubclass check, if table once had a
+		 * child but no longer does.  In that case, we can clear the
+		 * relhassubclass field so as not to make the same mistake again later.
+		 * (This is safe because we hold ShareUpdateExclusiveLock.)
+		 * Please refer to https://github.com/greenplum-db/gpdb/issues/14644
+		 */
+		if (list_length(tableOIDs) < 2)
+		{
+			/* CCI because we already updated the pg_class row in this command */
+			CommandCounterIncrement();
+			SetRelationHasSubclass(RelationGetRelid(onerel), false);
+			ereport(elevel,
+					(errmsg("skipping analyze of \"%s.%s\" inheritance tree --- this inheritance tree contains no child tables",
+							get_namespace_name(RelationGetNamespace(onerel)),
+							RelationGetRelationName(onerel))));
+		}
+	}
+	
 	sample_needed = needs_sample(onerel, vacattrstats, attr_cnt);
 	if (ctx || sample_needed)
 	{
@@ -1983,9 +2012,6 @@ acquire_inherited_sample_rows(Relation onerel, int elevel,
 	 */
 	if (list_length(tableOIDs) < 2)
 	{
-		/* CCI because we already updated the pg_class row in this command */
-		CommandCounterIncrement();
-		SetRelationHasSubclass(RelationGetRelid(onerel), false);
 		*totalrows = 0;
 		*totaldeadrows = 0;
 		ereport(elevel,
