@@ -467,8 +467,8 @@ _readInteger(void)
 {
 	READ_LOCALS(Integer);
 
-	memcpy(&local_node->ival, read_str_ptr, sizeof(long));
-	read_str_ptr += sizeof(long);
+	memcpy(&local_node->ival, read_str_ptr, sizeof(int));
+	read_str_ptr += sizeof(int);
 
 	READ_DONE();
 }
@@ -478,8 +478,8 @@ _readBoolean(void)
 {
 	READ_LOCALS(Boolean);
 
-	memcpy(&local_node->boolval, read_str_ptr, sizeof(long));
-	read_str_ptr += sizeof(long);
+	memcpy(&local_node->boolval, read_str_ptr, sizeof(bool));
+	read_str_ptr += sizeof(bool);
 
 	READ_DONE();
 }

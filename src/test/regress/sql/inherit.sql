@@ -705,7 +705,7 @@ insert into inhcld select x::text, x from generate_series(6,10) x;
 explain (verbose, costs off)
 update inhpar i set (f1, f2) = (select i.f1, i.f2 || '-' from int4_tbl limit 1);
 update inhpar i set (f1, f2) = (select i.f1, i.f2 || '-' from int4_tbl limit 1);
-select * from inhpar;
+select * from inhpar order by f1;
 
 drop table inhpar cascade;
 

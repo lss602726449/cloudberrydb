@@ -551,7 +551,7 @@ _outInteger(StringInfo str, const Integer *node)
 {
 	int16 vt = T_Integer;
 	appendBinaryStringInfo(str, (const char *)&vt, sizeof(int16));
-	appendBinaryStringInfo(str, (const char *)&node->ival, sizeof(long));
+	appendBinaryStringInfo(str, (const char *)&node->ival, sizeof(int));
 }
 
 
@@ -573,7 +573,7 @@ _outBoolean(StringInfo str, const Boolean *node)
 {
 	int16 vt = T_Boolean;
 	appendBinaryStringInfo(str, (const char *)&vt, sizeof(int16));
-	appendBinaryStringInfo(str, (const char *)&node->boolval, sizeof(long));
+	appendBinaryStringInfo(str, (const char *)&node->boolval, sizeof(bool));
 }
 
 
