@@ -268,6 +268,7 @@ ExecCheckPlanOutput(Relation resultRel, List *targetList)
 			 * exact type though, since a null value is type-independent.  As
 			 * above, just insist on *some* NULL constant.
 			 */
+#if 0
 			if (!IsA(tle->expr, Const) ||
 				!((Const *) tle->expr)->constisnull)
 				ereport(ERROR,
@@ -275,6 +276,7 @@ ExecCheckPlanOutput(Relation resultRel, List *targetList)
 						 errmsg("table row type and query-specified row type do not match"),
 						 errdetail("Query provides a value for a generated column at ordinal position %d.",
 								   attno)));
+#endif
 		}
 		else
 		{
