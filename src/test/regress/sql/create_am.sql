@@ -167,8 +167,6 @@ CREATE TABLE heaptable USING heap AS
   SELECT a, repeat(a::text, 100) FROM generate_series(1,9) AS a;
 SELECT amname FROM pg_class c, pg_am am
   WHERE c.relam = am.oid AND c.oid = 'heaptable'::regclass;
-<<<<<<< HEAD
-=======
 -- Switching to heap2 adds new dependency entry to the AM.
 ALTER TABLE heaptable SET ACCESS METHOD heap2;
 SELECT pg_describe_object(classid, objid, objsubid) as obj,
@@ -187,15 +185,10 @@ SELECT pg_describe_object(classid, objid, objsubid) as obj,
   WHERE classid = 'pg_class'::regclass AND
         objid = 'heaptable'::regclass
   ORDER BY 1, 2;
->>>>>>> REL_16_9
 ALTER TABLE heaptable SET ACCESS METHOD heap2;
 SELECT amname FROM pg_class c, pg_am am
   WHERE c.relam = am.oid AND c.oid = 'heaptable'::regclass;
 SELECT COUNT(a), COUNT(1) FILTER(WHERE a=1) FROM heaptable;
-<<<<<<< HEAD
--- No support for multiple subcommands
-ALTER TABLE heaptable SET ACCESS METHOD heap, SET ACCESS METHOD heap2;
-=======
 -- ALTER MATERIALIZED VIEW SET ACCESS METHOD
 CREATE MATERIALIZED VIEW heapmv USING heap AS SELECT * FROM heaptable;
 SELECT amname FROM pg_class c, pg_am am
@@ -208,7 +201,6 @@ SELECT COUNT(a), COUNT(1) FILTER(WHERE a=1) FROM heapmv;
 ALTER TABLE heaptable SET ACCESS METHOD heap, SET ACCESS METHOD heap2;
 ALTER MATERIALIZED VIEW heapmv SET ACCESS METHOD heap, SET ACCESS METHOD heap2;
 DROP MATERIALIZED VIEW heapmv;
->>>>>>> REL_16_9
 DROP TABLE heaptable;
 -- No support for partitioned tables.
 CREATE TABLE am_partitioned(x INT, y INT)

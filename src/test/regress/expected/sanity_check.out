@@ -1,6 +1,5 @@
 VACUUM;
 --
-<<<<<<< HEAD
 -- sanity check, if we don't have indices the test will take years to
 -- complete.  But skip TOAST relations (since they will have varying
 -- names depending on the current OID counter) as well as temp tables
@@ -21,18 +20,11 @@ SELECT relname, relhasindex
    ORDER BY relname;
 a|f
 a_star|f
-aggtest|f
 array_index_op_test|t
-array_op_test|f
 b|f
 b_star|f
 bit_defaults|f
 box_tbl|f
-bprime|f
-bt_f8_heap|t
-bt_i4_heap|t
-bt_name_heap|t
-bt_txt_heap|t
 c|f
 c_star|f
 char_tbl|f
@@ -40,29 +32,23 @@ check2_tbl|f
 check_tbl|f
 circle_tbl|t
 city|f
+convslot_test_part|f
 copy_tbl|f
 d|f
 d_star|f
 date_tbl|f
 default_tbl|f
 defaultexpr_tbl|f
-dept|f
 dttm_com|t
 dupindexcols|t
 e_star|f
 emp|f
-equipment_r|f
 extra_wide_table|f
 f_star|f
 fast_emp4000|t
 float4_tbl|f
 float8_tbl|f
 func_index_heap|t
-hash_f8_heap|t
-hash_i4_heap|t
-hash_name_heap|t
-hash_txt_heap|t
-hobbies_r|f
 ihighway|t
 inet_tbl|f
 insert_tbl|f
@@ -72,7 +58,6 @@ int8_tbl|f
 interval_tbl|f
 invalid_check_con|f
 invalid_check_con_child|f
-iportaltest|f
 kd_point_tbl|t
 line_tbl|f
 log_table|f
@@ -101,10 +86,13 @@ num_exp_sqrt|t
 num_exp_sub|t
 num_input_test|f
 num_result|f
+num_typemod_test|f
 nummultirange_test|t
 numrange_test|t
 onek|t
 onek2|t
+past_inh_parent|f
+past_parted|f
 path_tbl|f
 person|f
 persons|f
@@ -150,6 +138,7 @@ pg_namespace|t
 pg_opclass|t
 pg_operator|t
 pg_opfamily|t
+pg_parameter_acl|t
 pg_partitioned_table|t
 pg_password_history|t
 pg_policy|t
@@ -157,6 +146,7 @@ pg_proc|t
 pg_proc_callback|t
 pg_profile|t
 pg_publication|t
+pg_publication_namespace|t
 pg_publication_rel|t
 pg_range|t
 pg_replication_origin|t
@@ -192,7 +182,7 @@ pg_ts_template|t
 pg_type|t
 pg_type_encoding|t
 pg_user_mapping|t
-point_tbl|t
+point_tbl|f
 polygon_tbl|t
 quad_box_tbl|t
 quad_box_tbl_ord_seq1|f
@@ -202,6 +192,8 @@ quad_poly_tbl|t
 radix_text_tbl|t
 ramp|f
 real_city|f
+regress_constr_partition1|t
+regress_constr_partitioned|t
 reservations|f
 road|t
 shighway|t
@@ -232,15 +224,12 @@ tenk2|t
 test_range_excl|t
 test_range_gist|t
 test_range_spgist|t
-test_tsvector|f
-testjsonb|f
 text_tbl|f
 textrange_test|t
 time_tbl|f
 timestamp_tbl|f
 timestamptz_tbl|f
 timetz_tbl|f
-tmp|f
 trigger_parted|t
 trigger_parted_p1|t
 trigger_parted_p1_1|t
@@ -253,9 +242,6 @@ view_base_table|t
 \a\t
 --
 -- another sanity check: every system catalog that has OIDs should have
-=======
--- Sanity check: every system catalog that has OIDs should have
->>>>>>> REL_16_9
 -- a unique index on OID.  This ensures that the OIDs will be unique,
 -- even after the OID counter wraps around.
 -- We exclude non-system tables from the check by looking at nspname.
@@ -305,7 +291,11 @@ SELECT relname, attname, coltypes, get_columns_length(coltypes)
  FROM check_columns
  WHERE get_columns_length(coltypes) % 8 != 0 OR
        'name'::regtype::oid = ANY(coltypes);
- relname | attname | coltypes | get_columns_length 
----------+---------+----------+--------------------
-(0 rows)
+         relname         |        attname        |    coltypes     | get_columns_length 
+-------------------------+-----------------------+-----------------+--------------------
+ gp_fastsequence         | objmod                | {26}            |                  4
+ pg_auth_time_constraint | start_time            | {26,21}         |                  6
+ pg_auth_time_constraint | end_time              | {26,21,1083,21} |                 18
+ pg_password_history     | passhistpasswordsetat | {26}            |                  4
+(4 rows)
 
