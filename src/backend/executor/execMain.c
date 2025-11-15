@@ -1819,6 +1819,13 @@ InitPlan(QueryDesc *queryDesc, int eflags)
 	}
 
 	/*
+	 * Do permissions checks
+	 */
+	if (operation != CMD_SELECT || Gp_role != GP_ROLE_EXECUTE)
+	{
+		ExecCheckPermissions(rangeTable, plannedstmt->permInfos, true);
+	}
+	/*
 	 * initialize the node's execution state
 	 */
 	ExecInitRangeTable(estate, rangeTable, plannedstmt->permInfos);

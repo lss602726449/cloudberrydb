@@ -383,7 +383,6 @@ sanity_check_tid_array(ArrayType *ta, int *ntids)
 }
 
 /*-------------------------------------------------------------------------
-<<<<<<< HEAD
  * sanity_check_relation()
  *
  * Perform sanity checks on the given relation.
