@@ -87,6 +87,7 @@ typedef struct
 {
 	/* From the Query */
 	bool		hasAggs;
+	bool		hasDistinctOn;
 	List	   *groupClause;	/* a list of SortGroupClause's */
 	List	   *groupingSets;	/* a list of GroupingSet's if present */
 	List	   *group_tles;
@@ -312,6 +313,7 @@ cdb_create_multistage_grouping_paths(PlannerInfo *root,
 	ctx.strat = strat;
 
 	ctx.hasAggs = parse->hasAggs;
+	ctx.hasDistinctOn = parse->hasDistinctOn;
 	ctx.groupClause = root->processed_groupClause;
 	ctx.groupingSets = parse->groupingSets;
 	ctx.havingQual = havingQual;
@@ -612,6 +614,7 @@ cdb_create_twostage_distinct_paths(PlannerInfo *root,
 	 * handled in the grouping stage.
 	 */
 	ctx.hasAggs = false;
+	ctx.hasDistinctOn = true;
 	ctx.groupingSets = NIL;
 	ctx.havingQual = NULL;
 	ctx.groupClause = root->processed_distinctClause;
@@ -1040,7 +1043,7 @@ add_first_stage_group_agg_path(PlannerInfo *root,
 											  ctx->agg_partial_costs);
 		add_path(ctx->partial_rel, first_stage_agg_path, root);
 	}
-	else if (ctx->hasAggs || ctx->groupClause)
+	else if (ctx->hasAggs || ctx->groupClause || ctx->hasDistinctOn)
 	{
 		add_path(ctx->partial_rel,
 			(Path *) create_agg_path(root,

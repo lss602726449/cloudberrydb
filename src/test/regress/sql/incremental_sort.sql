@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 -- TODO: incremental sort is turned off by default, because it may have
 -- wrong result for some core case. Turn it on to run the existing tests
 -- and minimize the difference from upstream.
@@ -10,8 +9,6 @@ set enable_incremental_sort=on;
 explain (costs off)
 select * from (select * from tenk1 order by four) t order by four, ten;
 
-=======
->>>>>>> REL_16_9
 -- When there is a LIMIT clause, incremental sort is beneficial because
 -- it only has to sort some of the groups, and not the entire table.
 explain (costs off)
