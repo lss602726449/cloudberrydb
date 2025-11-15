@@ -78,7 +78,7 @@ test: typed_table
 test: vacuum
 test: drop_if_exists
 test: updatable_views
-# test: roleattributes
+test: roleattributes
 # test: create_am
 # test: hash_func
 # test: errors

@@ -440,13 +440,13 @@ CreateRole(ParseState *pstate, CreateRoleStmt *stmt)
 	if (dresgroup)
 		resgroup = strVal(linitial((List *) dresgroup->arg));
 	if (dbypassRLS)
-		bypassrls = intVal(dbypassRLS->arg) != 0;
+		bypassrls = boolVal(dbypassRLS->arg);
 	if (dprofile)
 		profilename = strVal(dprofile->arg);
 	if (daccountIsLock)
-		account_is_lock = intVal(daccountIsLock->arg) != 0;
+		account_is_lock = boolVal(daccountIsLock->arg);
 	if (denableProfile)
-		enable_profile = intVal(denableProfile->arg) != 0;
+		enable_profile = boolVal(denableProfile->arg);
 
 	/*
 	 * Only the super user has the privileges of profile.
