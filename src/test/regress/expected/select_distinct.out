@@ -140,13 +140,13 @@ SELECT count(*) FROM
                Output: PARTIAL count(*)
                ->  HashAggregate
                      Output: tenk1.two, tenk1.four, tenk1.two
-                     Group Key: tenk1.two, tenk1.four
+                     Group Key: tenk1.two, tenk1.four, tenk1.two
                      ->  Redistribute Motion 3:3  (slice2; segments: 3)
                            Output: tenk1.two, tenk1.four, tenk1.two
                            Hash Key: tenk1.two, tenk1.four, tenk1.two
                            ->  HashAggregate
                                  Output: tenk1.two, tenk1.four, tenk1.two
-                                 Group Key: tenk1.two, tenk1.four
+                                 Group Key: tenk1.two, tenk1.four, tenk1.two
                                  ->  Seq Scan on public.tenk1
                                        Output: tenk1.two, tenk1.four, tenk1.two
  Optimizer: Postgres query optimizer
@@ -188,18 +188,22 @@ SET enable_seqscan = 0;
 -- Check to see we get an incremental sort plan
 EXPLAIN (costs off)
 SELECT DISTINCT hundred, two FROM tenk1;
-                         QUERY PLAN                         
-------------------------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)
-   Merge Key: hundred, two
-   ->  Unique
-         Group Key: hundred, two
+                               QUERY PLAN                               
+------------------------------------------------------------------------
+ GroupAggregate
+   Group Key: hundred, two
+   ->  Gather Motion 3:1  (slice1; segments: 3)
+         Merge Key: hundred, two
          ->  Sort
                Sort Key: hundred, two
-               ->  Bitmap Heap Scan on tenk1
-                     ->  Bitmap Index Scan on tenk1_hundred
+               ->  GroupAggregate
+                     Group Key: hundred, two
+                     ->  Sort
+                           Sort Key: hundred, two
+                           ->  Bitmap Heap Scan on tenk1
+                                 ->  Bitmap Index Scan on tenk1_hundred
  Optimizer: Postgres query optimizer
-(9 rows)
+(13 rows)
 
 RESET enable_seqscan;
 SET enable_hashagg=TRUE;
@@ -329,14 +333,17 @@ RESET parallel_tuple_cost;
 -- Ensure we get a plan with a Limit 1
 EXPLAIN (COSTS OFF)
 SELECT DISTINCT four FROM tenk1 WHERE four = 0;
-                QUERY PLAN                
-------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)
-   ->  Limit
-         ->  Seq Scan on tenk1
-               Filter: (four = 0)
+                   QUERY PLAN                   
+------------------------------------------------
+ GroupAggregate
+   Group Key: four
+   ->  Gather Motion 3:1  (slice1; segments: 3)
+         ->  GroupAggregate
+               Group Key: four
+               ->  Seq Scan on tenk1
+                     Filter: (four = 0)
  Optimizer: Postgres query optimizer
-(5 rows)
+(8 rows)
 
 -- Ensure the above gives us the correct result
 SELECT DISTINCT four FROM tenk1 WHERE four = 0;
@@ -348,14 +355,17 @@ SELECT DISTINCT four FROM tenk1 WHERE four = 0;
 -- Ensure we get a plan with a Limit 1
 EXPLAIN (COSTS OFF)
 SELECT DISTINCT four FROM tenk1 WHERE four = 0 AND two <> 0;
-                    QUERY PLAN                     
----------------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)
-   ->  Limit
-         ->  Seq Scan on tenk1
-               Filter: ((two <> 0) AND (four = 0))
+                       QUERY PLAN                        
+---------------------------------------------------------
+ GroupAggregate
+   Group Key: four
+   ->  Gather Motion 3:1  (slice1; segments: 3)
+         ->  GroupAggregate
+               Group Key: four
+               ->  Seq Scan on tenk1
+                     Filter: ((two <> 0) AND (four = 0))
  Optimizer: Postgres query optimizer
-(5 rows)
+(8 rows)
 
 -- Ensure no rows are returned
 SELECT DISTINCT four FROM tenk1 WHERE four = 0 AND two <> 0;
@@ -366,14 +376,17 @@ SELECT DISTINCT four FROM tenk1 WHERE four = 0 AND two <> 0;
 -- Ensure we get a plan with a Limit 1 when the SELECT list contains constants
 EXPLAIN (COSTS OFF)
 SELECT DISTINCT four,1,2,3 FROM tenk1 WHERE four = 0;
-                QUERY PLAN                
-------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)
-   ->  Limit
-         ->  Seq Scan on tenk1
-               Filter: (four = 0)
+                   QUERY PLAN                   
+------------------------------------------------
+ GroupAggregate
+   Group Key: four, 1, 2, 3
+   ->  Gather Motion 3:1  (slice1; segments: 3)
+         ->  GroupAggregate
+               Group Key: four, 1, 2, 3
+               ->  Seq Scan on tenk1
+                     Filter: (four = 0)
  Optimizer: Postgres query optimizer
-(5 rows)
+(8 rows)
 
 -- Ensure we only get 1 row
 SELECT DISTINCT four,1,2,3 FROM tenk1 WHERE four = 0;

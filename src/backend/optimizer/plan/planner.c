@@ -5798,7 +5798,7 @@ create_final_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 		 * the other.)
 		 */
 		List	   *needed_pathkeys;
-		double		limittuples = root->distinct_pathkeys == NIL ? 1.0 : -1.0;
+//		double		limittuples = root->distinct_pathkeys == NIL ? 1.0 : -1.0;
 
 		if (parse->hasDistinctOn &&
 			list_length(root->distinct_pathkeys) <
@@ -5820,38 +5820,38 @@ create_final_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 
 			if (is_sorted)
 				sorted_path = input_path;
-			else
-			{
-				/*
-				 * Try at least sorting the cheapest path and also try
-				 * incrementally sorting any path which is partially sorted
-				 * already (no need to deal with paths which have presorted
-				 * keys when incremental sort is disabled unless it's the
-				 * cheapest input path).
-				 */
-				if (input_path != cheapest_input_path &&
-					(presorted_keys == 0 || !enable_incremental_sort))
-					continue;
-
-				/*
-				 * We've no need to consider both a sort and incremental sort.
-				 * We'll just do a sort if there are no presorted keys and an
-				 * incremental sort when there are presorted keys.
-				 */
-				if (presorted_keys == 0 || !enable_incremental_sort)
-					sorted_path = (Path *) create_sort_path(root,
-															distinct_rel,
-															input_path,
-															needed_pathkeys,
-															limittuples);
-				else
-					sorted_path = (Path *) create_incremental_sort_path(root,
-																		distinct_rel,
-																		input_path,
-																		needed_pathkeys,
-																		presorted_keys,
-																		limittuples);
-			}
+//			else
+//			{
+//				/*
+//				 * Try at least sorting the cheapest path and also try
+//				 * incrementally sorting any path which is partially sorted
+//				 * already (no need to deal with paths which have presorted
+//				 * keys when incremental sort is disabled unless it's the
+//				 * cheapest input path).
+//				 */
+//				if (input_path != cheapest_input_path &&
+//					(presorted_keys == 0 || !enable_incremental_sort))
+//					continue;
+//
+//				/*
+//				 * We've no need to consider both a sort and incremental sort.
+//				 * We'll just do a sort if there are no presorted keys and an
+//				 * incremental sort when there are presorted keys.
+//				 */
+//				if (presorted_keys == 0 || !enable_incremental_sort)
+//					sorted_path = (Path *) create_sort_path(root,
+//															distinct_rel,
+//															input_path,
+//															needed_pathkeys,
+//															limittuples);
+//				else
+//					sorted_path = (Path *) create_incremental_sort_path(root,
+//																		distinct_rel,
+//																		input_path,
+//																		needed_pathkeys,
+//																		presorted_keys,
+//																		limittuples);
+//			}
 
 			/*
 			 * distinct_pathkeys may have become empty if all of the pathkeys
@@ -5865,26 +5865,26 @@ create_final_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 			 * list, so we must still only do this with paths which are
 			 * correctly sorted by sort_pathkeys.
 			 */
-			if (root->distinct_pathkeys == NIL)
-			{
-				Node	   *limitCount;
-
-				limitCount = (Node *) makeConst(INT8OID, -1, InvalidOid,
-												sizeof(int64),
-												Int64GetDatum(1), false,
-												FLOAT8PASSBYVAL);
-
-				/*
-				 * If the query already has a LIMIT clause, then we could end
-				 * up with a duplicate LimitPath in the final plan. That does
-				 * not seem worth troubling over too much.
-				 */
-				add_path(distinct_rel, (Path *)
-						 create_limit_path(root, distinct_rel, sorted_path,
-										   NULL, limitCount,
-										   LIMIT_OPTION_COUNT, 0, 1), root);
-			}
-			else
+//			if (root->distinct_pathkeys == NIL)
+//			{
+//				Node	   *limitCount;
+//
+//				limitCount = (Node *) makeConst(INT8OID, -1, InvalidOid,
+//												sizeof(int64),
+//												Int64GetDatum(1), false,
+//												FLOAT8PASSBYVAL);
+//
+//				/*
+//				 * If the query already has a LIMIT clause, then we could end
+//				 * up with a duplicate LimitPath in the final plan. That does
+//				 * not seem worth troubling over too much.
+//				 */
+//				add_path(distinct_rel, (Path *)
+//						 create_limit_path(root, distinct_rel, sorted_path,
+//										   NULL, limitCount,
+//										   LIMIT_OPTION_COUNT, 0, 1), root);
+//			}
+			if (is_sorted)
 			{
 				path = cdb_prepare_path_for_sorted_agg(root,
 													   true, /* is_sorted */
@@ -5909,7 +5909,7 @@ create_final_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 
 				add_path(distinct_rel, (Path *)
 						 create_upper_unique_path(root, distinct_rel,
-												  sorted_path,
+												  path,
 												  list_length(root->distinct_pathkeys),
 												  numDistinctRows),
 						 root);

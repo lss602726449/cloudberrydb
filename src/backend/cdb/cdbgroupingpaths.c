@@ -617,7 +617,7 @@ cdb_create_twostage_distinct_paths(PlannerInfo *root,
 	ctx.hasDistinctOn = true;
 	ctx.groupingSets = NIL;
 	ctx.havingQual = NULL;
-	ctx.groupClause = root->processed_distinctClause;
+	ctx.groupClause = parse->distinctClause;
 	ctx.group_tles = get_common_group_tles(target, parse->distinctClause, NIL);
 	ctx.final_groupClause = ctx.groupClause;
 	ctx.final_group_tles = ctx.group_tles;

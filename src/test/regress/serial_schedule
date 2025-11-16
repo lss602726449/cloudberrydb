@@ -92,8 +92,8 @@ test: subselect
 test: incremental_sort
 test: union
 test: case
-# test: join
-# test: aggregates
+test: join
+test: aggregates
 # test: transactions
 # ignore: random
 # test: random

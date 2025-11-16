@@ -1314,18 +1314,19 @@ set local enable_sort = off;
 explain (costs off)
   select f1, (select distinct min(t1.f1) from int4_tbl t1 where t1.f1 = t0.f1)
   from int4_tbl t0;
-                             QUERY PLAN                              
----------------------------------------------------------------------
- Seq Scan on int4_tbl t0
-   SubPlan 2
-     ->  HashAggregate
-           Group Key: $1
-           InitPlan 1 (returns $1)
-             ->  Limit
-                   ->  Seq Scan on int4_tbl t1
-                         Filter: ((f1 IS NOT NULL) AND (f1 = t0.f1))
-           ->  Result
-(9 rows)
+                                 QUERY PLAN                                  
+-----------------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Seq Scan on int4_tbl t0
+         SubPlan 1
+           ->  Aggregate
+                 ->  Result
+                       Filter: (t1.f1 = t0.f1)
+                       ->  Materialize
+                             ->  Broadcast Motion 3:3  (slice2; segments: 3)
+                                   ->  Seq Scan on int4_tbl t1
+ Optimizer: Postgres query optimizer
+(10 rows)
 
 select f1, (select distinct min(t1.f1) from int4_tbl t1 where t1.f1 = t0.f1)
 from int4_tbl t0;
@@ -1390,12 +1391,11 @@ explain (costs off) select a,c from t1 group by a,c,d;
 explain (costs off) select *
 from t1 inner join t2 on t1.a = t2.x and t1.b = t2.y
 group by t1.a,t1.b,t1.c,t1.d,t2.x,t2.y,t2.z;
-<<<<<<< HEAD
                          QUERY PLAN                         
 ------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  HashAggregate
-         Group Key: t1.a, t1.b, t2.x, t2.y
+         Group Key: t1.a, t1.b
          ->  Hash Join
                Hash Cond: ((t2.x = t1.a) AND (t2.y = t1.b))
                ->  Seq Scan on t2
@@ -1403,29 +1403,16 @@ group by t1.a,t1.b,t1.c,t1.d,t2.x,t2.y,t2.z;
                      ->  Seq Scan on t1
  Optimizer: Postgres query optimizer
 (9 rows)
-=======
-                      QUERY PLAN                      
-------------------------------------------------------
- HashAggregate
-   Group Key: t1.a, t1.b
-   ->  Hash Join
-         Hash Cond: ((t2.x = t1.a) AND (t2.y = t1.b))
-         ->  Seq Scan on t2
-         ->  Hash
-               ->  Seq Scan on t1
-(7 rows)
->>>>>>> REL_16_9
 
 -- Test case where t1 can be optimized but not t2
 explain (costs off) select t1.*,t2.x,t2.z
 from t1 inner join t2 on t1.a = t2.x and t1.b = t2.y
 group by t1.a,t1.b,t1.c,t1.d,t2.x,t2.z;
-<<<<<<< HEAD
                          QUERY PLAN                         
 ------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  HashAggregate
-         Group Key: t1.a, t1.b, t2.x, t2.z
+         Group Key: t1.a, t1.b, t2.z
          ->  Hash Join
                Hash Cond: ((t2.x = t1.a) AND (t2.y = t1.b))
                ->  Seq Scan on t2
@@ -1433,18 +1420,6 @@ group by t1.a,t1.b,t1.c,t1.d,t2.x,t2.z;
                      ->  Seq Scan on t1
  Optimizer: Postgres query optimizer
 (9 rows)
-=======
-                      QUERY PLAN                      
-------------------------------------------------------
- HashAggregate
-   Group Key: t1.a, t1.b, t2.z
-   ->  Hash Join
-         Hash Cond: ((t2.x = t1.a) AND (t2.y = t1.b))
-         ->  Seq Scan on t2
-         ->  Hash
-               ->  Seq Scan on t1
-(7 rows)
->>>>>>> REL_16_9
 
 -- Cannot optimize when PK is deferrable
 explain (costs off) select * from t3 group by a,b,c;
@@ -1558,11 +1533,10 @@ drop table t1, t2;
 explain (costs off)
 select sum(two order by two),max(four order by four), min(four order by four)
 from tenk1;
-          QUERY PLAN           
--------------------------------
+                   QUERY PLAN                   
+------------------------------------------------
  Aggregate
-   ->  Sort
-         Sort Key: four
+   ->  Gather Motion 3:1  (slice1; segments: 3)
          ->  Seq Scan on tenk1
 (4 rows)
 
@@ -1573,11 +1547,10 @@ select
   sum(two order by two), max(four order by four),
   min(four order by four), max(two order by two)
 from tenk1;
-          QUERY PLAN           
--------------------------------
+                   QUERY PLAN                   
+------------------------------------------------
  Aggregate
-   ->  Sort
-         Sort Key: two
+   ->  Gather Motion 3:1  (slice1; segments: 3)
          ->  Seq Scan on tenk1
 (4 rows)
 
@@ -1587,11 +1560,10 @@ select
   max(four order by four), sum(two order by two),
   min(four order by four), max(two order by two)
 from tenk1;
-          QUERY PLAN           
--------------------------------
+                   QUERY PLAN                   
+------------------------------------------------
  Aggregate
-   ->  Sort
-         Sort Key: four
+   ->  Gather Motion 3:1  (slice1; segments: 3)
          ->  Seq Scan on tenk1
 (4 rows)
 
@@ -1603,11 +1575,10 @@ select
   min(four order by four), max(two order by two),
   sum(ten order by ten), min(ten order by ten), max(ten order by ten)
 from tenk1;
-          QUERY PLAN           
--------------------------------
+                   QUERY PLAN                   
+------------------------------------------------
  Aggregate
-   ->  Sort
-         Sort Key: ten
+   ->  Gather Motion 3:1  (slice1; segments: 3)
          ->  Seq Scan on tenk1
 (4 rows)
 
@@ -1620,14 +1591,18 @@ select
   sum(unique1 order by two, four)
 from tenk1
 group by ten;
-            QUERY PLAN            
-----------------------------------
- GroupAggregate
-   Group Key: ten
-   ->  Sort
-         Sort Key: ten, two, four
-         ->  Seq Scan on tenk1
-(5 rows)
+                            QUERY PLAN                            
+------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  GroupAggregate
+         Group Key: ten
+         ->  Sort
+               Sort Key: ten, two, four
+               ->  Redistribute Motion 3:3  (slice2; segments: 3)
+                     Hash Key: ten
+                     ->  Seq Scan on tenk1
+ Optimizer: Postgres query optimizer
+(9 rows)
 
 -- Ensure that we never choose to provide presorted input to an Aggref with
 -- a volatile function in the ORDER BY / DISTINCT clause.  We want to ensure
@@ -1639,14 +1614,18 @@ select
   sum(unique1 order by two, random(), random() + 1)
 from tenk1
 group by ten;
-            QUERY PLAN            
-----------------------------------
- GroupAggregate
-   Group Key: ten
-   ->  Sort
-         Sort Key: ten, four, two
-         ->  Seq Scan on tenk1
-(5 rows)
+                            QUERY PLAN                            
+------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  GroupAggregate
+         Group Key: ten
+         ->  Sort
+               Sort Key: ten, four, two
+               ->  Redistribute Motion 3:3  (slice2; segments: 3)
+                     Hash Key: ten
+                     ->  Seq Scan on tenk1
+ Optimizer: Postgres query optimizer
+(9 rows)
 
 -- Ensure consecutive NULLs are properly treated as distinct from each other
 select array_agg(distinct val)
@@ -1660,11 +1639,13 @@ from (select null as val from generate_series(1, 2));
 set enable_presorted_aggregate to off;
 explain (costs off)
 select sum(two order by two) from tenk1;
-       QUERY PLAN        
--------------------------
+                   QUERY PLAN                   
+------------------------------------------------
  Aggregate
-   ->  Seq Scan on tenk1
-(2 rows)
+   ->  Gather Motion 3:1  (slice1; segments: 3)
+         ->  Seq Scan on tenk1
+ Optimizer: Postgres query optimizer
+(4 rows)
 
 reset enable_presorted_aggregate;
 --
@@ -1673,11 +1654,10 @@ reset enable_presorted_aggregate;
 -- Ensure we presort when the aggregate contains plain Vars
 explain (costs off)
 select sum(two order by two) filter (where two > 1) from tenk1;
-          QUERY PLAN           
--------------------------------
+                   QUERY PLAN                   
+------------------------------------------------
  Aggregate
-   ->  Sort
-         Sort Key: two
+   ->  Gather Motion 3:1  (slice1; segments: 3)
          ->  Seq Scan on tenk1
 (4 rows)
 
@@ -1685,24 +1665,27 @@ select sum(two order by two) filter (where two > 1) from tenk1;
 explain (costs off)
 select string_agg(distinct f1, ',') filter (where length(f1) > 1)
 from varchar_tbl;
-             QUERY PLAN              
--------------------------------------
- Aggregate
-   ->  Sort
-         Sort Key: f1
-         ->  Seq Scan on varchar_tbl
-(4 rows)
+                   QUERY PLAN                   
+------------------------------------------------
+ Finalize Aggregate
+   ->  Gather Motion 3:1  (slice1; segments: 3)
+         ->  Partial Aggregate
+               ->  Seq Scan on varchar_tbl
+ Optimizer: Postgres query optimizer
+(5 rows)
 
 -- Ensure we don't presort when the aggregate's argument contains an
 -- explicit cast.
 explain (costs off)
 select string_agg(distinct f1::varchar(2), ',') filter (where length(f1) > 1)
 from varchar_tbl;
-          QUERY PLAN           
--------------------------------
+                   QUERY PLAN                   
+------------------------------------------------
  Aggregate
-   ->  Seq Scan on varchar_tbl
-(2 rows)
+   ->  Gather Motion 3:1  (slice1; segments: 3)
+         ->  Seq Scan on varchar_tbl
+ Optimizer: Postgres query optimizer
+(4 rows)
 
 --
 -- Test combinations of DISTINCT and/or ORDER BY
@@ -2168,14 +2151,14 @@ from generate_series(1,5) x,
      (values (0::float8),(0.1),(0.25),(0.4),(0.5),(0.6),(0.75),(0.9),(1)) v(p)
 group by p order by p;
 ERROR:  sum is not an ordered-set aggregate, so it cannot have WITHIN GROUP
-LINE 1: select p, sum() within group (order by x::float8)  
+LINE 1: select p, sum() within group (order by x::float8)  -- error
                   ^
 select p, percentile_cont(p,p)  -- error
 from generate_series(1,5) x,
      (values (0::float8),(0.1),(0.25),(0.4),(0.5),(0.6),(0.75),(0.9),(1)) v(p)
 group by p order by p;
 ERROR:  WITHIN GROUP is required for ordered-set aggregate percentile_cont
-LINE 1: select p, percentile_cont(p,p)  
+LINE 1: select p, percentile_cont(p,p)  -- error
                   ^
 select percentile_cont(0.5) within group (order by b) from aggtest;
  percentile_cont  
@@ -2367,15 +2350,15 @@ select ten,
   from tenk1
  group by ten order by ten;
 select pg_get_viewdef('aggordview1');
-                                                        pg_get_viewdef                                                         
--------------------------------------------------------------------------------------------------------------------------------
-  SELECT tenk1.ten,                                                                                                           +
-     percentile_disc((0.5)::double precision) WITHIN GROUP (ORDER BY tenk1.thousand) AS p50,                                  +
-     percentile_disc((0.5)::double precision) WITHIN GROUP (ORDER BY tenk1.thousand) FILTER (WHERE (tenk1.hundred = 1)) AS px,+
-     rank(5, 'AZZZZ'::name, 50) WITHIN GROUP (ORDER BY tenk1.hundred, tenk1.string4 DESC, tenk1.hundred) AS rank              +
-    FROM tenk1                                                                                                                +
-   GROUP BY tenk1.ten                                                                                                         +
-   ORDER BY tenk1.ten;
+                                                  pg_get_viewdef                                                   
+-------------------------------------------------------------------------------------------------------------------
+  SELECT ten,                                                                                                     +
+     percentile_disc((0.5)::double precision) WITHIN GROUP (ORDER BY thousand) AS p50,                            +
+     percentile_disc((0.5)::double precision) WITHIN GROUP (ORDER BY thousand) FILTER (WHERE (hundred = 1)) AS px,+
+     rank(5, 'AZZZZ'::name, 50) WITHIN GROUP (ORDER BY hundred, string4 DESC, hundred) AS rank                    +
+    FROM tenk1                                                                                                    +
+   GROUP BY ten                                                                                                   +
+   ORDER BY ten;
 (1 row)
 
 select * from aggordview1 order by ten;
@@ -2500,22 +2483,25 @@ select * from v_pagg_test order by y;
 
 -- Ensure parallel aggregation is actually being used.
 explain (costs off) select * from v_pagg_test order by y;
-                                                              QUERY PLAN                                                              
---------------------------------------------------------------------------------------------------------------------------------------
- GroupAggregate
-   Group Key: pagg_test.y
-   ->  Sort
-         Sort Key: pagg_test.y, (((unnest(regexp_split_to_array((string_agg((pagg_test.x)::text, ','::text)), ','::text))))::integer)
-         ->  Result
-               ->  ProjectSet
-                     ->  Finalize HashAggregate
-                           Group Key: pagg_test.y
-                           ->  Gather
-                                 Workers Planned: 2
-                                 ->  Partial HashAggregate
-                                       Group Key: pagg_test.y
-                                       ->  Parallel Seq Scan on pagg_test
-(13 rows)
+                                                                 QUERY PLAN                                                                 
+--------------------------------------------------------------------------------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   Merge Key: pagg_test.y
+   ->  GroupAggregate
+         Group Key: pagg_test.y
+         ->  Sort
+               Sort Key: pagg_test.y, (((unnest(regexp_split_to_array((string_agg((pagg_test.x)::text, ','::text)), ','::text))))::integer)
+               ->  Result
+                     ->  ProjectSet
+                           ->  Finalize HashAggregate
+                                 Group Key: pagg_test.y
+                                 ->  Redistribute Motion 3:3  (slice2; segments: 3)
+                                       Hash Key: pagg_test.y
+                                       ->  Partial HashAggregate
+                                             Group Key: pagg_test.y
+                                             ->  Seq Scan on pagg_test
+ Optimizer: Postgres query optimizer
+(16 rows)
 
 -- Ensure results are the same without parallel aggregation.
 set max_parallel_workers_per_gather = 0;
@@ -2538,12 +2524,12 @@ select * from v_pagg_test order by y;
 set max_parallel_workers_per_gather = 2;
 explain (costs off)
 select array_dims(array_agg(s)) from (select * from pagg_test) s;
-                 QUERY PLAN                 
---------------------------------------------
+                   QUERY PLAN                   
+------------------------------------------------
  Aggregate
-   ->  Gather
-         Workers Planned: 2
-         ->  Parallel Seq Scan on pagg_test
+   ->  Gather Motion 3:1  (slice1; segments: 3)
+         ->  Seq Scan on pagg_test
+ Optimizer: Postgres query optimizer
 (4 rows)
 
 select array_dims(array_agg(s)) from (select * from pagg_test) s;

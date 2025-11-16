@@ -2,14 +2,12 @@
 -- AGGREGATES
 --
 
-<<<<<<< HEAD
 -- start_ignore
 SET optimizer_trace_fallback to on;
 -- end_ignore
-=======
+
 -- directory paths are passed to us in environment variables
 \getenv abs_srcdir PG_ABS_SRCDIR
->>>>>>> REL_16_9
 
 -- avoid bit-exact output here because operations may not be bit-exact.
 SET extra_float_digits = 0;
