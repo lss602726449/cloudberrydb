@@ -632,21 +632,13 @@ fetch from foo;
 ERROR:  cursor "foo" does not exist
 commit;
 begin;
-<<<<<<< HEAD
-create table abc (a int);
-insert into abc values (5);
-insert into abc values (10);
-insert into abc values (15);
-declare foo cursor for select * from abc;
--- CBDB: the order of value is not guaranteed
--- start_ignore
-=======
 create table trans_abc (a int);
 insert into trans_abc values (5);
 insert into trans_abc values (10);
 insert into trans_abc values (15);
 declare foo cursor for select * from trans_abc;
->>>>>>> REL_16_9
+-- CBDB: the order of value is not guaranteed
+-- start_ignore
 fetch from foo;
  a 
 ---

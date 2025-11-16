@@ -11,10 +11,7 @@ CREATE TABLE arrtest (
 	e 			float8[],
 	f			char(5)[],
 	g			varchar(5)[]
-<<<<<<< HEAD
 ) DISTRIBUTED RANDOMLY;
-=======
-);
 CREATE TABLE array_op_test (
 	seqno		int4,
 	i			int4[],
@@ -23,7 +20,6 @@ CREATE TABLE array_op_test (
 \set filename :abs_srcdir '/data/array.data'
 COPY array_op_test FROM :'filename';
 ANALYZE array_op_test;
->>>>>>> REL_16_9
 --
 -- only the 'e' array is 0-based, the others are 1-based.
 --
@@ -1451,13 +1447,10 @@ update arr_pk_tbl set f1[2147483647] = 42 where pk = 10;
 ERROR:  54000
 update arr_pk_tbl set f1[2147483646:2147483647] = array[4,2] where pk = 10;
 ERROR:  54000
-<<<<<<< HEAD
-=======
 insert into arr_pk_tbl(pk, f1[0:2147483647]) values (2, '{}');
 ERROR:  54000
 insert into arr_pk_tbl(pk, f1[-2147483648:2147483647]) values (2, '{}');
 ERROR:  54000
->>>>>>> REL_16_9
 -- also exercise the expanded-array case
 do $$ declare a int[];
 begin

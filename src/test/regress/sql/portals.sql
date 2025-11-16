@@ -187,11 +187,7 @@ CLOSE foo25;
 
 BEGIN;
 
-<<<<<<< HEAD
 DECLARE foo25ns NO SCROLL CURSOR WITH HOLD FOR SELECT * FROM tenk2 ORDER BY 1,2,3,4;
-=======
-DECLARE foo25ns NO SCROLL CURSOR WITH HOLD FOR SELECT * FROM tenk2;
->>>>>>> REL_16_9
 
 FETCH FROM foo25ns;
 
@@ -579,7 +575,6 @@ fetch all in c2;
 fetch backward all in c2;
 rollback;
 
-<<<<<<< HEAD
 -- gpdb: Test executor should return NULL directly during commit for holdable
 -- cursor if previously executor has emitted all tuples. We've seen two issues
 -- below.
@@ -603,7 +598,7 @@ FETCH ALL FROM foo2;
 COMMIT;
 FETCH ALL FROM foo2;
 CLOSE foo2;
-=======
+
 -- Check fetching of toasted datums via cursors.
 begin;
 
@@ -627,4 +622,3 @@ drop table toasted_data;
 fetch all in held_portal;
 
 reset default_toast_compression;
->>>>>>> REL_16_9

@@ -400,7 +400,6 @@ VACUUM delete_test_table;
 -- The vacuum above should've turned the leaf page into a fast root. We just
 -- need to insert some rows to cause the fast root page to split.
 INSERT INTO delete_test_table SELECT i, 1, 2, 3 FROM generate_series(1,1000) i;
-<<<<<<< HEAD
 --
 -- GPDB: Test correctness of B-tree stats in consecutively VACUUM.
 --
@@ -510,7 +509,6 @@ SELECT reltuples FROM pg_class WHERE relname='btree_stats_idx';
          2
 (1 row)
 
-=======
 -- Test unsupported btree opclass parameters
 create index on btree_tall_tbl (id int4_ops(foo=1));
 ERROR:  operator class int4_ops has no options
@@ -528,4 +526,3 @@ ALTER INDEX btree_part_idx ALTER COLUMN id SET (n_distinct=100);
 ERROR:  ALTER action ALTER COLUMN ... SET cannot be performed on relation "btree_part_idx"
 DETAIL:  This operation is not supported for partitioned indexes.
 DROP TABLE btree_part;
->>>>>>> REL_16_9

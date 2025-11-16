@@ -94,14 +94,13 @@ test: union
 test: case
 test: join
 test: aggregates
-# test: transactions
-# ignore: random
-# test: random
-# test: portals
-# test: arrays
-# test: btree_index
-# test: hash_index
-# test: update
+test: transactions
+test: random
+test: portals
+test: arrays
+test: btree_index
+test: hash_index
+test: update
 # test: delete
 # test: namespace
 # ignore: prepared_xacts
