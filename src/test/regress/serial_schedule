@@ -101,19 +101,19 @@ test: arrays
 test: btree_index
 test: hash_index
 test: update
-# test: delete
-# test: namespace
+test: delete
+test: namespace
 # ignore: prepared_xacts
-# test: brin
-# test: gin
-# test: gist
-# test: spgist
-# test: privileges
-# test: init_privs
-# test: security_label
-# test: collate
-# test: matview
-# test: lock
+test: brin
+test: gin
+test: gist
+test: spgist
+test: privileges
+test: init_privs
+test: security_label
+test: collate
+test: matview
+test: lock
 # test: replica_identity
 # test: rowsecurity
 # test: object_address

@@ -174,18 +174,13 @@ select count(*) from gist_tbl;
 
 -- This case isn't supported, but it should at least EXPLAIN correctly.
 explain (verbose, costs off)
-<<<<<<< HEAD
 select p from gist_tbl order by circle(p,1) <-> point(0,0), p <-> point(0,0) limit 15;
 select p from gist_tbl order by circle(p,1) <-> point(0,0), p <-> point(0,0) limit 15;
-=======
-select p from gist_tbl order by circle(p,1) <-> point(0,0) limit 1;
-select p from gist_tbl order by circle(p,1) <-> point(0,0) limit 1;
 
 -- Force an index build using buffering.
 create index gist_tbl_box_index_forcing_buffering on gist_tbl using gist (p)
   with (buffering=on, fillfactor=50);
 
->>>>>>> REL_16_9
 -- Clean up
 reset enable_seqscan;
 reset enable_bitmapscan;

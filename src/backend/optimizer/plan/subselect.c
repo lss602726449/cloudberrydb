@@ -2766,7 +2766,8 @@ finalize_plan(PlannerInfo *root, Plan *plan,
 			}
 
 			upperset = bms_difference(extset, parentset);
-			while ((paramid = bms_next_member(upperset, -1)) >= 0)
+			paramid = -1;
+			while ((paramid = bms_next_member(upperset, paramid)) >= 0)
 				initsubplan->extParam = lappend_int(initsubplan->extParam, paramid);
 		}
 	}

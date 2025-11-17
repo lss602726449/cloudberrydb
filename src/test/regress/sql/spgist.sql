@@ -81,8 +81,6 @@ insert into spgist_domain_tbl values('fee'), ('fi'), ('fo'), ('fum');
 explain (costs off)
 select * from spgist_domain_tbl where f1 = 'fo';
 select * from spgist_domain_tbl where f1 = 'fo';
-<<<<<<< HEAD
-=======
 
 -- test an unlogged table, mostly to get coverage of spgistbuildempty
 create unlogged table spgist_unlogged_tbl(id serial, b box);
@@ -92,4 +90,3 @@ select box(point(i,j))
   from generate_series(1,100,5) i,
        generate_series(1,10,5) j;
 -- leave this table around, to help in testing dump/restore
->>>>>>> REL_16_9

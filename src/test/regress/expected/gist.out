@@ -364,7 +364,6 @@ create index gist_tbl_multi_index on gist_tbl using gist (circle(p,1), p);
 explain (verbose, costs off)
 select circle(p,1) from gist_tbl
 where p <@ box(point(5, 5), point(5.3, 5.3));
-<<<<<<< HEAD
                                         QUERY PLAN                                        
 ------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -375,14 +374,6 @@ where p <@ box(point(5, 5), point(5.3, 5.3));
  Settings: enable_bitmapscan = 'off', enable_indexonlyscan = 'on', enable_seqscan = 'off'
  Optimizer: Postgres query optimizer
 (7 rows)
-=======
-                          QUERY PLAN                           
----------------------------------------------------------------
- Index Only Scan using gist_tbl_multi_index on public.gist_tbl
-   Output: circle(p, '1'::double precision)
-   Index Cond: (gist_tbl.p <@ '(5.3,5.3),(5,5)'::box)
-(3 rows)
->>>>>>> REL_16_9
 
 select circle(p,1) from gist_tbl
 where p <@ box(point(5, 5), point(5.3, 5.3));
@@ -401,7 +392,6 @@ where p <@ box(point(5, 5), point(5.3, 5.3));
 -- are done correctly.
 explain (verbose, costs off)
 select p from gist_tbl where circle(p,1) @> circle(point(0,0),0.95);
-<<<<<<< HEAD
                                          QUERY PLAN                                          
 ---------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -412,14 +402,6 @@ select p from gist_tbl where circle(p,1) @> circle(point(0,0),0.95);
  Settings: enable_bitmapscan = 'off', enable_indexonlyscan = 'on', enable_seqscan = 'off'
  Optimizer: Postgres query optimizer
 (7 rows)
-=======
-                                      QUERY PLAN                                       
----------------------------------------------------------------------------------------
- Index Only Scan using gist_tbl_multi_index on public.gist_tbl
-   Output: p
-   Index Cond: ((circle(gist_tbl.p, '1'::double precision)) @> '<(0,0),0.95>'::circle)
-(3 rows)
->>>>>>> REL_16_9
 
 select p from gist_tbl where circle(p,1) @> circle(point(0,0),0.95);
    p   
@@ -430,7 +412,6 @@ select p from gist_tbl where circle(p,1) @> circle(point(0,0),0.95);
 -- Also check that use_physical_tlist doesn't trigger in such cases.
 explain (verbose, costs off)
 select count(*) from gist_tbl;
-<<<<<<< HEAD
                                         QUERY PLAN                                        
 ------------------------------------------------------------------------------------------
  Finalize Aggregate
@@ -443,14 +424,6 @@ select count(*) from gist_tbl;
  Settings: enable_bitmapscan = 'off', enable_indexonlyscan = 'on', enable_seqscan = 'off'
  Optimizer: Postgres query optimizer
 (9 rows)
-=======
-                             QUERY PLAN                              
----------------------------------------------------------------------
- Aggregate
-   Output: count(*)
-   ->  Index Only Scan using gist_tbl_multi_index on public.gist_tbl
-(3 rows)
->>>>>>> REL_16_9
 
 select count(*) from gist_tbl;
  count 
@@ -460,7 +433,6 @@ select count(*) from gist_tbl;
 
 -- This case isn't supported, but it should at least EXPLAIN correctly.
 explain (verbose, costs off)
-<<<<<<< HEAD
 select p from gist_tbl order by circle(p,1) <-> point(0,0), p <-> point(0,0) limit 15;
                                                               QUERY PLAN
 --------------------------------------------------------------------------------------------------------------------------------------
@@ -479,24 +451,10 @@ select p from gist_tbl order by circle(p,1) <-> point(0,0), p <-> point(0,0) lim
 (12 rows)
 
 select p from gist_tbl order by circle(p,1) <-> point(0,0), p <-> point(0,0) limit 15;
-ERROR:  lossy distance functions are not supported in index-only scans  (seg0 slice1 172.17.0.2:7002 pid=85777)
-=======
-select p from gist_tbl order by circle(p,1) <-> point(0,0) limit 1;
-                                     QUERY PLAN                                     
-------------------------------------------------------------------------------------
- Limit
-   Output: p, ((circle(p, '1'::double precision) <-> '(0,0)'::point))
-   ->  Index Only Scan using gist_tbl_multi_index on public.gist_tbl
-         Output: p, (circle(p, '1'::double precision) <-> '(0,0)'::point)
-         Order By: ((circle(gist_tbl.p, '1'::double precision)) <-> '(0,0)'::point)
-(5 rows)
-
-select p from gist_tbl order by circle(p,1) <-> point(0,0) limit 1;
-ERROR:  lossy distance functions are not supported in index-only scans
+ERROR:  lossy distance functions are not supported in index-only scans  (seg0 slice1 127.0.1.1:7002 pid=1227707)
 -- Force an index build using buffering.
 create index gist_tbl_box_index_forcing_buffering on gist_tbl using gist (p)
   with (buffering=on, fillfactor=50);
->>>>>>> REL_16_9
 -- Clean up
 reset enable_seqscan;
 reset enable_bitmapscan;

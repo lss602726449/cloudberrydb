@@ -87,6 +87,7 @@
 #include "catalog/pg_amproc.h"
 #include "catalog/pg_attrdef.h"
 #include "catalog/pg_authid.h"
+#include "catalog/pg_auth_members.h"
 #include "catalog/pg_cast.h"
 #include "catalog/pg_collation.h"
 #include "catalog/pg_constraint.h"
@@ -568,6 +569,22 @@ GetNewOidForAuthId(Relation relation, Oid indexId, AttrNumber oidcolumn,
 	Assert(RelationGetRelid(relation) == AuthIdRelationId);
 	Assert(indexId == AuthIdOidIndexId);
 	Assert(oidcolumn == Anum_pg_authid_oid);
+
+	memset(&key, 0, sizeof(OidAssignment));
+	key.type = T_OidAssignment;
+	key.objname = rolname;
+	return GetNewOrPreassignedOid(relation, indexId, oidcolumn, &key);
+}
+
+Oid
+GetNewOidForAuthMem(Relation relation, Oid indexId, AttrNumber oidcolumn,
+				   char *rolname)
+{
+	OidAssignment key;
+
+	Assert(RelationGetRelid(relation) == AuthMemRelationId);
+	Assert(indexId == AuthMemOidIndexId);
+	Assert(oidcolumn == Anum_pg_auth_members_oid);
 
 	memset(&key, 0, sizeof(OidAssignment));
 	key.type = T_OidAssignment;

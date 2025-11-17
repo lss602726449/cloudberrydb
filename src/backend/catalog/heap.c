@@ -2328,8 +2328,8 @@ heap_drop_with_catalog(Oid relid)
 	 */
 	if (rel->rd_rel->relkind == RELKIND_FOREIGN_TABLE)
 	{
-		Relation	ftrel;
-		HeapTuple	fttuple;
+		Relation	rel;
+		HeapTuple	tuple;
 		ScanKeyData	ftkey;
 		SysScanDesc	ftscan;
 
@@ -2351,16 +2351,16 @@ heap_drop_with_catalog(Oid relid)
 		systable_endscan(ftscan);
 		table_close(rel, RowExclusiveLock);
 
-		ftrel = table_open(ForeignTableRelationId, RowExclusiveLock);
+		rel = table_open(ForeignTableRelationId, RowExclusiveLock);
 
-		fttuple = SearchSysCache1(FOREIGNTABLEREL, ObjectIdGetDatum(relid));
-		if (!HeapTupleIsValid(fttuple))
+		tuple = SearchSysCache1(FOREIGNTABLEREL, ObjectIdGetDatum(relid));
+		if (!HeapTupleIsValid(tuple))
 			elog(ERROR, "cache lookup failed for foreign table %u", relid);
 
-		CatalogTupleDelete(ftrel, &fttuple->t_self);
+		CatalogTupleDelete(rel, &tuple->t_self);
 
-		ReleaseSysCache(fttuple);
-		table_close(ftrel, RowExclusiveLock);
+		ReleaseSysCache(tuple);
+		table_close(rel, RowExclusiveLock);
 	}
 
 	/*
