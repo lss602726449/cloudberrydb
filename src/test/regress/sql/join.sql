@@ -667,8 +667,6 @@ select t1.*, t2.*, unnamed_join.* from
   t1 join t2 on (t1.a = t2.a), t3 as unnamed_join
   for update of unnamed_join;
 
-<<<<<<< HEAD
-=======
 select foo.*, unnamed_join.* from
   t1 join t2 using (a) as foo, t3 as unnamed_join
   for update of unnamed_join;
@@ -685,7 +683,6 @@ select bar.*, unnamed_join.* from
   (t1 join t2 using (a) as foo) as bar, t3 as unnamed_join
   for update of bar;
 
->>>>>>> REL_16_9
 --
 -- regression test for 8.1 merge right join bug
 --
@@ -2377,19 +2374,13 @@ where q2 = 456;
 create temp table parttbl (a integer primary key) partition by range (a);
 create temp table parttbl1 partition of parttbl for values from (1) to (100);
 insert into parttbl values (11), (12);
-<<<<<<< HEAD
 set optimizer_enable_dynamicindexonlyscan=off;
-=======
->>>>>>> REL_16_9
 explain (costs off)
 select * from
   (select *, 12 as phv from parttbl) as ss
   right join int4_tbl on true
 where ss.a = ss.phv and f1 = 0;
-<<<<<<< HEAD
 reset optimizer_enable_dynamicindexonlyscan;
-=======
->>>>>>> REL_16_9
 
 select * from
   (select *, 12 as phv from parttbl) as ss
@@ -3037,12 +3028,6 @@ where exists (select 1 from j3
 
 drop table j3;
 
-<<<<<<< HEAD
-reset enable_hashjoin;
-reset enable_nestloop;
-reset enable_seqscan;
-reset enable_bitmapscan;
-=======
 -- Test that we do not account for nullingrels when looking up statistics
 CREATE TABLE group_tbl (a INT, b INT);
 INSERT INTO group_tbl SELECT 1, 1;
@@ -3051,8 +3036,12 @@ ANALYZE group_tbl;
 
 EXPLAIN (COSTS OFF)
 SELECT 1 FROM group_tbl t1
-    LEFT JOIN (SELECT a c1, COALESCE(a) c2 FROM group_tbl t2) s ON TRUE
+                  LEFT JOIN (SELECT a c1, COALESCE(a) c2 FROM group_tbl t2) s ON TRUE
 GROUP BY s.c1, s.c2;
 
 DROP TABLE group_tbl;
->>>>>>> REL_16_9
+
+reset enable_hashjoin;
+reset enable_nestloop;
+reset enable_seqscan;
+reset enable_bitmapscan;

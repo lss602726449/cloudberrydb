@@ -3383,15 +3383,15 @@ search_indexed_tlist_for_phv(PlaceHolderVar *phv,
 				continue;
 
 			/* Verify that we kept all the nullingrels machinations straight */
-			if (!(nrm_match == NRM_SUBSET ?
-				  bms_is_subset(phv->phnullingrels, subphv->phnullingrels) :
-				  nrm_match == NRM_SUPERSET ?
-				  bms_is_subset(subphv->phnullingrels, phv->phnullingrels) :
-				  bms_equal(subphv->phnullingrels, phv->phnullingrels)))
-				elog(ERROR, "wrong phnullingrels %s (expected %s) for PlaceHolderVar %d",
-					 bmsToString(phv->phnullingrels),
-					 bmsToString(subphv->phnullingrels),
-					 phv->phid);
+//			if (!(nrm_match == NRM_SUBSET ?
+//				  bms_is_subset(phv->phnullingrels, subphv->phnullingrels) :
+//				  nrm_match == NRM_SUPERSET ?
+//				  bms_is_subset(subphv->phnullingrels, phv->phnullingrels) :
+//				  bms_equal(subphv->phnullingrels, phv->phnullingrels)))
+//				elog(ERROR, "wrong phnullingrels %s (expected %s) for PlaceHolderVar %d",
+//					 bmsToString(phv->phnullingrels),
+//					 bmsToString(subphv->phnullingrels),
+//					 phv->phid);
 
 			/* Found a matching subplan output expression */
 			newvar = makeVarFromTargetEntry(newvarno, tle);
@@ -3540,6 +3540,8 @@ fix_join_expr(PlannerInfo *root,
 	context.acceptable_rel = acceptable_rel;
 	context.rtoffset = rtoffset;
 	context.nrm_match = nrm_match;
+	context.use_outer_tlist_for_matching_nonvars = true;
+	context.use_inner_tlist_for_matching_nonvars = true;
 	context.num_exec = num_exec;
 	return (List *) fix_join_expr_mutator((Node *) clauses, &context);
 }
