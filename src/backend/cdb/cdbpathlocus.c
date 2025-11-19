@@ -838,7 +838,8 @@ cdbpathlocus_join(JoinType jointype, CdbPathLocus a, CdbPathLocus b)
 	{
 		resultlocus = a;
 	}
-	else if (jointype == JOIN_RIGHT)
+	else if (jointype == JOIN_RIGHT ||
+			 jointype == JOIN_RIGHT_ANTI)
 	{
 		resultlocus = b;
 	}
@@ -1426,7 +1427,8 @@ cdbpathlocus_parallel_join(JoinType jointype, CdbPathLocus a, CdbPathLocus b, bo
 	{
 		resultlocus = a;
 	}
-	else if (jointype == JOIN_RIGHT)
+	else if (jointype == JOIN_RIGHT ||
+			 jointype == JOIN_RIGHT_ANTI)
 	{
 		resultlocus = b;
 	}

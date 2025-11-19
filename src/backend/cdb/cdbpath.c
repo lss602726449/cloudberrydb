@@ -1464,10 +1464,10 @@ cdbpath_motion_for_join(PlannerInfo *root,
 		case JOIN_ANTI:
 		case JOIN_LEFT:
 		case JOIN_LASJ_NOTIN:
-		case JOIN_RIGHT_ANTI:
 			outer.ok_to_replicate = false;
 			break;
 		case JOIN_RIGHT:
+		case JOIN_RIGHT_ANTI:
 			inner.ok_to_replicate = false;
 			break;
 		case JOIN_FULL:
@@ -3106,6 +3106,7 @@ cdbpath_motion_for_parallel_join(PlannerInfo *root,
 		case JOIN_UNIQUE_OUTER:
 		case JOIN_UNIQUE_INNER:
 		case JOIN_RIGHT:
+		case JOIN_RIGHT_ANTI:
 		case JOIN_FULL:
 			/* Join types are not supported in parallel yet. */
 			goto fail;
