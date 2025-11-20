@@ -2989,6 +2989,7 @@ _copyPlaceHolderVar(const PlaceHolderVar *from)
 
 	COPY_NODE_FIELD(phexpr);
 	COPY_BITMAPSET_FIELD(phrels);
+	COPY_BITMAPSET_FIELD(phnullingrels);
 	COPY_SCALAR_FIELD(phid);
 	COPY_SCALAR_FIELD(phlevelsup);
 

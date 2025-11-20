@@ -3383,15 +3383,15 @@ search_indexed_tlist_for_phv(PlaceHolderVar *phv,
 				continue;
 
 			/* Verify that we kept all the nullingrels machinations straight */
-//			if (!(nrm_match == NRM_SUBSET ?
-//				  bms_is_subset(phv->phnullingrels, subphv->phnullingrels) :
-//				  nrm_match == NRM_SUPERSET ?
-//				  bms_is_subset(subphv->phnullingrels, phv->phnullingrels) :
-//				  bms_equal(subphv->phnullingrels, phv->phnullingrels)))
-//				elog(ERROR, "wrong phnullingrels %s (expected %s) for PlaceHolderVar %d",
-//					 bmsToString(phv->phnullingrels),
-//					 bmsToString(subphv->phnullingrels),
-//					 phv->phid);
+			if (!(nrm_match == NRM_SUBSET ?
+				  bms_is_subset(phv->phnullingrels, subphv->phnullingrels) :
+				  nrm_match == NRM_SUPERSET ?
+				  bms_is_subset(subphv->phnullingrels, phv->phnullingrels) :
+				  bms_equal(subphv->phnullingrels, phv->phnullingrels)))
+				elog(ERROR, "wrong phnullingrels %s (expected %s) for PlaceHolderVar %d",
+					 bmsToString(phv->phnullingrels),
+					 bmsToString(subphv->phnullingrels),
+					 phv->phid);
 
 			/* Found a matching subplan output expression */
 			newvar = makeVarFromTargetEntry(newvarno, tle);
