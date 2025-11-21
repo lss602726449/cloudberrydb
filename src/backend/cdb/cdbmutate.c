@@ -1205,6 +1205,7 @@ param_walker(Node *node, ParamWalkerContext *context)
 				list_length(aggref->args) == 1)
 			{
 				TargetEntry *curTarget = (TargetEntry *) linitial(aggref->args);
+				ListCell   *lc;
 
 				foreach(lc, root->minmax_aggs)
 				{
@@ -1228,6 +1229,7 @@ param_walker(Node *node, ParamWalkerContext *context)
 
 		case T_SubPlan:
 			{
+				PlannerInfo *root = (PlannerInfo *) context->base.node;
 				SubPlan	   *spexpr = (SubPlan *) node;
 				Plan	   *subplan_plan = planner_subplan_get_plan(root, spexpr);
 				PlannerInfo *subplan_root = planner_subplan_get_root(root, spexpr);

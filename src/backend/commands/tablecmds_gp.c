@@ -1187,6 +1187,7 @@ ATExecGPPartCmds(Relation origrel, AlterTableCmd *cmd)
 			PartitionSpec			*subpart = NULL;
 			Relation 				temprel = rel;
 			PartitionSpec 			*tempsubpart = NULL;
+			ListCell 				*l;
 			List					*ancestors = get_partition_ancestors(RelationGetRelid(rel));
 			int						 level = list_length(ancestors) + 1;
 

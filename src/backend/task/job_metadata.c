@@ -791,7 +791,7 @@ ParseSchedule(char *scheduleText)
 	 */
 	if (TryParseInterval(scheduleText, &secondsInterval))
 	{
-		schedule = (entry *) calloc(sizeof(entry), sizeof(char));
+		entry *schedule = (entry *) calloc(sizeof(entry), sizeof(char));
 		schedule->secondsInterval = secondsInterval;
 		return schedule;
 	}

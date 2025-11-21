@@ -1887,6 +1887,7 @@ grouping_planner(PlannerInfo *root, double tuple_fraction)
 			 */
 			if (target->sortgrouprefs)
 			{
+				ListCell *lc;
 				int			idx;
 
 				idx = 0;
@@ -5736,12 +5737,10 @@ create_final_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 {
 	Query	   *parse = root->parse;
 	Path	   *cheapest_input_path = input_rel->cheapest_total_path;
-	double		numDistinctRows;
 	bool		allow_hash;
 	double		numDistinctRowsTotal;
 	double		numInputRowsTotal;
 	Path	   *path;
-	ListCell   *lc;
 
 	if (CdbPathLocus_IsPartitioned(cheapest_input_path->locus))
 	{
@@ -5783,6 +5782,7 @@ create_final_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 	 */
 	if (grouping_is_sortable(root->processed_distinctClause))
 	{
+		double		numDistinctRows;
 		/*
 		 * Firstly, if we have any adequately-presorted paths, just stick a
 		 * Unique node on those.  We also, consider doing an explicit sort of
@@ -5798,6 +5798,7 @@ create_final_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 		 * the other.)
 		 */
 		List	   *needed_pathkeys;
+		ListCell   *lc;
 //		double		limittuples = root->distinct_pathkeys == NIL ? 1.0 : -1.0;
 
 		if (parse->hasDistinctOn &&
@@ -5981,6 +5982,7 @@ create_final_distinct_paths(PlannerInfo *root, RelOptInfo *input_rel,
 	if (allow_hash && grouping_is_hashable(root->processed_distinctClause))
 	{
 		/* Generate hashed aggregate path --- no sort needed */
+		double		numDistinctRows;
 		Size		hashentrysize;
 
 		path = cdb_prepare_path_for_hashed_agg(root,
@@ -6208,6 +6210,7 @@ create_ordered_paths(PlannerInfo *root,
 			foreach(lc, input_rel->partial_pathlist)
 			{
 				Path	   *input_path = (Path *) lfirst(lc);
+				Path	   *sorted_path;
 				bool		is_sorted;
 				int			presorted_keys;
 #if 0

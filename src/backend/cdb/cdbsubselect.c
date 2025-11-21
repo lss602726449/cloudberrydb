@@ -1359,7 +1359,7 @@ fetch_outer_exprs(Node *testexpr)
 		{
 			List     *exprs = NIL;
 			ListCell *lc;
-			be    = (BoolExpr *) expr;
+			BoolExpr *be    = (BoolExpr *) expr;
 
 			/*
 			 * The following cases should not happen, instead of

@@ -9284,7 +9284,7 @@ ATExecAddColumn(List **wqueue, AlteredTableInfo *tab, Relation rel,
 			foreach (lc, all_inheritors)
 			{
 				Oid r = lfirst_oid(lc);
-				rel = heap_open(r, NoLock);
+				Relation rel = heap_open(r, NoLock);
 				AlteredTableInfo *childtab;
 				childtab = ATGetQueueEntry(wqueue, rel);
 
@@ -16024,6 +16024,7 @@ ATPostAlterTypeParse(Oid oldId, Oid oldRelId, Oid refRelId, char *cmd,
 	if (Gp_role == GP_ROLE_EXECUTE && context != NULL)
 	{
 		ListCell 		*lc;
+		Relation 		rel;
 		Relation 		irel = NULL;
 		AlteredTableInfo 	*tab;
 

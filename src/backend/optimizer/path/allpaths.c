@@ -3598,6 +3598,7 @@ set_cte_pathlist(PlannerInfo *root, RelOptInfo *rel, RangeTblEntry *rte)
 	foreach(lc, sub_final_rel->pathlist)
 	{
 		Path	   *subpath = (Path *) lfirst(lc);
+		List	   *pathkeys;
 		CdbPathLocus locus;
 
 		locus = cdbpathlocus_from_subquery(root, rel, subpath);

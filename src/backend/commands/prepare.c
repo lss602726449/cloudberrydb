@@ -65,6 +65,7 @@ PrepareQuery(ParseState *pstate, PrepareStmt *stmt,
 	int			nargs;
 	Query	   *query;
 	List	   *query_list;
+	int			i;
 	NodeTag		srctag;  /* GPDB */
 
 	/*
@@ -124,7 +125,7 @@ PrepareQuery(ParseState *pstate, PrepareStmt *stmt,
 	/*
 	 * Check that all parameter types were determined.
 	 */
-	for (int i = 0; i < nargs; i++)
+	for (i = 0; i < nargs; i++)
 	{
 		Oid			argtype = argtypes[i];
 

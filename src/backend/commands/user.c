@@ -789,6 +789,7 @@ CreateRole(ParseState *pstate, CreateRoleStmt *stmt)
 		/* Scan the pg_profile relation to be certain the profile exists. */
 		Relation	pg_profile_rel;
 		TupleDesc	pg_profile_dsc;
+		HeapTuple	tuple;
 		Form_pg_profile	profileform;
 		Oid		profileid;
 

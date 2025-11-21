@@ -480,8 +480,9 @@ execMotionSortedReceiver(MotionState *node)
 	 */
 	if (!node->tupleheapReady)
 	{
-		hp = node->tupleheap;
-		motion = (Motion *) node->ps.plan;
+		MinimalTuple inputTuple;
+		binaryheap *hp = node->tupleheap;
+		Motion	   *motion = (Motion *) node->ps.plan;
 		int			iSegIdx;
 		ListCell   *lcProcess;
 		ExecSlice  *sendSlice = &node->ps.state->es_sliceTable->slices[motion->motionID];

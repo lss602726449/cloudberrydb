@@ -167,6 +167,7 @@ GetContentIdsFromPlanForSingleRelation(PlannerInfo *root, Plan *plan, int rangeT
 		PossibleValueSet    pvs_segids;
 		Node              **seg_ids;
 		int                 len;
+		int                 i;
 		List               *contentIds = NULL;
 
 		/**

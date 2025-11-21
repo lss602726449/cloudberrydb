@@ -1886,6 +1886,7 @@ AlterFunction(ParseState *pstate, AlterFunctionStmt *stmt)
 	if (set_items)
 	{
 		Datum		datum;
+		bool		isnull;
 		ArrayType  *a;
 		Datum		repl_val[Natts_pg_proc];
 		bool		repl_null[Natts_pg_proc];

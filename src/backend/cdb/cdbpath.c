@@ -2248,7 +2248,7 @@ cdbpath_motion_for_join(PlannerInfo *root,
 		 * only if there is no wts on either rels*/
 		else if (!outer.has_wts && !inner.has_wts)
 		{
-			numsegments = CdbPathLocus_CommonSegments(outer.locus,
+			int numsegments = CdbPathLocus_CommonSegments(outer.locus,
 														  inner.locus);
 			CdbPathLocus_MakeSingleQE(&outer.move_to, numsegments);
 			CdbPathLocus_MakeSingleQE(&inner.move_to, numsegments);

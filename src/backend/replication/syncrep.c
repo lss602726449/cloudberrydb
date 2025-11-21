@@ -924,6 +924,7 @@ SyncRepGetCandidateStandbys(SyncRepStandbyData **standbys)
 	if (IS_QUERY_DISPATCHER())
 	{
 		bool				syncStandbyPresent;
+		int					i;
 		SyncRepStandbyData	*stby;
 		volatile WalSnd		*walsnd;	/* Use volatile pointer to prevent code
 										 * rearrangement */

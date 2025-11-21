@@ -562,7 +562,6 @@ array_agg_combine(PG_FUNCTION_ARGS)
 	ArrayBuildState *state2;
 	MemoryContext agg_context;
 	MemoryContext old_context;
-	int			i;
 
 	if (!AggCheckCallContext(fcinfo, &agg_context))
 		elog(ERROR, "aggregate function called in non-aggregate context");
@@ -589,7 +588,7 @@ array_agg_combine(PG_FUNCTION_ARGS)
 
 		old_context = MemoryContextSwitchTo(agg_context);
 
-		for (i = 0; i < state2->nelems; i++)
+		for (int i = 0; i < state2->nelems; i++)
 		{
 			if (!state2->dnulls[i])
 				state1->dvalues[i] = datumCopy(state2->dvalues[i],
@@ -629,7 +628,7 @@ array_agg_combine(PG_FUNCTION_ARGS)
 		}
 
 		/* Copy in the state2 elements to the end of the state1 arrays */
-		for (i = 0; i < state2->nelems; i++)
+		for (int i = 0; i < state2->nelems; i++)
 		{
 			if (!state2->dnulls[i])
 				state1->dvalues[i + state1->nelems] =
@@ -707,7 +706,6 @@ array_agg_serialize(PG_FUNCTION_ARGS)
 	else
 	{
 		SerialIOData *iodata;
-		int			i;
 
 		/* Avoid repeat catalog lookups for typsend function */
 		iodata = (SerialIOData *) fcinfo->flinfo->fn_extra;
@@ -726,7 +724,7 @@ array_agg_serialize(PG_FUNCTION_ARGS)
 			fcinfo->flinfo->fn_extra = (void *) iodata;
 		}
 
-		for (i = 0; i < state->nelems; i++)
+		for (int i = 0; i < state->nelems; i++)
 		{
 			bytea	   *outputbytes;
 
