@@ -108,7 +108,7 @@ typedef struct PlannedStmt
 
 	/* Slice table */
 	int			numSlices;
-	struct PlanSlice *slices;
+	struct PlanSlice *slices;	/* merge16_delete_temp */
 
 	List	   *rtable;			/* list of RangeTblEntry nodes */
 
@@ -122,7 +122,7 @@ typedef struct PlannedStmt
 
 	List	   *subplans;		/* Plan trees for SubPlan expressions; note
 								 * that some could be NULL */
-	int		   *subplan_sliceIds;	/* slice IDs containing SubPlans; size equals 'subplans' */
+	int		   *subplan_sliceIds;	/* merge16_delete_temp  */	/* slice IDs containing SubPlans; size equals 'subplans' */
 
 	Bitmapset  *rewindPlanIDs;	/* indices of subplans that require REWIND */
 
@@ -215,7 +215,7 @@ typedef struct Flow
 
 	/* Locus type (optimizer flow characterization).
 	 */
-	CdbLocusType	locustype;
+	CdbLocusType	locustype;	/* merge16_delete_temp  */
 
 	/* If flotype is FLOW_SINGLETON, then this is the segment (-1 for entry)
 	 * on which tuples occur.
@@ -339,7 +339,7 @@ typedef struct Plan
 	 * Field flow has the locus info only in the top Plan nodes,
 	 * other nodes couldn't be set that.
 	 */
-	CdbLocusType	locustype;
+	uint8	locustype;
 	int 			parallel; /* parallel workers of this plan if there was */
 
 	/**
@@ -381,8 +381,8 @@ typedef struct Result
 	Node	   *resconstantqual;
 
 	int			numHashFilterCols;
-	AttrNumber *hashFilterColIdx;
-	Oid		   *hashFilterFuncs;
+	int16	   *hashFilterColIdx pg_node_attr(array_size(numHashFilterCols));
+	Oid		   *hashFilterFuncs pg_node_attr(array_size(numHashFilterCols));
 } Result;
 
 /* ----------------
@@ -1511,7 +1511,7 @@ typedef struct TupleSplit
 	Plan		plan;
 
 	int			numCols;		    /* number of grouping columns */
-	AttrNumber *grpColIdx;		    /* their indexes in the target list */
+	AttrNumber *grpColIdx pg_node_attr(array_size(numCols));		    /* their indexes in the target list */
 
 	List       *dqa_expr_lst;
 } TupleSplit;
@@ -1856,7 +1856,7 @@ typedef struct Motion
 
 	/* For Hash */
 	List		*hashExprs;			/* list of hash expressions */
-	Oid			*hashFuncs;			/* corresponding hash functions */
+	Oid			*hashFuncs;			/* merge16_delete_temp 	*/		/* corresponding hash functions */
 	int         numHashSegments;	/* the module number of the hash function */
 
 	/* For Explicit */
@@ -1864,13 +1864,13 @@ typedef struct Motion
 
 	/* The following field is only used when sendSorted == true */
 	int			numSortCols;	/* number of sort-key columns */
-	AttrNumber *sortColIdx;		/* their indexes in the target list */
-	Oid		   *sortOperators;	/* OIDs of operators to sort them by */
-	Oid		   *collations;		/* OIDs of collations */
-	bool	   *nullsFirst;		/* NULLS FIRST/LAST directions */
+	AttrNumber *sortColIdx pg_node_attr(array_size(numSortCols));		/* their indexes in the target list */
+	Oid		   *sortOperators pg_node_attr(array_size(numSortCols));	/* OIDs of operators to sort them by */
+	Oid		   *collations pg_node_attr(array_size(numSortCols));		/* OIDs of collations */
+	bool	   *nullsFirst pg_node_attr(array_size(numSortCols));		/* NULLS FIRST/LAST directions */
 
 	/* sender slice info */
-	PlanSlice  *senderSliceInfo;
+	PlanSlice  *senderSliceInfo;	/* merge16_delete_temp  */ 
 } Motion;
 
 /*
@@ -1891,8 +1891,8 @@ typedef struct SplitUpdate
 	 * used to compute the target segment id, for INSERT-action rows.
 	 */
 	int			numHashAttrs;
-	AttrNumber *hashAttnos;
-	Oid		   *hashFuncs;			/* corresponding hash functions */
+	AttrNumber *hashAttnos pg_node_attr(array_size(numHashAttrs));
+	Oid		   *hashFuncs pg_node_attr(array_size(numHashAttrs));			/* corresponding hash functions */
 	int			numHashSegments;	/* # of segs to use in hash computation */
 } SplitUpdate;
 

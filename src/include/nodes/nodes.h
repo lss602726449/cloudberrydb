@@ -717,6 +717,8 @@ typedef enum NodeTag
 	T_RetrieveStmt,
 	T_ReindexIndexInfo,			/* in nodes/parsenodes.h */
 	T_EphemeralNamedRelationInfo, /* utils/queryenvironment.h */
+	T_CompoundUtilityStmt,
+	T_CreateForeignStmt,
 
 } NodeTag;
 

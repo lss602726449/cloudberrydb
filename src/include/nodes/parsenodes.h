@@ -273,7 +273,7 @@ typedef struct Query
 	 * GPDB: Used to indicate this query is part of CTAS or COPY so that its plan
 	 * would always be dispatched in parallel.
 	 */
-	ParentStmtType	parentStmtType;
+	uint8 	parentStmtType;
 
 	/*
 	 * The following two fields identify the portion of the source text string
@@ -789,7 +789,7 @@ typedef struct ColumnDef
 	 * so that every segment gets the same value.
 	 */
 	bool		hasCookedMissingVal;
-	Datum		missingVal;
+	Datum		missingVal;		/* Merge16_delete_temp  */
 	bool		missingIsNull;
 
 	char		identity;		/* attidentity setting */
@@ -1208,7 +1208,7 @@ typedef struct RangeTblEntry
 	/* These are for pre-planned sub-queries only.  They are internal to
 	 * window planning.
 	 */
-	struct PlannerInfo *subquery_root;
+	struct PlannerInfo *subquery_root;	/* merge16_delete_temp   */
 	List		*subquery_rtable;
 	List		*subquery_pathkeys;
 
@@ -1420,7 +1420,7 @@ typedef struct RangeTblFunction
 	List	   *funccoltypmods pg_node_attr(query_jumble_ignore);
 	/* OID list of column collation OIDs */
 	List	   *funccolcollations pg_node_attr(query_jumble_ignore);
-	bytea	   *funcuserdata;	/* describe function user data. assume bytea */
+	bytea	   *funcuserdata;	/* merge16_delete_temp  */	/* describe function user data. assume bytea */
 
 	/* This is set during planning for use by the executor: */
 	/* PARAM_EXEC Param IDs affecting this func */
@@ -2899,7 +2899,7 @@ typedef struct CreateExternalStmt
 	NodeTag		type;
 	RangeVar   *relation;		/* external relation to create */
 	List	   *tableElts;		/* column definitions (list of ColumnDef) */
-	ExtTableTypeDesc *exttypedesc;    /* LOCATION or EXECUTE information */
+	ExtTableTypeDesc *exttypedesc;	/* merge16_delete_temp  */    /* LOCATION or EXECUTE information */
 	char	   *format;			/* data format name */
 	List	   *formatOpts;		/* List of DefElem nodes for data format */
 	bool		isweb;
@@ -3975,7 +3975,7 @@ typedef struct IndexStmt
 	bool		if_not_exists;	/* just do nothing if index already exists? */
 	bool		reset_default_tblspc;	/* reset default_tablespace prior to
 										 * executing */
-	IndexConcurrentlyPhase concurrentlyPhase; /* phase of index 
+	IndexConcurrentlyPhase concurrentlyPhase;	/* merge16_delete_temp  */ /* phase of index 
 											   * concurrently build */
 	Oid indexRelationOid; /* relationOid of index, dispatch to QEs when 
 						   * concurrently build */
