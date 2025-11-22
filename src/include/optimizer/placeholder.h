@@ -32,5 +32,6 @@ extern bool contain_placeholder_references_to(PlannerInfo *root, Node *clause,
 											  int relid);
 
 extern void make_placeholders_for_subplans(PlannerInfo *root);
+extern void update_placeholder_eval_levels(PlannerInfo *root, SpecialJoinInfo *new_sjinfo);
 
 #endif							/* PLACEHOLDER_H */

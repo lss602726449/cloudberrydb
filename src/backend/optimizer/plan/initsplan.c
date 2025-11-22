@@ -1216,7 +1216,7 @@ deconstruct_recurse(PlannerInfo *root, Node *jtnode,
 				/* Compute qualscope etc */
 				jtitem->qualscope = bms_union(left_item->qualscope,
 											  right_item->qualscope);
-				jtitem->inner_join_rels = jtitem->qualscope;
+				jtitem->inner_join_rels = bms_copy(jtitem->qualscope);
 				jtitem->left_rels = left_item->qualscope;
 				jtitem->right_rels = right_item->qualscope;
 				/* Inner join adds no restrictions for quals */
@@ -1531,7 +1531,10 @@ deconstruct_distribute(PlannerInfo *root, JoinTreeItem *jtitem)
 
 		/* And add the SpecialJoinInfo to join_info_list */
 		if (sjinfo)
+		{
 			root->join_info_list = lappend(root->join_info_list, sjinfo);
+			update_placeholder_eval_levels(root, sjinfo);
+		}
 	}
 	else
 	{
