@@ -6727,3 +6727,24 @@ _copyCursorPosInfo(const CursorPosInfo *from)
 
 	return newnode;
 }
+
+/*
+ * _copyPathTarget
+ */
+static PathTarget *
+_copyPathTarget(const PathTarget *from)
+{
+	PathTarget    *newnode = makeNode(PathTarget);
+
+	COPY_NODE_FIELD(exprs);
+	if (from->sortgrouprefs)
+	{
+		int numCols = list_length(from->exprs);
+		if (numCols > 0)
+			COPY_POINTER_FIELD(sortgrouprefs, numCols * sizeof(Index));
+	}
+	COPY_SCALAR_FIELD(cost);
+	COPY_SCALAR_FIELD(width);
+
+	return newnode;
+}

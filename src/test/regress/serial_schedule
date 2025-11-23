@@ -117,11 +117,11 @@ test: lock
 test: replica_identity
 test: rowsecurity
 test: object_address
-# test: tablesample
-# test: task
-# test: appendonly_sample
-# test: aocs_sample
-# test: groupingsets
+test: tablesample
+test: task
+test: appendonly_sample
+test: aocs_sample
+test: groupingsets
 # test: drop_operator
 # test: password
 # test: identity

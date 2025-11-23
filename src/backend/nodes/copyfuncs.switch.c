@@ -1182,3 +1182,7 @@
 		case T_CursorPosInfo:
 			retval = _copyCursorPosInfo(from);
 			break;
+
+		case T_PathTarget:
+			retval = _copyPathTarget(from);
+			break;
