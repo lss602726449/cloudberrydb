@@ -177,7 +177,10 @@ ExecInitAppend(Append *node, EState *estate, int eflags)
 		appendstate->as_prune_state = NULL;
 
 		if (node->join_prune_paramids)
+		{
 			appendstate->as_valid_subplans = NULL;
+			appendstate->as_valid_subplans_identified = false;
+		}
 	}
 
 	/*
