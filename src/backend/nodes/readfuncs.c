@@ -2953,6 +2953,31 @@ _readMergeAction(void)
 	READ_DONE();
 }
 
+static PublicationObjSpec *
+_readPublicationObjSpec(void)
+{
+	READ_LOCALS(PublicationObjSpec);
+
+	READ_ENUM_FIELD(pubobjtype, PublicationObjSpecType);
+	READ_STRING_FIELD(name);
+	READ_NODE_FIELD(pubtable);
+	READ_LOCATION_FIELD(location);
+
+	READ_DONE();
+}
+
+static PublicationTable *
+_readPublicationTable(void)
+{
+	READ_LOCALS(PublicationTable);
+
+	READ_NODE_FIELD(relation);
+	READ_NODE_FIELD(whereClause);
+	READ_NODE_FIELD(columns);
+
+	READ_DONE();
+}
+
 #include "readfuncs_common.c"
 #ifndef COMPILING_BINARY_FUNCS
 /*
@@ -3476,6 +3501,10 @@ parseNodeString(void)
 		return_value = _readGpPolicy();
 	else if (MATCHX("MERGEACTION"))
 		return_value = _readMergeAction();
+	else if (MATCHX("PUBLICATIONOBJSPEC"))
+		return_value = _readPublicationObjSpec();
+	else if (MATCHX("PUBLICATIONTABLE"))
+		return_value = _readPublicationTable();
 	else
 	{
         ereport(ERROR,

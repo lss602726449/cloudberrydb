@@ -112,11 +112,11 @@ test: privileges
 test: init_privs
 test: security_label
 test: collate
-# test: matview
-# test: lock
-# test: replica_identity
-# test: rowsecurity
-# test: object_address
+test: matview
+test: lock
+test: replica_identity
+test: rowsecurity
+test: object_address
 # test: tablesample
 # test: task
 # test: appendonly_sample

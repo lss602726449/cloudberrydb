@@ -228,10 +228,22 @@ select relname from pg_locks l, pg_class c
   relname   
 ------------
  lock_tbl1
+ lock_tbl1
+ lock_tbl1
+ lock_tbl1
+ lock_tbl2
+ lock_tbl2
+ lock_tbl2
  lock_tbl2
  lock_tbl3
+ lock_tbl3
+ lock_tbl3
+ lock_tbl3
  lock_view1
-(4 rows)
+ lock_view1
+ lock_view1
+ lock_view1
+(16 rows)
 
 ROLLBACK;
 RESET ROLE;
@@ -264,10 +276,22 @@ select relname from pg_locks l, pg_class c
   relname   
 ------------
  lock_tbl1
+ lock_tbl1
+ lock_tbl1
+ lock_tbl1
+ lock_tbl2
+ lock_tbl2
+ lock_tbl2
  lock_tbl2
  lock_tbl3
+ lock_tbl3
+ lock_tbl3
+ lock_tbl3
  lock_view8
-(4 rows)
+ lock_view8
+ lock_view8
+ lock_view8
+(16 rows)
 
 ROLLBACK;
 RESET ROLE;

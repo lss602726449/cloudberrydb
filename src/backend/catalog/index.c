@@ -3057,11 +3057,6 @@ index_update_stats(Relation rel,
 
 	if (reltuples >= 0 && Gp_role != GP_ROLE_DISPATCH)
 	{
-		BlockNumber relpages;
-		BlockNumber relallvisible;
-
-		relpages = RelationGetNumberOfBlocks(rel);
-
 		/*
 		 * GPDB: We don't maintain relallvisible for AO/CO tables.
 		 */

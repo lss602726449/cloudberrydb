@@ -119,12 +119,8 @@ View definition:
  SELECT type,
     totamt
    FROM mvtest_tv
-<<<<<<< HEAD
-  ORDER BY mvtest_tv.type;
-Distributed by: (type)
-=======
   ORDER BY type;
->>>>>>> REL_16_9
+Distributed by: (type)
 
 \d+ mvtest_tvm
                            Materialized view "public.mvtest_tvm"
@@ -136,12 +132,8 @@ View definition:
  SELECT type,
     totamt
    FROM mvtest_tv
-<<<<<<< HEAD
-  ORDER BY mvtest_tv.type;
-Distributed by: (type)
-=======
   ORDER BY type;
->>>>>>> REL_16_9
+Distributed by: (type)
 
 \d+ mvtest_tvvm
                            Materialized view "public.mvtest_tvvm"
@@ -192,12 +184,8 @@ View definition:
  SELECT type,
     totamt
    FROM mvtest_tv
-<<<<<<< HEAD
-  ORDER BY mvtest_tv.type;
-Distributed by: (type)
-=======
   ORDER BY type;
->>>>>>> REL_16_9
+Distributed by: (type)
 
 -- modify the underlying table data
 INSERT INTO mvtest_t VALUES (6, 'z', 13);
@@ -568,6 +556,7 @@ View definition:
     'foo'::text AS u,
     'foo'::text AS u2,
     NULL::text AS n;
+Distributed by: (i)
 
 SELECT * FROM mv_unspecified_types;
  i  | num  |  u  | u2  | n 
@@ -615,17 +604,10 @@ SET ROLE regress_user_mvtest;
 -- duplicate all the aliases used in those queries
 CREATE TABLE mvtest_foo_data AS SELECT i,
   i+1 AS tid,
-<<<<<<< HEAD
-  md5(random()::text) AS mv,
-  md5(random()::text) AS newdata,
-  md5(random()::text) AS newdata2,
-  md5(random()::text) AS diff
-=======
   fipshash(random()::text) AS mv,
   fipshash(random()::text) AS newdata,
   fipshash(random()::text) AS newdata2,
   fipshash(random()::text) AS diff
->>>>>>> REL_16_9
   FROM generate_series(1, 10) i;
 CREATE MATERIALIZED VIEW mvtest_mv_foo AS SELECT * FROM mvtest_foo_data distributed by(i);
 CREATE MATERIALIZED VIEW mvtest_mv_foo AS SELECT * FROM mvtest_foo_data distributed by(i);
@@ -649,11 +631,15 @@ END;
 $$ LANGUAGE plpgsql;
 CREATE MATERIALIZED VIEW drop_idx_matview AS
   SELECT 1 as i WHERE mvtest_drop_the_index();
-NOTICE:  index "mvtest_drop_idx" does not exist, skipping
+ERROR:  function cannot execute on a QE slice because it issues a non-SELECT statement  (seg2 slice1 127.0.1.1:7004 pid=1719927)
+CONTEXT:  SQL statement "DROP INDEX IF EXISTS mvtest_drop_idx"
+PL/pgSQL function mvtest_drop_the_index() line 3 at EXECUTE
 CREATE UNIQUE INDEX mvtest_drop_idx ON drop_idx_matview (i);
+ERROR:  relation "drop_idx_matview" does not exist
 REFRESH MATERIALIZED VIEW CONCURRENTLY drop_idx_matview;
-ERROR:  could not find suitable unique index on materialized view
+ERROR:  relation "drop_idx_matview" does not exist
 DROP MATERIALIZED VIEW drop_idx_matview; -- clean up
+ERROR:  materialized view "drop_idx_matview" does not exist
 -- make sure that create WITH NO DATA works via SPI
 BEGIN;
 CREATE FUNCTION mvtest_func()

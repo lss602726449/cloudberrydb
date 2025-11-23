@@ -239,8 +239,6 @@ Indexes:
 -- used as replica identity.
 ALTER TABLE test_replica_identity3 ALTER COLUMN id DROP NOT NULL;
 ERROR:  column "id" is in index used as replica identity
-<<<<<<< HEAD
-=======
 --
 -- Test that replica identity can be set on an index that's not yet valid.
 -- (This matches the way pg_dump will try to dump a partitioned table.)
@@ -277,7 +275,6 @@ Indexes:
     "test_replica_identity4_pkey" PRIMARY KEY, btree (id) REPLICA IDENTITY
 Partitions: test_replica_identity4_1 FOR VALUES IN (1)
 
->>>>>>> REL_16_9
 DROP TABLE test_replica_identity;
 DROP TABLE test_replica_identity2;
 DROP TABLE test_replica_identity3;

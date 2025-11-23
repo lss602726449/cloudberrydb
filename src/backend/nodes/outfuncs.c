@@ -4316,6 +4316,27 @@ _outMergeAction(StringInfo str, const MergeAction *node)
 	WRITE_NODE_FIELD(updateColnos);
 }
 
+static void
+_outPublicationObjSpec(StringInfo str, const PublicationObjSpec *node)
+{
+	WRITE_NODE_TYPE("PUBLICATIONOBJSPEC");
+
+	WRITE_ENUM_FIELD(pubobjtype, PublicationObjSpecType);
+	WRITE_STRING_FIELD(name);
+	WRITE_NODE_FIELD(pubtable);
+	WRITE_LOCATION_FIELD(location);
+}
+
+static void
+_outPublicationTable(StringInfo str, const PublicationTable *node)
+{
+	WRITE_NODE_TYPE("PUBLICATIONTABLE");
+
+	WRITE_NODE_FIELD(relation);
+	WRITE_NODE_FIELD(whereClause);
+	WRITE_NODE_FIELD(columns);
+}
+
 #include "outfuncs_common.c"
 #ifndef COMPILING_BINARY_FUNCS
 /*
@@ -5517,6 +5538,12 @@ outNode(StringInfo str, const void *obj)
 				break;
 			case T_MergeAction:
 				_outMergeAction(str, obj);
+				break;
+			case T_PublicationObjSpec:
+				_outPublicationObjSpec(str, obj);
+				break;
+			case T_PublicationTable:
+				_outPublicationTable(str, obj);
 				break;
 			default:
 

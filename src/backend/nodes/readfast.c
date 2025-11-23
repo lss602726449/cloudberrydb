@@ -2967,6 +2967,12 @@ readNodeBinary(void)
 			case T_MergeAction:
 				return_value = _readMergeAction();
 				break;
+			case T_PublicationObjSpec:
+				return_value = _readPublicationObjSpec();
+				break;
+			case T_PublicationTable:
+				return_value = _readPublicationTable();
+				break;
 			default:
 				return_value = NULL; /* keep the compiler silent */
 				elog(ERROR, "could not deserialize unrecognized node type: %d",

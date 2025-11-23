@@ -121,6 +121,8 @@ extern Oid GetNewOidForPublication(Relation relation, Oid indexId, AttrNumber oi
 								   char *pubname);
 extern Oid GetNewOidForPublicationRel(Relation relation, Oid indexId, AttrNumber oidcolumn,
 									  Oid prrelid, Oid prpubid);
+extern Oid GetNewOidForPublicationNameSpace(Relation relation, Oid indexId, AttrNumber oidcolumn,
+											Oid prschemaid, Oid prpubid);
 
 extern char *GetPreassignedIndexNameForChildIndex(Oid parentIdxOid, Oid childRelId);
 extern void RememberPreassignedIndexNameForChildIndex(Oid parentIdxOid, Oid childRelId,
