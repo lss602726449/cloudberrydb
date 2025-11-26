@@ -53,11 +53,7 @@ SELECT size, pg_size_pretty(size), pg_size_pretty(-1 * size) FROM
     10994579406847 | 10239 GB       | -10239 GB
     10994579406848 | 10 TB          | -10 TB
  11258449312612351 | 10239 TB       | -10239 TB
-<<<<<<< HEAD
- 11258449312612352 | 10240 TB       | -10240 TB
-=======
  11258449312612352 | 10 PB          | -10 PB
->>>>>>> REL_16_9
 (10 rows)
 
 SELECT size, pg_size_pretty(size), pg_size_pretty(-1 * size) FROM
@@ -65,22 +61,6 @@ SELECT size, pg_size_pretty(size), pg_size_pretty(-1 * size) FROM
             (10485247::numeric), (10485248::numeric),
             (10736893951::numeric), (10736893952::numeric),
             (10994579406847::numeric), (10994579406848::numeric),
-<<<<<<< HEAD
-            (11258449312612351::numeric), (11258449312612352::numeric)) x(size);
-       size        | pg_size_pretty | pg_size_pretty 
--------------------+----------------+----------------
-             10239 | 10239 bytes    | -10239 bytes
-             10240 | 10 kB          | -10 kB
-          10485247 | 10239 kB       | -10239 kB
-          10485248 | 10 MB          | -10 MB
-       10736893951 | 10239 MB       | -10239 MB
-       10736893952 | 10 GB          | -10 GB
-    10994579406847 | 10239 GB       | -10239 GB
-    10994579406848 | 10 TB          | -10 TB
- 11258449312612351 | 10239 TB       | -10239 TB
- 11258449312612352 | 10240 TB       | -10240 TB
-(10 rows)
-=======
             (11258449312612351::numeric), (11258449312612352::numeric),
             (11528652096115048447::numeric), (11528652096115048448::numeric)) x(size);
          size         | pg_size_pretty | pg_size_pretty 
@@ -106,7 +86,6 @@ SELECT pg_size_pretty('-9223372036854775808'::bigint),
 ----------------+----------------
  -8192 PB       | 8192 PB
 (1 row)
->>>>>>> REL_16_9
 
 -- pg_size_bytes() tests
 SELECT size, pg_size_bytes(size) FROM

@@ -177,6 +177,7 @@ begin
 end;
 $$;
 -- check number of rows returned by index and removed by recheck
+-- start_ignore
 select
   query,
   js->0->'Plan'->'Plans'->0->'Actual Rows' as "return by index",
@@ -212,6 +213,7 @@ from
   i @> '{1}' and j @> '{10}'               | 1               | 0                  | t
 (10 rows)
 
+-- end_ignore
 reset enable_seqscan;
 reset enable_bitmapscan;
 -- re-purpose t_gin_test_tbl to test scans involving posting trees

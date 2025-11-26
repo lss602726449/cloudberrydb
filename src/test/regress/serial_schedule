@@ -122,18 +122,18 @@ test: task
 test: appendonly_sample
 test: aocs_sample
 test: groupingsets
-# test: drop_operator
-# test: password
-# test: identity
+test: drop_operator
+test: password
+test: identity
 # test: generated
-# test: join_hash
-# test: create_table_like
-# test: alter_generic
-# test: alter_operator
-# test: misc
-# test: async
-# test: dbsize
-# test: misc_functions
+test: join_hash
+test: create_table_like
+test: alter_generic
+test: alter_operator
+test: misc
+test: async
+test: dbsize
+test: misc_functions
 # test: sysviews
 # test: tsrf
 # test: tidscan

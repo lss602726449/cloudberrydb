@@ -24,16 +24,12 @@ SELECT size, pg_size_pretty(size), pg_size_pretty(-1 * size) FROM
             (10485247::numeric), (10485248::numeric),
             (10736893951::numeric), (10736893952::numeric),
             (10994579406847::numeric), (10994579406848::numeric),
-<<<<<<< HEAD
-            (11258449312612351::numeric), (11258449312612352::numeric)) x(size);
-=======
             (11258449312612351::numeric), (11258449312612352::numeric),
             (11528652096115048447::numeric), (11528652096115048448::numeric)) x(size);
 
 -- Ensure we get the expected results when passing the extremities of bigint
 SELECT pg_size_pretty('-9223372036854775808'::bigint),
        pg_size_pretty('9223372036854775807'::bigint);
->>>>>>> REL_16_9
 
 -- pg_size_bytes() tests
 SELECT size, pg_size_bytes(size) FROM

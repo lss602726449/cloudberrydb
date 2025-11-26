@@ -82,12 +82,9 @@ SELECT test_canonicalize_path('./abc/./def/.././ghi/../../../jkl/mno');
 
 SELECT pg_log_backend_memory_contexts(pg_backend_pid());
 
-<<<<<<< HEAD
-=======
 SELECT pg_log_backend_memory_contexts(pid) FROM pg_stat_activity
   WHERE backend_type = 'checkpointer';
 
->>>>>>> REL_16_9
 CREATE ROLE regress_log_memory;
 
 SELECT has_function_privilege('regress_log_memory',
