@@ -134,8 +134,8 @@ test: misc
 test: async
 test: dbsize
 test: misc_functions
-# test: sysviews
-# test: tsrf
+test: sysviews
+test: tsrf
 # test: tidscan
 # test: collate.icu.utf8
 # #test: rules

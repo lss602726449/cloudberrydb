@@ -325,7 +325,7 @@ $$);
 select count(*) from simple r full outer join simple s using (id);
  count 
 -------
- 20000
+ 60000
 (1 row)
 
 rollback to settings;
@@ -887,7 +887,7 @@ explain (costs off)
 select  count(*) from simple r full outer join simple s using (id);
  count 
 -------
- 20000
+ 60000
 (1 row)
 
 rollback to settings;
@@ -968,9 +968,9 @@ explain (costs off)
 (11 rows)
 
 select  count(*) from simple r full outer join simple s on (r.id = 0 - s.id);
- count 
--------
- 40000
+ count  
+--------
+ 120000
 (1 row)
 
 rollback to settings;
