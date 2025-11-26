@@ -115,10 +115,7 @@ ALTER TABLE ab1 DROP COLUMN a;
  c      | integer |           |          | 
 Statistics objects:
     "public.ab1_b_c_stats" ON b, c FROM ab1
-<<<<<<< HEAD
 Distributed randomly
-=======
->>>>>>> REL_16_9
 
 -- Ensure statistics are dropped when table is
 SELECT stxname FROM pg_statistic_ext WHERE stxname LIKE 'ab1%';
@@ -207,29 +204,16 @@ SELECT * FROM check_estimated_rows('SELECT a, b FROM stxdinh* GROUP BY 1, 2');
 SELECT * FROM check_estimated_rows('SELECT a, b FROM stxdinh* WHERE a = 0 AND b = 0');
  estimated | actual 
 -----------+--------
-<<<<<<< HEAD
          9 |     40
-=======
-         3 |     40
->>>>>>> REL_16_9
 (1 row)
 
 CREATE STATISTICS stxdinh ON a, b FROM stxdinh;
 VACUUM ANALYZE stxdinh, stxdinh1, stxdinh2;
-<<<<<<< HEAD
--- Since the stats object does not include inherited stats, it should not
--- affect the estimates
-SELECT * FROM check_estimated_rows('SELECT a, b FROM stxdinh* GROUP BY 1, 2');
- estimated | actual 
------------+--------
-       400 |    150
-=======
 -- See if the extended stats affect the estimates
 SELECT * FROM check_estimated_rows('SELECT a, b FROM stxdinh* GROUP BY 1, 2');
  estimated | actual 
 -----------+--------
        150 |    150
->>>>>>> REL_16_9
 (1 row)
 
 -- Dependencies are applied at individual relations (within append), so
@@ -237,10 +221,7 @@ SELECT * FROM check_estimated_rows('SELECT a, b FROM stxdinh* GROUP BY 1, 2');
 SELECT * FROM check_estimated_rows('SELECT a, b FROM stxdinh* WHERE a = 0 AND b = 0');
  estimated | actual 
 -----------+--------
-<<<<<<< HEAD
         26 |     40
-=======
-        22 |     40
 (1 row)
 
 -- Ensure correct (non-inherited) stats are applied to inherited query
@@ -254,7 +235,6 @@ SELECT * FROM check_estimated_rows('SELECT a, b FROM ONLY stxdinh WHERE a = 0 AN
  estimated | actual 
 -----------+--------
         20 |     20
->>>>>>> REL_16_9
 (1 row)
 
 DROP TABLE stxdinh, stxdinh1, stxdinh2;
@@ -262,11 +242,7 @@ DROP TABLE stxdinh, stxdinh1, stxdinh2;
 CREATE TABLE stxdinp(i int, a int, b int) PARTITION BY RANGE (i);
 CREATE TABLE stxdinp1 PARTITION OF stxdinp FOR VALUES FROM (1) TO (100);
 INSERT INTO stxdinp SELECT 1, a/100, a/100 FROM generate_series(1, 999) a;
-<<<<<<< HEAD
-CREATE STATISTICS stxdinp ON a, b FROM stxdinp;
-=======
 CREATE STATISTICS stxdinp ON (a + 1), a, b FROM stxdinp;
->>>>>>> REL_16_9
 VACUUM ANALYZE stxdinp; -- partitions are processed recursively
 SELECT 1 FROM pg_statistic_ext WHERE stxrelid = 'stxdinp'::regclass;
  ?column? 
@@ -280,15 +256,12 @@ SELECT * FROM check_estimated_rows('SELECT a, b FROM stxdinp GROUP BY 1, 2');
         10 |     10
 (1 row)
 
-<<<<<<< HEAD
-=======
 SELECT * FROM check_estimated_rows('SELECT a + 1, b FROM ONLY stxdinp GROUP BY 1, 2');
  estimated | actual 
 -----------+--------
          1 |      0
 (1 row)
 
->>>>>>> REL_16_9
 DROP TABLE stxdinp;
 -- basic test for statistics on expressions
 CREATE TABLE ab1 (a INTEGER, b INTEGER, c TIMESTAMP, d TIMESTAMPTZ);
@@ -3153,19 +3126,11 @@ set search_path to public, stts_s1, stts_s2, tststats;
  public   | mcv_lists_arrays_stats | a, b, c FROM mcv_lists_arrays                                    |           |              | defined
  public   | mcv_lists_bool_stats   | a, b, c FROM mcv_lists_bool                                      |           |              | defined
  public   | mcv_lists_stats        | a, b, d FROM mcv_lists                                           |           |              | defined
-<<<<<<< HEAD
- public   | stts_1                 | a, b FROM stts_t1                                                | defined   |              | 
- public   | stts_2                 | a, b FROM stts_t1                                                | defined   | defined      | 
- public   | stts_3                 | a, b FROM stts_t1                                                | defined   | defined      | defined
- public   | stts_4                 | b, c FROM stts_t2                                                | defined   | defined      | defined
- public   | stts_hoge              | col1, col2, col3 FROM stts_t3                                    | defined   | defined      | defined
-=======
  public   | stts_hoge              | col1, col2, col3 FROM stts_t3                                    | defined   | defined      | defined
  public   | stts_t1_a_b_stat       | a, b FROM stts_t1                                                | defined   |              | 
  public   | stts_t1_a_b_stat1      | a, b FROM stts_t1                                                | defined   | defined      | 
  public   | stts_t1_a_b_stat2      | a, b FROM stts_t1                                                | defined   | defined      | defined
  public   | stts_t2_b_c_stat       | b, c FROM stts_t2                                                | defined   | defined      | defined
->>>>>>> REL_16_9
  stts_s1  | stts_foo               | col1, col2 FROM stts_t3                                          | defined   | defined      | defined
  stts_s2  | stts_yama              | col1, col3 FROM stts_t3                                          |           | defined      | defined
  tststats | priv_test_stats        | a, b FROM priv_test_tbl                                          |           |              | defined
@@ -3196,19 +3161,11 @@ set search_path to public, stts_s1, stts_s2, tststats;
  public   | mcv_lists_arrays_stats | a, b, c FROM mcv_lists_arrays                                    |           |              | defined
  public   | mcv_lists_bool_stats   | a, b, c FROM mcv_lists_bool                                      |           |              | defined
  public   | mcv_lists_stats        | a, b, d FROM mcv_lists                                           |           |              | defined
-<<<<<<< HEAD
- public   | stts_1                 | a, b FROM stts_t1                                                | defined   |              | 
- public   | stts_2                 | a, b FROM stts_t1                                                | defined   | defined      | 
- public   | stts_3                 | a, b FROM stts_t1                                                | defined   | defined      | defined
- public   | stts_4                 | b, c FROM stts_t2                                                | defined   | defined      | defined
- public   | stts_hoge              | col1, col2, col3 FROM stts_t3                                    | defined   | defined      | defined
-=======
  public   | stts_hoge              | col1, col2, col3 FROM stts_t3                                    | defined   | defined      | defined
  public   | stts_t1_a_b_stat       | a, b FROM stts_t1                                                | defined   |              | 
  public   | stts_t1_a_b_stat1      | a, b FROM stts_t1                                                | defined   | defined      | 
  public   | stts_t1_a_b_stat2      | a, b FROM stts_t1                                                | defined   | defined      | defined
  public   | stts_t2_b_c_stat       | b, c FROM stts_t2                                                | defined   | defined      | defined
->>>>>>> REL_16_9
  stts_s1  | stts_foo               | col1, col2 FROM stts_t3                                          | defined   | defined      | defined
  stts_s2  | stts_yama              | col1, col3 FROM stts_t3                                          |           | defined      | defined
  tststats | priv_test_stats        | a, b FROM priv_test_tbl                                          |           |              | defined
@@ -3238,8 +3195,6 @@ set search_path to public, stts_s1, stts_s2, tststats;
  stts_s2 | stts_yama | col1, col3 FROM stts_t3 |           | defined      | defined
 (1 row)
 
-<<<<<<< HEAD
-=======
 create statistics (mcv) ON a, b, (a+b), (a-b) FROM stts_t1;
 create statistics (mcv) ON a, b, (a+b), (a-b) FROM stts_t1;
 create statistics (mcv) ON (a+b), (a-b) FROM stts_t1;
@@ -3255,7 +3210,6 @@ create statistics (mcv) ON (a+b), (a-b) FROM stts_t1;
 drop statistics stts_t1_a_b_expr_expr_stat;
 drop statistics stts_t1_a_b_expr_expr_stat1;
 drop statistics stts_t1_expr_expr_stat;
->>>>>>> REL_16_9
 set search_path to public, stts_s1;
 \dX
                                                        List of extended statistics
@@ -3265,19 +3219,11 @@ set search_path to public, stts_s1;
  public  | mcv_lists_arrays_stats | a, b, c FROM mcv_lists_arrays                                    |           |              | defined
  public  | mcv_lists_bool_stats   | a, b, c FROM mcv_lists_bool                                      |           |              | defined
  public  | mcv_lists_stats        | a, b, d FROM mcv_lists                                           |           |              | defined
-<<<<<<< HEAD
- public  | stts_1                 | a, b FROM stts_t1                                                | defined   |              | 
- public  | stts_2                 | a, b FROM stts_t1                                                | defined   | defined      | 
- public  | stts_3                 | a, b FROM stts_t1                                                | defined   | defined      | defined
- public  | stts_4                 | b, c FROM stts_t2                                                | defined   | defined      | defined
- public  | stts_hoge              | col1, col2, col3 FROM stts_t3                                    | defined   | defined      | defined
-=======
  public  | stts_hoge              | col1, col2, col3 FROM stts_t3                                    | defined   | defined      | defined
  public  | stts_t1_a_b_stat       | a, b FROM stts_t1                                                | defined   |              | 
  public  | stts_t1_a_b_stat1      | a, b FROM stts_t1                                                | defined   | defined      | 
  public  | stts_t1_a_b_stat2      | a, b FROM stts_t1                                                | defined   | defined      | defined
  public  | stts_t2_b_c_stat       | b, c FROM stts_t2                                                | defined   | defined      | defined
->>>>>>> REL_16_9
  stts_s1 | stts_foo               | col1, col2 FROM stts_t3                                          | defined   | defined      | defined
 (10 rows)
 
@@ -3291,19 +3237,11 @@ set role regress_stats_ext;
  public | mcv_lists_arrays_stats | a, b, c FROM mcv_lists_arrays                                    |           |              | defined
  public | mcv_lists_bool_stats   | a, b, c FROM mcv_lists_bool                                      |           |              | defined
  public | mcv_lists_stats        | a, b, d FROM mcv_lists                                           |           |              | defined
-<<<<<<< HEAD
- public | stts_1                 | a, b FROM stts_t1                                                | defined   |              | 
- public | stts_2                 | a, b FROM stts_t1                                                | defined   | defined      | 
- public | stts_3                 | a, b FROM stts_t1                                                | defined   | defined      | defined
- public | stts_4                 | b, c FROM stts_t2                                                | defined   | defined      | defined
- public | stts_hoge              | col1, col2, col3 FROM stts_t3                                    | defined   | defined      | defined
-=======
  public | stts_hoge              | col1, col2, col3 FROM stts_t3                                    | defined   | defined      | defined
  public | stts_t1_a_b_stat       | a, b FROM stts_t1                                                | defined   |              | 
  public | stts_t1_a_b_stat1      | a, b FROM stts_t1                                                | defined   | defined      | 
  public | stts_t1_a_b_stat2      | a, b FROM stts_t1                                                | defined   | defined      | defined
  public | stts_t2_b_c_stat       | b, c FROM stts_t2                                                | defined   | defined      | defined
->>>>>>> REL_16_9
 (9 rows)
 
 reset role;

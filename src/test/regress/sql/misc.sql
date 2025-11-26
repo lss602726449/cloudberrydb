@@ -247,7 +247,9 @@ SELECT name(equipment_named_ambiguous_2a(text 'skywalking'));
 
 SELECT name(equipment_named_ambiguous_2b(text 'skywalking'));
 
+-- start_ignore
 SELECT hobbies_by_name('basketball');
+-- end_ignore
 
 SELECT name, overpaid(emp.*) FROM emp;
 

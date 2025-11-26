@@ -137,40 +137,25 @@ SELECT * FROM check_estimated_rows('SELECT a, b FROM stxdinh* GROUP BY 1, 2');
 SELECT * FROM check_estimated_rows('SELECT a, b FROM stxdinh* WHERE a = 0 AND b = 0');
 CREATE STATISTICS stxdinh ON a, b FROM stxdinh;
 VACUUM ANALYZE stxdinh, stxdinh1, stxdinh2;
-<<<<<<< HEAD
--- Since the stats object does not include inherited stats, it should not
--- affect the estimates
-=======
 -- See if the extended stats affect the estimates
->>>>>>> REL_16_9
 SELECT * FROM check_estimated_rows('SELECT a, b FROM stxdinh* GROUP BY 1, 2');
 -- Dependencies are applied at individual relations (within append), so
 -- this estimate changes a bit because we improve estimates for the parent
 SELECT * FROM check_estimated_rows('SELECT a, b FROM stxdinh* WHERE a = 0 AND b = 0');
-<<<<<<< HEAD
-=======
 -- Ensure correct (non-inherited) stats are applied to inherited query
 SELECT * FROM check_estimated_rows('SELECT a, b FROM ONLY stxdinh GROUP BY 1, 2');
 SELECT * FROM check_estimated_rows('SELECT a, b FROM ONLY stxdinh WHERE a = 0 AND b = 0');
->>>>>>> REL_16_9
 DROP TABLE stxdinh, stxdinh1, stxdinh2;
 
 -- Ensure inherited stats ARE applied to inherited query in partitioned table
 CREATE TABLE stxdinp(i int, a int, b int) PARTITION BY RANGE (i);
 CREATE TABLE stxdinp1 PARTITION OF stxdinp FOR VALUES FROM (1) TO (100);
 INSERT INTO stxdinp SELECT 1, a/100, a/100 FROM generate_series(1, 999) a;
-<<<<<<< HEAD
-CREATE STATISTICS stxdinp ON a, b FROM stxdinp;
-VACUUM ANALYZE stxdinp; -- partitions are processed recursively
-SELECT 1 FROM pg_statistic_ext WHERE stxrelid = 'stxdinp'::regclass;
-SELECT * FROM check_estimated_rows('SELECT a, b FROM stxdinp GROUP BY 1, 2');
-=======
 CREATE STATISTICS stxdinp ON (a + 1), a, b FROM stxdinp;
 VACUUM ANALYZE stxdinp; -- partitions are processed recursively
 SELECT 1 FROM pg_statistic_ext WHERE stxrelid = 'stxdinp'::regclass;
 SELECT * FROM check_estimated_rows('SELECT a, b FROM stxdinp GROUP BY 1, 2');
 SELECT * FROM check_estimated_rows('SELECT a + 1, b FROM ONLY stxdinp GROUP BY 1, 2');
->>>>>>> REL_16_9
 DROP TABLE stxdinp;
 
 -- basic test for statistics on expressions
@@ -1626,8 +1611,6 @@ set search_path to public, stts_s1, stts_s2, tststats;
 \dX+ *stts_hoge
 \dX+ stts_s2.stts_yama
 
-<<<<<<< HEAD
-=======
 create statistics (mcv) ON a, b, (a+b), (a-b) FROM stts_t1;
 create statistics (mcv) ON a, b, (a+b), (a-b) FROM stts_t1;
 create statistics (mcv) ON (a+b), (a-b) FROM stts_t1;
@@ -1636,7 +1619,6 @@ drop statistics stts_t1_a_b_expr_expr_stat;
 drop statistics stts_t1_a_b_expr_expr_stat1;
 drop statistics stts_t1_expr_expr_stat;
 
->>>>>>> REL_16_9
 set search_path to public, stts_s1;
 \dX
 

@@ -1295,8 +1295,6 @@ reset work_mem;
 \do - pg_catalog.int4
 \do && anyarray *
 
-<<<<<<< HEAD
-=======
 -- check \df+
 -- we have to use functions with a predictable owner name, so make a role
 create role regress_psql_user superuser;
@@ -1596,7 +1594,6 @@ SELECT * FROM bla ORDER BY 1;
 DROP TABLE bla;
 DROP FUNCTION psql_error;
 
->>>>>>> REL_16_9
 -- check describing invalid multipart names
 \dA regression.heap
 \dA nonesuch.heap
@@ -1838,8 +1835,6 @@ DROP FUNCTION psql_error;
 \dP "no.such.database"."no.such.schema"."no.such.partitioned.relation"
 \dT "no.such.database"."no.such.schema"."no.such.data.type"
 \dX "no.such.database"."no.such.schema"."no.such.extended.statistics"
-<<<<<<< HEAD
-=======
 
 -- check \drg and \du
 CREATE ROLE regress_du_role0;
@@ -1866,4 +1861,3 @@ DROP ROLE regress_du_role0;
 DROP ROLE regress_du_role1;
 DROP ROLE regress_du_role2;
 DROP ROLE regress_du_admin;
->>>>>>> REL_16_9

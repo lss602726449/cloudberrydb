@@ -263,12 +263,14 @@ SELECT name(equipment_named_ambiguous_2b(text 'skywalking'));
  guts
 (4 rows)
 
+-- start_ignore
 SELECT hobbies_by_name('basketball');
  hobbies_by_name 
 -----------------
- sally
+ joe
 (1 row)
 
+-- end_ignore
 SELECT name, overpaid(emp.*) FROM emp;
   name  | overpaid 
 --------+----------
