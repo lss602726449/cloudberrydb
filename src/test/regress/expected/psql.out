@@ -5414,8 +5414,6 @@ reset work_mem;
  pg_catalog | &&   | anyarray      | anyarray       | boolean     | overlaps
 (1 row)
 
-<<<<<<< HEAD
-=======
 -- check \df+
 -- we have to use functions with a predictable owner name, so make a role
 create role regress_psql_user superuser;
@@ -5435,12 +5433,12 @@ create function psql_df_plpgsql ()
   as $$ begin return; end; $$;
 comment on function psql_df_plpgsql () is 'some comment';
 \df+ psql_df_*
-                                                                                       List of functions
- Schema |       Name       | Result data type | Argument data types | Type | Volatility | Parallel |       Owner       | Security | Access privileges | Language | Internal name | Description  
---------+------------------+------------------+---------------------+------+------------+----------+-------------------+----------+-------------------+----------+---------------+--------------
- public | psql_df_internal | double precision | double precision    | func | immutable  | safe     | regress_psql_user | invoker  |                   | internal | dsin          | 
- public | psql_df_plpgsql  | void             |                     | func | volatile   | unsafe   | regress_psql_user | invoker  |                   | plpgsql  |               | some comment
- public | psql_df_sql      | integer          | x integer           | func | volatile   | unsafe   | regress_psql_user | definer  |                   | sql      |               | 
+                                                                                                     List of functions
+ Schema |       Name       | Result data type | Argument data types | Type | Data access  | Execute on | Volatility | Parallel |       Owner       | Security | Access privileges | Language | Internal name | Description  
+--------+------------------+------------------+---------------------+------+--------------+------------+------------+----------+-------------------+----------+-------------------+----------+---------------+--------------
+ public | psql_df_internal | double precision | double precision    | func | no sql       | any        | immutable  | safe     | regress_psql_user | invoker  |                   | internal | dsin          | 
+ public | psql_df_plpgsql  | void             |                     | func | no sql       | any        | volatile   | unsafe   | regress_psql_user | invoker  |                   | plpgsql  |               | some comment
+ public | psql_df_sql      | integer          | x integer           | func | contains sql | any        | volatile   | unsafe   | regress_psql_user | definer  |                   | sql      |               | 
 (3 rows)
 
 rollback;
@@ -5972,7 +5970,6 @@ SELECT * FROM bla ORDER BY 1;
 # final ON_ERROR_ROLLBACK: off
 DROP TABLE bla;
 DROP FUNCTION psql_error;
->>>>>>> REL_16_9
 -- check describing invalid multipart names
 \dA regression.heap
 improper qualified name (too many dotted names): regression.heap
@@ -6202,15 +6199,9 @@ List of access methods
 (0 rows)
 
 \dt "no.such.table.relation"
-<<<<<<< HEAD
            List of relations
  Schema | Name | Type | Owner | Storage 
 --------+------+------+-------+---------
-=======
-      List of relations
- Schema | Name | Type | Owner 
---------+------+------+-------
->>>>>>> REL_16_9
 (0 rows)
 
 \da "no.such.aggregate.function"
@@ -6298,15 +6289,9 @@ List of access methods
 (0 rows)
 
 \dt "no.such.relation"
-<<<<<<< HEAD
            List of relations
  Schema | Name | Type | Owner | Storage 
 --------+------+------+-------+---------
-=======
-      List of relations
- Schema | Name | Type | Owner 
---------+------+------+-------
->>>>>>> REL_16_9
 (0 rows)
 
 \dv "no.such.relation"
@@ -6358,15 +6343,9 @@ List of text search templates
 (0 rows)
 
 \dg "no.such.role"
-<<<<<<< HEAD
-           List of roles
- Role name | Attributes | Member of 
------------+------------+-----------
-=======
      List of roles
  Role name | Attributes 
 -----------+------------
->>>>>>> REL_16_9
 
 \dL "no.such.language"
           List of languages
@@ -6387,15 +6366,9 @@ List of schemas
 (0 rows)
 
 \dO "no.such.collation"
-<<<<<<< HEAD
-                     List of collations
- Schema | Name | Collate | Ctype | Provider | Deterministic? 
---------+------+---------+-------+----------+----------------
-=======
                                   List of collations
  Schema | Name | Provider | Collate | Ctype | ICU Locale | ICU Rules | Deterministic? 
 --------+------+----------+---------+-------+------------+-----------+----------------
->>>>>>> REL_16_9
 (0 rows)
 
 \dp "no.such.access.privilege"
@@ -6456,15 +6429,9 @@ List of schemas
 \dA "no.such.schema"."no.such.access.method"
 improper qualified name (too many dotted names): "no.such.schema"."no.such.access.method"
 \dt "no.such.schema"."no.such.table.relation"
-<<<<<<< HEAD
            List of relations
  Schema | Name | Type | Owner | Storage 
 --------+------+------+-------+---------
-=======
-      List of relations
- Schema | Name | Type | Owner 
---------+------+------+-------
->>>>>>> REL_16_9
 (0 rows)
 
 \da "no.such.schema"."no.such.aggregate.function"
@@ -6532,15 +6499,9 @@ improper qualified name (too many dotted names): "no.such.schema"."no.such.table
 (0 rows)
 
 \dt "no.such.schema"."no.such.relation"
-<<<<<<< HEAD
            List of relations
  Schema | Name | Type | Owner | Storage 
 --------+------+------+-------+---------
-=======
-      List of relations
- Schema | Name | Type | Owner 
---------+------+------+-------
->>>>>>> REL_16_9
 (0 rows)
 
 \dv "no.such.schema"."no.such.relation"
@@ -6594,15 +6555,9 @@ cross-database references are not implemented: "no.such.schema"."no.such.languag
 (0 rows)
 
 \dO "no.such.schema"."no.such.collation"
-<<<<<<< HEAD
-                     List of collations
- Schema | Name | Collate | Ctype | Provider | Deterministic? 
---------+------+---------+-------+----------+----------------
-=======
                                   List of collations
  Schema | Name | Provider | Collate | Ctype | ICU Locale | ICU Rules | Deterministic? 
 --------+------+----------+---------+-------+------------+-----------+----------------
->>>>>>> REL_16_9
 (0 rows)
 
 \dp "no.such.schema"."no.such.access.privilege"
@@ -6641,15 +6596,9 @@ improper qualified name (too many dotted names): "no.such.schema"."no.such.insta
 improper qualified name (too many dotted names): "no.such.schema"."no.such.event.trigger"
 -- again, but with current database and dotted schema qualifications.
 \dt regression."no.such.schema"."no.such.table.relation"
-<<<<<<< HEAD
            List of relations
  Schema | Name | Type | Owner | Storage 
 --------+------+------+-------+---------
-=======
-      List of relations
- Schema | Name | Type | Owner 
---------+------+------+-------
->>>>>>> REL_16_9
 (0 rows)
 
 \da regression."no.such.schema"."no.such.aggregate.function"
@@ -6701,15 +6650,9 @@ improper qualified name (too many dotted names): "no.such.schema"."no.such.event
 (0 rows)
 
 \dt regression."no.such.schema"."no.such.relation"
-<<<<<<< HEAD
            List of relations
  Schema | Name | Type | Owner | Storage 
 --------+------+------+-------+---------
-=======
-      List of relations
- Schema | Name | Type | Owner 
---------+------+------+-------
->>>>>>> REL_16_9
 (0 rows)
 
 \dv regression."no.such.schema"."no.such.relation"
@@ -6755,15 +6698,9 @@ List of text search templates
 (0 rows)
 
 \dO regression."no.such.schema"."no.such.collation"
-<<<<<<< HEAD
-                     List of collations
- Schema | Name | Collate | Ctype | Provider | Deterministic? 
---------+------+---------+-------+----------+----------------
-=======
                                   List of collations
  Schema | Name | Provider | Collate | Ctype | ICU Locale | ICU Rules | Deterministic? 
 --------+------+----------+---------+-------+------------+-----------+----------------
->>>>>>> REL_16_9
 (0 rows)
 
 \dp regression."no.such.schema"."no.such.access.privilege"
@@ -6837,8 +6774,6 @@ cross-database references are not implemented: "no.such.database"."no.such.schem
 cross-database references are not implemented: "no.such.database"."no.such.schema"."no.such.data.type"
 \dX "no.such.database"."no.such.schema"."no.such.extended.statistics"
 cross-database references are not implemented: "no.such.database"."no.such.schema"."no.such.extended.statistics"
-<<<<<<< HEAD
-=======
 -- check \drg and \du
 CREATE ROLE regress_du_role0;
 CREATE ROLE regress_du_role1;
@@ -6859,12 +6794,12 @@ GRANT regress_du_role0 TO regress_du_role2 WITH ADMIN FALSE, INHERIT FALSE, SET 
     Role name     |    Member of     |       Options       |     Grantor      
 ------------------+------------------+---------------------+------------------
  regress_du_role1 | regress_du_role0 | ADMIN, INHERIT, SET | regress_du_admin
- regress_du_role1 | regress_du_role0 | INHERIT             | regress_du_role1
- regress_du_role1 | regress_du_role0 | SET                 | regress_du_role2
- regress_du_role2 | regress_du_role0 | ADMIN               | regress_du_admin
+ regress_du_role1 | regress_du_role0 | INHERIT, SET        | regress_du_role1
+ regress_du_role1 | regress_du_role0 | INHERIT, SET        | regress_du_role2
+ regress_du_role2 | regress_du_role0 | ADMIN, INHERIT, SET | regress_du_admin
  regress_du_role2 | regress_du_role0 | INHERIT, SET        | regress_du_role1
- regress_du_role2 | regress_du_role0 |                     | regress_du_role2
- regress_du_role2 | regress_du_role1 | ADMIN, SET          | regress_du_admin
+ regress_du_role2 | regress_du_role0 | INHERIT, SET        | regress_du_role2
+ regress_du_role2 | regress_du_role1 | ADMIN, INHERIT, SET | regress_du_admin
 (7 rows)
 
 \du regress_du_role*
@@ -6879,4 +6814,3 @@ DROP ROLE regress_du_role0;
 DROP ROLE regress_du_role1;
 DROP ROLE regress_du_role2;
 DROP ROLE regress_du_admin;
->>>>>>> REL_16_9

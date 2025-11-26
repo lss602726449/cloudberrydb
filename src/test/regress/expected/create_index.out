@@ -1357,7 +1357,7 @@ unique, btree, for table "public.unique_tbl"
  Column |  Type   | Key? | Definition 
 --------+---------+------+------------
  i      | integer | yes  | i
-unique, btree, for table "public.unique_tbl"
+unique nulls not distinct, btree, for table "public.unique_tbl"
 
 SELECT pg_get_indexdef('unique_idx3'::regclass);
                            pg_get_indexdef                            
