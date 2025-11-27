@@ -2,7 +2,6 @@
 -- Test foreign-data wrapper and server management.
 --
 
-<<<<<<< HEAD
 -- In GPDB, there are a couple of special built-in objects, to handle
 -- backwards-compatibility with external tables. They are the FDW called
 -- 'gp_exttable_fdw', foreign server 'gp_exttable_server'. We don't want those
@@ -17,7 +16,7 @@
 -- but 'g' (the 2nd rule is needed to include the 'postgresql' FDW used in the
 -- test).
 \set NO_BUILTINS ([a-fh-z]?*)|(g[a-oq-z]?*)
-=======
+
 -- directory paths and dlsuffix are passed to us in environment variables
 \getenv libdir PG_LIBDIR
 \getenv dlsuffix PG_DLSUFFIX
@@ -29,7 +28,6 @@ CREATE FUNCTION test_fdw_handler()
     AS :'regresslib', 'test_fdw_handler'
     LANGUAGE C;
 
->>>>>>> REL_16_9
 -- Clean up in case a prior regression run failed
 
 -- Suppress NOTICE messages when roles don't exist
@@ -439,11 +437,7 @@ ALTER FOREIGN TABLE ft1 DROP COLUMN c9;
 ALTER FOREIGN TABLE ft1 ADD COLUMN c11 serial;
 ALTER FOREIGN TABLE ft1 SET SCHEMA foreign_schema;
 ALTER FOREIGN TABLE ft1 SET TABLESPACE ts;                      -- ERROR
-<<<<<<< HEAD
-ALTER FOREIGN TABLE foreign_schema.ft1 SET TABLESPACE ts;       -- ERROR
-=======
 ALTER SEQUENCE foreign_schema.ft1_c11_seq SET SCHEMA public;    -- ERROR
->>>>>>> REL_16_9
 ALTER FOREIGN TABLE foreign_schema.ft1 RENAME c1 TO foreign_column_1;
 ALTER FOREIGN TABLE foreign_schema.ft1 RENAME TO foreign_table_1;
 \d foreign_schema.foreign_table_1

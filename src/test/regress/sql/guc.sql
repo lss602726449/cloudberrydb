@@ -319,7 +319,6 @@ set default_with_oids to f;
 -- Should not allow to set it to true.
 set default_with_oids to t;
 
-<<<<<<< HEAD
 SET "request.header.user.agent" = 'curl/7.29.0';
 SHOW "request.header.user.agent";
 
@@ -349,7 +348,7 @@ drop table public.t1;
 drop type public.ty1;
 drop function n1.drop_table(v_schema character varying, v_table character varying);
 drop schema n1;
-=======
+
 -- Test GUC categories and flag patterns
 SELECT pg_settings_get_flags(NULL);
 SELECT pg_settings_get_flags('does_not_exist');
@@ -384,4 +383,3 @@ SELECT name FROM tab_settings_flags
   WHERE no_reset AND NOT no_reset_all
   ORDER BY 1;
 DROP TABLE tab_settings_flags;
->>>>>>> REL_16_9

@@ -148,18 +148,18 @@ test: collate.linux.utf8
 # test: write_parallel
 test: publication
 test: subscription
-# test: select_views
-# test: portals_p2
+test: select_views
+test: portals_p2
 # #test: foreign_key
-# test: cluster
-# test: dependency
-# test: guc
-# test: bitmapops
-# test: combocid
-# test: tsearch
-# test: tsdicts
-# test: foreign_data
-# test: gp_foreign_data
+test: cluster
+test: dependency
+test: guc
+test: bitmapops
+test: combocid
+test: tsearch
+test: tsdicts
+test: foreign_data
+test: gp_foreign_data
 # test: window
 # test: xmlmap
 # test: functional_deps
