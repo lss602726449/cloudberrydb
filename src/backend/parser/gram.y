@@ -21158,6 +21158,7 @@ unreserved_keyword:
 			| FILTER
 			| FINALIZE
 			| FIRST_P
+			| FOLLOWING
 			| FORCE
 			| FORMAT
 			| FORWARD
@@ -21282,6 +21283,7 @@ unreserved_keyword:
 			| PERSISTENTLY
 			| PLANS
 			| POLICY
+			| PRECEDING
 			| PREPARE
 			| PREPARED
 			| PRESERVE
@@ -21392,6 +21394,7 @@ unreserved_keyword:
 			| TYPE_P
 			| TYPES_P
 			| UESCAPE
+			| UNBOUNDED
 			| UNCOMMITTED
 			| UNENCRYPTED
 			| UNKNOWN
@@ -21916,7 +21919,6 @@ reserved_keyword:
 			| EXCLUDE 
 			| FALSE_P
 			| FETCH
-			| FOLLOWING
 			| FOR
 			| FOREIGN
 			| FROM
@@ -21941,7 +21943,6 @@ reserved_keyword:
 			| ORDER
 			| PARTITION
 			| PLACING
-			| PRECEDING
 			| PRIMARY
 			| REFERENCES
 			| RETURNING
@@ -21956,7 +21957,6 @@ reserved_keyword:
 			| TO
 			| TRAILING
 			| TRUE_P
-			| UNBOUNDED
 			| UNION
 			| UNIQUE
 			| USER
@@ -22306,7 +22306,6 @@ bare_label_keyword:
 			| POLICY
 			| POSITION
 			| PRECEDING
-			| PRECISION
 			| PREPARE
 			| PREPARED
 			| PRESERVE

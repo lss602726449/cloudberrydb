@@ -1103,7 +1103,6 @@ SELECT * FROM
    FROM empsalary) emp
 WHERE depname = 'sales';
 
-<<<<<<< HEAD
 -- pushdown is unsafe because the subquery contains window functions and the qual is volatile:
 EXPLAIN (COSTS OFF)
 SELECT * FROM
@@ -1112,7 +1111,7 @@ SELECT * FROM
           min(salary) OVER (PARTITION BY depname || 'A', depname) depminsalary
    FROM empsalary) emp
 WHERE depname = 'sales' OR RANDOM() > 0.5;
-=======
+
 -- Test window function run conditions are properly pushed down into the
 -- WindowAgg
 EXPLAIN (COSTS OFF)
@@ -1375,7 +1374,6 @@ SELECT * FROM
           count((SELECT 1)) OVER (ORDER BY empno DESC) c
    FROM empsalary) emp
 WHERE c = 1;
->>>>>>> REL_16_9
 
 -- Test Sort node collapsing
 EXPLAIN (COSTS OFF)

@@ -1071,6 +1071,7 @@ _outWindowAgg(StringInfo str, const WindowAgg *node)
 	WRITE_OID_FIELD(inRangeColl);
 	WRITE_BOOL_FIELD(inRangeAsc);
 	WRITE_BOOL_FIELD(inRangeNullsFirst);
+	WRITE_BOOL_FIELD(topWindow);
 }
 
 static void
@@ -4039,7 +4040,6 @@ _outSortBy(StringInfo str, const SortBy *node)
 	WRITE_LOCATION_FIELD(location);
 }
 
-#ifndef COMPILING_BINARY_FUNCS
 static void
 _outWindowDef(StringInfo str, const WindowDef *node)
 {
@@ -4054,6 +4054,8 @@ _outWindowDef(StringInfo str, const WindowDef *node)
 	WRITE_NODE_FIELD(endOffset);
 	WRITE_LOCATION_FIELD(location);
 }
+
+#ifndef COMPILING_BINARY_FUNCS
 
 static void
 _outRangeSubselect(StringInfo str, const RangeSubselect *node)

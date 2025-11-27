@@ -2973,6 +2973,9 @@ readNodeBinary(void)
 			case T_PublicationTable:
 				return_value = _readPublicationTable();
 				break;
+			case T_WindowDef:
+				return_value = _readWindowDef();
+				break;
 			default:
 				return_value = NULL; /* keep the compiler silent */
 				elog(ERROR, "could not deserialize unrecognized node type: %d",

@@ -3050,16 +3050,17 @@ SELECT count(*) FROM testjsonb WHERE j ?& ARRAY['public','disabled'];
 
 EXPLAIN (COSTS OFF)
 SELECT count(*) FROM testjsonb WHERE j @@ '$.wait == null';
-                              QUERY PLAN                               
------------------------------------------------------------------------
- Aggregate
+                                 QUERY PLAN                                  
+-----------------------------------------------------------------------------
+ Finalize Aggregate
    ->  Gather Motion 3:1  (slice1; segments: 3)
-         ->  Bitmap Heap Scan on testjsonb
-               Recheck Cond: (j @@ '($."wait" == null)'::jsonpath)
-               ->  Bitmap Index Scan on jidx
-                     Index Cond: (j @@ '($."wait" == null)'::jsonpath)
+         ->  Partial Aggregate
+               ->  Bitmap Heap Scan on testjsonb
+                     Recheck Cond: (j @@ '($."wait" == null)'::jsonpath)
+                     ->  Bitmap Index Scan on jidx
+                           Index Cond: (j @@ '($."wait" == null)'::jsonpath)
  Optimizer: Postgres query optimizer
-(7 rows)
+(8 rows)
 
 SELECT count(*) FROM testjsonb WHERE j @@ '$.wait == null';
  count 
@@ -3165,16 +3166,17 @@ SELECT count(*) FROM testjsonb WHERE j @@ 'exists($.public) && exists($.disabled
 
 EXPLAIN (COSTS OFF)
 SELECT count(*) FROM testjsonb WHERE j @? '$.wait ? (@ == null)';
-                               QUERY PLAN                                
--------------------------------------------------------------------------
- Aggregate
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Finalize Aggregate
    ->  Gather Motion 3:1  (slice1; segments: 3)
-         ->  Bitmap Heap Scan on testjsonb
-               Recheck Cond: (j @? '$."wait"?(@ == null)'::jsonpath)
-               ->  Bitmap Index Scan on jidx
-                     Index Cond: (j @? '$."wait"?(@ == null)'::jsonpath)
+         ->  Partial Aggregate
+               ->  Bitmap Heap Scan on testjsonb
+                     Recheck Cond: (j @? '$."wait"?(@ == null)'::jsonpath)
+                     ->  Bitmap Index Scan on jidx
+                           Index Cond: (j @? '$."wait"?(@ == null)'::jsonpath)
  Optimizer: Postgres query optimizer
-(7 rows)
+(8 rows)
 
 SELECT count(*) FROM testjsonb WHERE j @? '$.wait ? (@ == null)';
  count 
@@ -3473,16 +3475,17 @@ SELECT count(*) FROM testjsonb WHERE j @@ 'exists($)';
 
 EXPLAIN (COSTS OFF)
 SELECT count(*) FROM testjsonb WHERE j @? '$.wait ? (@ == null)';
-                               QUERY PLAN                                
--------------------------------------------------------------------------
- Aggregate
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Finalize Aggregate
    ->  Gather Motion 3:1  (slice1; segments: 3)
-         ->  Bitmap Heap Scan on testjsonb
-               Recheck Cond: (j @? '$."wait"?(@ == null)'::jsonpath)
-               ->  Bitmap Index Scan on jidx
-                     Index Cond: (j @? '$."wait"?(@ == null)'::jsonpath)
+         ->  Partial Aggregate
+               ->  Bitmap Heap Scan on testjsonb
+                     Recheck Cond: (j @? '$."wait"?(@ == null)'::jsonpath)
+                     ->  Bitmap Index Scan on jidx
+                           Index Cond: (j @? '$."wait"?(@ == null)'::jsonpath)
  Optimizer: Postgres query optimizer
-(7 rows)
+(8 rows)
 
 SELECT count(*) FROM testjsonb WHERE j @? '$.wait ? (@ == null)';
  count 

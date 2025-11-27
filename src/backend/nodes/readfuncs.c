@@ -2535,6 +2535,7 @@ _readWindowAgg(void)
 	READ_OID_FIELD(inRangeColl);
 	READ_BOOL_FIELD(inRangeAsc);
 	READ_BOOL_FIELD(inRangeNullsFirst);
+	READ_BOOL_FIELD(topWindow);
 
 	READ_DONE();
 }
@@ -2974,6 +2975,23 @@ _readPublicationTable(void)
 	READ_NODE_FIELD(relation);
 	READ_NODE_FIELD(whereClause);
 	READ_NODE_FIELD(columns);
+
+	READ_DONE();
+}
+
+static WindowDef *
+_readWindowDef(void)
+{
+	READ_LOCALS(WindowDef);
+
+	READ_STRING_FIELD(name);
+	READ_STRING_FIELD(refname);
+	READ_NODE_FIELD(partitionClause);
+	READ_NODE_FIELD(orderClause);
+	READ_INT_FIELD(frameOptions);
+	READ_NODE_FIELD(startOffset);
+	READ_NODE_FIELD(endOffset);
+	READ_LOCATION_FIELD(location);
 
 	READ_DONE();
 }
@@ -3505,6 +3523,8 @@ parseNodeString(void)
 		return_value = _readPublicationObjSpec();
 	else if (MATCHX("PUBLICATIONTABLE"))
 		return_value = _readPublicationTable();
+	else if (MATCHX("WINDOWDEF"))
+		return_value = _readWindowDef();
 	else
 	{
         ereport(ERROR,
