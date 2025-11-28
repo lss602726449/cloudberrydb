@@ -862,8 +862,6 @@ select * from
    from unnest(array['{"lectures": [{"id": "1"}]}'::jsonb])
         as unnested_modules(module)) as ss,
   jsonb_to_recordset(ss.lecture) as j (id text);
-<<<<<<< HEAD
-=======
 
 -- check detection of mismatching record types with a const-folded expression
 
@@ -874,4 +872,3 @@ select * from a, coalesce(b) as c(d int, e int, f int, g int);  -- fail
 with a(b) as (values (row(1,2,3)))
 select * from a, coalesce(b) as c(d int, e int, f float);  -- fail
 select * from int8_tbl, coalesce(row(1)) as (a int, b int);  -- fail
->>>>>>> REL_16_9

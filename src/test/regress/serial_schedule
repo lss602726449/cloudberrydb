@@ -169,19 +169,19 @@ test: equivclass
 test: json
 test: jsonb
 test: json_encoding
-# test: jsonpath
-# test: jsonpath_encoding
-# test: jsonb_jsonpath
-# test: plancache
-# test: limit
-# test: plpgsql
+test: jsonpath
+test: jsonpath_encoding
+test: jsonb_jsonpath
+test: plancache
+test: limit
+test: plpgsql
 # test: copy2
-# test: temp
-# test: domain
-# test: rangefuncs
-# test: prepare
-# test: conversion
-# test: truncate
+test: temp
+test: domain
+test: rangefuncs
+test: prepare
+test: conversion
+test: truncate
 # test: alter_table
 # test: sequence
 # test: polymorphism

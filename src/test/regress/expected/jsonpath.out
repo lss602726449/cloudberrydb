@@ -567,19 +567,6 @@ select '$ ? (@.a < +1)'::jsonpath;
 (1 row)
 
 select '$ ? (@.a < .1)'::jsonpath;
-<<<<<<< HEAD
-ERROR:  syntax error at or near "." of jsonpath input
-LINE 1: select '$ ? (@.a < .1)'::jsonpath;
-               ^
-select '$ ? (@.a < -.1)'::jsonpath;
-ERROR:  syntax error at or near "." of jsonpath input
-LINE 1: select '$ ? (@.a < -.1)'::jsonpath;
-               ^
-select '$ ? (@.a < +.1)'::jsonpath;
-ERROR:  syntax error at or near "." of jsonpath input
-LINE 1: select '$ ? (@.a < +.1)'::jsonpath;
-               ^
-=======
     jsonpath     
 -----------------
  $?(@."a" < 0.1)
@@ -597,7 +584,6 @@ select '$ ? (@.a < +.1)'::jsonpath;
  $?(@."a" < 0.1)
 (1 row)
 
->>>>>>> REL_16_9
 select '$ ? (@.a < 0.1)'::jsonpath;
     jsonpath     
 -----------------
@@ -653,19 +639,6 @@ select '$ ? (@.a < +1e1)'::jsonpath;
 (1 row)
 
 select '$ ? (@.a < .1e1)'::jsonpath;
-<<<<<<< HEAD
-ERROR:  syntax error at or near "." of jsonpath input
-LINE 1: select '$ ? (@.a < .1e1)'::jsonpath;
-               ^
-select '$ ? (@.a < -.1e1)'::jsonpath;
-ERROR:  syntax error at or near "." of jsonpath input
-LINE 1: select '$ ? (@.a < -.1e1)'::jsonpath;
-               ^
-select '$ ? (@.a < +.1e1)'::jsonpath;
-ERROR:  syntax error at or near "." of jsonpath input
-LINE 1: select '$ ? (@.a < +.1e1)'::jsonpath;
-               ^
-=======
    jsonpath    
 ---------------
  $?(@."a" < 1)
@@ -683,7 +656,6 @@ select '$ ? (@.a < +.1e1)'::jsonpath;
  $?(@."a" < 1)
 (1 row)
 
->>>>>>> REL_16_9
 select '$ ? (@.a < 0.1e1)'::jsonpath;
    jsonpath    
 ---------------
@@ -739,19 +711,6 @@ select '$ ? (@.a < +1e-1)'::jsonpath;
 (1 row)
 
 select '$ ? (@.a < .1e-1)'::jsonpath;
-<<<<<<< HEAD
-ERROR:  syntax error at or near "." of jsonpath input
-LINE 1: select '$ ? (@.a < .1e-1)'::jsonpath;
-               ^
-select '$ ? (@.a < -.1e-1)'::jsonpath;
-ERROR:  syntax error at or near "." of jsonpath input
-LINE 1: select '$ ? (@.a < -.1e-1)'::jsonpath;
-               ^
-select '$ ? (@.a < +.1e-1)'::jsonpath;
-ERROR:  syntax error at or near "." of jsonpath input
-LINE 1: select '$ ? (@.a < +.1e-1)'::jsonpath;
-               ^
-=======
      jsonpath     
 ------------------
  $?(@."a" < 0.01)
@@ -769,7 +728,6 @@ select '$ ? (@.a < +.1e-1)'::jsonpath;
  $?(@."a" < 0.01)
 (1 row)
 
->>>>>>> REL_16_9
 select '$ ? (@.a < 0.1e-1)'::jsonpath;
      jsonpath     
 ------------------
@@ -825,19 +783,6 @@ select '$ ? (@.a < +1e+1)'::jsonpath;
 (1 row)
 
 select '$ ? (@.a < .1e+1)'::jsonpath;
-<<<<<<< HEAD
-ERROR:  syntax error at or near "." of jsonpath input
-LINE 1: select '$ ? (@.a < .1e+1)'::jsonpath;
-               ^
-select '$ ? (@.a < -.1e+1)'::jsonpath;
-ERROR:  syntax error at or near "." of jsonpath input
-LINE 1: select '$ ? (@.a < -.1e+1)'::jsonpath;
-               ^
-select '$ ? (@.a < +.1e+1)'::jsonpath;
-ERROR:  syntax error at or near "." of jsonpath input
-LINE 1: select '$ ? (@.a < +.1e+1)'::jsonpath;
-               ^
-=======
    jsonpath    
 ---------------
  $?(@."a" < 1)
@@ -855,7 +800,6 @@ select '$ ? (@.a < +.1e+1)'::jsonpath;
  $?(@."a" < 1)
 (1 row)
 
->>>>>>> REL_16_9
 select '$ ? (@.a < 0.1e+1)'::jsonpath;
    jsonpath    
 ---------------
@@ -900,11 +844,7 @@ select '0'::jsonpath;
 (1 row)
 
 select '00'::jsonpath;
-<<<<<<< HEAD
-ERROR:  syntax error at end of jsonpath input
-=======
 ERROR:  trailing junk after numeric literal at or near "00" of jsonpath input
->>>>>>> REL_16_9
 LINE 1: select '00'::jsonpath;
                ^
 select '0755'::jsonpath;
@@ -1068,22 +1008,6 @@ select '(1.2).e3'::jsonpath;
 (1 row)
 
 select '1..e'::jsonpath;
-<<<<<<< HEAD
-ERROR:  syntax error at or near "." of jsonpath input
-LINE 1: select '1..e'::jsonpath;
-               ^
-select '1..e3'::jsonpath;
-ERROR:  syntax error at or near "." of jsonpath input
-LINE 1: select '1..e3'::jsonpath;
-               ^
-select '(1.).e'::jsonpath;
-ERROR:  syntax error at or near ")" of jsonpath input
-LINE 1: select '(1.).e'::jsonpath;
-               ^
-select '(1.).e3'::jsonpath;
-ERROR:  syntax error at or near ")" of jsonpath input
-LINE 1: select '(1.).e3'::jsonpath;
-=======
  jsonpath 
 ----------
  (1)."e"
@@ -1136,7 +1060,6 @@ select '0x42F'::jsonpath;
 select '0b'::jsonpath;
 ERROR:  trailing junk after numeric literal at or near "0b" of jsonpath input
 LINE 1: select '0b'::jsonpath;
->>>>>>> REL_16_9
                ^
 select '1b'::jsonpath;
 ERROR:  trailing junk after numeric literal at or near "1b" of jsonpath input

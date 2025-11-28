@@ -1440,9 +1440,11 @@ insert into test_jsonb_subscript
 select length(id), test_json[id] from test_jsonb_subscript;
 update test_jsonb_subscript set test_json[id] = '"baz"';
 select length(id), test_json[id] from test_jsonb_subscript;
+-- start_ignore
 \x
 table test_jsonb_subscript;
 \x
+-- end_ignore
 
 -- jsonb to tsvector
 select to_tsvector('{"a": "aaa bbb ddd ccc", "b": ["eee fff ggg"], "c": {"d": "hhh iii"}}'::jsonb);
