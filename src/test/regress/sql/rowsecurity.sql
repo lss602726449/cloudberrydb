@@ -1321,12 +1321,8 @@ DROP VIEW rls_sbv;
 -- Expression structure
 --
 SET SESSION AUTHORIZATION regress_rls_alice;
-<<<<<<< HEAD
-INSERT INTO y2 (SELECT x, md5(x::text) FROM generate_series(0,20) x);
-ANALYZE y2;
-=======
 INSERT INTO y2 (SELECT x, public.fipshash(x::text) FROM generate_series(0,20) x);
->>>>>>> REL_16_9
+ANALYZE y2;
 CREATE POLICY p2 ON y2 USING (a % 3 = 0);
 CREATE POLICY p3 ON y2 USING (a % 4 = 0);
 
@@ -2210,10 +2206,6 @@ execute q;
 set role regress_rls_bob;
 execute q;
 
-<<<<<<< HEAD
-RESET ROLE;
-DROP FUNCTION rls_f();
-=======
 -- make sure RLS dependencies in CTEs are handled
 reset role;
 create or replace function rls_f() returns setof rls_t
@@ -2274,7 +2266,6 @@ execute v;
 RESET ROLE;
 DROP FUNCTION rls_f();
 DROP VIEW rls_v;
->>>>>>> REL_16_9
 DROP TABLE rls_t;
 
 --
