@@ -515,7 +515,7 @@ SELECT a.relname, a.relfilenode=b.relfilenode FROM pg_class a
 -----------+----------
  ptnowner  | t
  ptnowner1 | f
- ptnowner2 | t
+ ptnowner2 | f
 (3 rows)
 
 DROP TABLE ptnowner;
@@ -591,11 +591,7 @@ COMMIT;
 -- and after clustering on clstr_expression_minus_a
 CLUSTER clstr_expression USING clstr_expression_minus_a;
 WITH rows AS
-<<<<<<< HEAD
   (SELECT ctid, lag(a) OVER (PARTITION BY gp_segment_id ORDER BY ctid) AS la, a FROM clstr_expression)
-=======
-  (SELECT ctid, lag(a) OVER (ORDER BY ctid) AS la, a FROM clstr_expression)
->>>>>>> REL_16_9
 SELECT * FROM rows WHERE la < a;
  ctid | la | a 
 ------+----+---
@@ -641,11 +637,7 @@ COMMIT;
 -- and after clustering on clstr_expression_upper_b
 CLUSTER clstr_expression USING clstr_expression_upper_b;
 WITH rows AS
-<<<<<<< HEAD
   (SELECT ctid, lag(b) OVER (PARTITION BY gp_segment_id ORDER BY ctid) AS lb, b FROM clstr_expression)
-=======
-  (SELECT ctid, lag(b) OVER (ORDER BY ctid) AS lb, b FROM clstr_expression)
->>>>>>> REL_16_9
 SELECT * FROM rows WHERE upper(lb) > upper(b);
  ctid | lb | b 
 ------+----+---

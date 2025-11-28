@@ -333,9 +333,10 @@ cluster_multiple_rels(ClusterStmt *stmt, List *rtcs, ClusterParams *params, Rang
 
 		if (Gp_role == GP_ROLE_DISPATCH && dispatch)
 		{
-			relation = makeNode(RangeVar);
-			relation->schemaname = get_namespace_name(get_rel_namespace(rtc->tableOid));
-			relation->relname = get_rel_name(rtc->tableOid);
+			stmt->relation = makeNode(RangeVar);
+			stmt->relation->schemaname = get_namespace_name(get_rel_namespace(rtc->tableOid));
+			stmt->relation->relname = get_rel_name(rtc->tableOid);
+			stmt->indexname = get_rel_name(rtc->indexOid);
 			/* other fields in stmt are same */
 			CdbDispatchUtilityStatement((Node *) stmt,
 										DF_CANCEL_ON_ERROR|

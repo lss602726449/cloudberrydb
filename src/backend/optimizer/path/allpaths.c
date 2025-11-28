@@ -4407,7 +4407,7 @@ push_down_restrict(PlannerInfo *root, RelOptInfo *rel,
 			Node	   *clause = (Node *) rinfo->clause;
 
 			if (!rinfo->pseudoconstant &&
-				qual_is_pushdown_safe(subquery, rti, rinfo, &safetyInfo))
+				qual_is_pushdown_safe(subquery, rti, rinfo, &safetyInfo) == PUSHDOWN_SAFE)
 			{
 				/* Push it down */
 				subquery_push_qual(subquery, rte, rti, clause);
