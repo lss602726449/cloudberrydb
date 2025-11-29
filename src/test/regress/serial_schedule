@@ -190,17 +190,17 @@ test: returning
 # # GPDB_83_MERGE_FIXME: the largeobject test is temporarily disabled due to test errors
 # ignore: largeobject
 #test: with
-#test: xml
-# test: partition_join
-# test: partition_prune
-# test: reloptions
-# test: hash_part
-# test: indexing
-# test: partition_aggregate
-# test: partition_info
-# test: tuplesort
+test: xml
+test: partition_join
+test: partition_prune
+test: reloptions
+test: hash_part
+test: indexing
+test: partition_aggregate
+test: partition_info
+test: tuplesort
 # test: explain
-# test: event_trigger
-# test: fast_default
-# test: stats
-# test: createdb
+test: event_trigger
+test: fast_default
+#test: stats
+#test: createdb

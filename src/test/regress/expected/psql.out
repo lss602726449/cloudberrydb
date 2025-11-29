@@ -5671,9 +5671,9 @@ SELECT 'ok' AS "done" ;
  ok
 (1 row)
 
+Hobbes
 Calvin
 Susie
-Hobbes
  done 
 ------
  ok
@@ -6794,12 +6794,12 @@ GRANT regress_du_role0 TO regress_du_role2 WITH ADMIN FALSE, INHERIT FALSE, SET 
     Role name     |    Member of     |       Options       |     Grantor      
 ------------------+------------------+---------------------+------------------
  regress_du_role1 | regress_du_role0 | ADMIN, INHERIT, SET | regress_du_admin
- regress_du_role1 | regress_du_role0 | INHERIT, SET        | regress_du_role1
- regress_du_role1 | regress_du_role0 | INHERIT, SET        | regress_du_role2
- regress_du_role2 | regress_du_role0 | ADMIN, INHERIT, SET | regress_du_admin
+ regress_du_role1 | regress_du_role0 | INHERIT             | regress_du_role1
+ regress_du_role1 | regress_du_role0 | SET                 | regress_du_role2
+ regress_du_role2 | regress_du_role0 | ADMIN               | regress_du_admin
  regress_du_role2 | regress_du_role0 | INHERIT, SET        | regress_du_role1
- regress_du_role2 | regress_du_role0 | INHERIT, SET        | regress_du_role2
- regress_du_role2 | regress_du_role1 | ADMIN, INHERIT, SET | regress_du_admin
+ regress_du_role2 | regress_du_role0 |                     | regress_du_role2
+ regress_du_role2 | regress_du_role1 | ADMIN, SET          | regress_du_admin
 (7 rows)
 
 \du regress_du_role*

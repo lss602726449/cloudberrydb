@@ -1025,9 +1025,8 @@ SetSessionAuthorization(Oid userid, bool is_superuser)
 		SetResQueueId();
 	}
 
-	SetConfigOption("is_superuser",
-					is_superuser ? "on" : "off",
-					PGC_INTERNAL, PGC_S_OVERRIDE);
+	if (!SetRoleIsActive)
+		SetOuterUserId(userid, is_superuser);
 }
 
 /*
