@@ -1288,104 +1288,6 @@ transformTableLikeClause(CreateStmtContext *cxt, TableLikeClause *table_like_cla
 	}
 
 	/*
-	 * GPDB_12_MERGE_FIXME:
-	 * 		This is wrong and creates unspecified behaviour when multiple like
-	 * 		clauses are present in the statement.
-	 *
-	 *		Try to use a unified interface for encoding handling in a manner
-	 *		similar to CREATE/ALTER commands.
-	 */
-	/*
-	 * If STORAGE is included, we need to copy over the table storage params
-	 * as well as the attribute encodings.
-	 */
-	if (stmt && table_like_clause->options & CREATE_TABLE_LIKE_STORAGE)
-	{
-		MemoryContext oldcontext;
-		/*
-		 * As we are modifying the utility statement we must make sure these
-		 * DefElem allocations can survive outside of this context.
-		 */
-		oldcontext = MemoryContextSwitchTo(CurTransactionContext);
-
-		if (RelationStorageIsAO(relation))
-		{
-			bool		checksum = true;
-			int32		blocksize = -1;
-			int16		compresslevel = 0;
-			NameData	compresstype;
-
-			GetAppendOnlyEntryAttributes(relation->rd_id,&blocksize,
-																	&compresslevel,&checksum,&compresstype);
-
-			stmt->accessMethod = get_am_name(relation->rd_rel->relam);
-
-			stmt->options = lappend(stmt->options,
-									makeDefElem("blocksize", (Node *) makeInteger(blocksize), -1));
-			stmt->options = lappend(stmt->options,
-									makeDefElem("checksum", (Node *) makeInteger(checksum), -1));
-			stmt->options = lappend(stmt->options,
-									makeDefElem("compresslevel", (Node *) makeInteger(compresslevel), -1));
-			if (strlen(NameStr(compresstype)) > 0)
-				stmt->options = lappend(stmt->options,
-										makeDefElem("compresstype", (Node *) makeString(pstrdup(NameStr(compresstype))), -1));
-		}
-
-		/*
-		 * Set the attribute encodings.
-		 */
-		cxt->attr_encodings = list_union(cxt->attr_encodings, rel_get_column_encodings(relation));
-		MemoryContextSwitchTo(oldcontext);
-	}
-
-	/*
-	 * We may copy extended statistics if requested, since the representation
-	 * of CreateStatsStmt doesn't depend on column numbers.
-	 */
-	if (table_like_clause->options & CREATE_TABLE_LIKE_STATISTICS)
-	{
-		List	   *parent_extstats;
-		ListCell   *l;
-		AttrMap    *attmap;
-
-		parent_extstats = RelationGetStatExtList(relation);
-
-		/*
-		 * Construct a map from the LIKE relation's attnos to the child rel's.
-		 * This re-checks type match etc, although it shouldn't be possible to
-		 * have a failure since both tables are locked.
-		 */
-		attmap = build_attrmap_by_name(RelationGetDescr(relation),
-									   tupleDesc,
-									   false);
-
-		foreach(l, parent_extstats)
-		{
-			Oid			parent_stat_oid = lfirst_oid(l);
-			CreateStatsStmt *stats_stmt;
-
-			stats_stmt = generateClonedExtStatsStmt(cxt->relation,
-													RelationGetRelid(relation),
-													parent_stat_oid,
-													attmap);
-
-			/* Copy comment on statistics object, if requested */
-			if (table_like_clause->options & CREATE_TABLE_LIKE_COMMENTS)
-			{
-				comment = GetComment(parent_stat_oid, StatisticExtRelationId, 0);
-
-				/*
-				 * We make use of CreateStatsStmt's stxcomment option, so as
-				 * not to need to know now what name the statistics will have.
-				 */
-				stats_stmt->stxcomment = comment;
-			}
-		}
-
-		list_free(parent_extstats);
-	}
-
-	/*
 	 * Close the parent rel, but keep our AccessShareLock on it until xact
 	 * commit.  That will prevent someone else from deleting or ALTERing the
 	 * parent before we can run expandTableLikeClause.
@@ -2161,6 +2063,7 @@ generateClonedExtStatsStmt(RangeVar *heapRel, Oid heapRelid,
 		else if (enabled[i] == STATS_EXT_MCV)
 			stat_types = lappend(stat_types, makeString("mcv"));
 		else if (enabled[i] == STATS_EXT_EXPRESSIONS)
+			/* expression stats are not exposed to users */
 			continue;
 		else
 			elog(ERROR, "unrecognized statistics kind %c", enabled[i]);
@@ -2174,6 +2077,7 @@ generateClonedExtStatsStmt(RangeVar *heapRel, Oid heapRelid,
 
 		selem->name = get_attname(heapRelid, attnum, false);
 		selem->expr = NULL;
+
 		def_names = lappend(def_names, selem);
 	}
 
@@ -2188,6 +2092,7 @@ generateClonedExtStatsStmt(RangeVar *heapRel, Oid heapRelid,
 	 */
 	datum = SysCacheGetAttr(STATEXTOID, ht_stats,
 							Anum_pg_statistic_ext_stxexprs, &isnull);
+
 	if (!isnull)
 	{
 		ListCell   *lc;
@@ -2196,13 +2101,26 @@ generateClonedExtStatsStmt(RangeVar *heapRel, Oid heapRelid,
 
 		exprsString = TextDatumGetCString(datum);
 		exprs = (List *) stringToNode(exprsString);
+
 		foreach(lc, exprs)
 		{
+			Node	   *expr = (Node *) lfirst(lc);
 			StatsElem  *selem = makeNode(StatsElem);
+			bool		found_whole_row;
+
+			/* Adjust Vars to match new table's column numbering */
+			expr = map_variable_attnos(expr,
+									   1, 0,
+									   attmap,
+									   InvalidOid,
+									   &found_whole_row);
+
 			selem->name = NULL;
-			selem->expr = (Node *) lfirst(lc);
+			selem->expr = expr;
+
 			def_names = lappend(def_names, selem);
 		}
+
 		pfree(exprsString);
 	}
 
