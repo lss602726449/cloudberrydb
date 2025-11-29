@@ -1186,3 +1186,6 @@
 		case T_PathTarget:
 			retval = _copyPathTarget(from);
 			break;
+		case T_AlteredTableInfo:
+			retval = _copyAlteredTableInfo(from);
+			break;

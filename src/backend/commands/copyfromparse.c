@@ -1004,7 +1004,7 @@ NextCopyFromX(CopyFromState cstate, ExprContext *econtext,
 		 * when all fields are processed in the QD.
 		 */
 		if (fldct > attr_count)
-			ereport(PANIC,
+			ereport(ERROR,
 					(errcode(ERRCODE_BAD_COPY_FILE_FORMAT),
 							errmsg("extra data after last expected column")));
 

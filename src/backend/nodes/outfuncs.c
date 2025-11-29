@@ -3352,6 +3352,7 @@ _outColumnDef(StringInfo str, const ColumnDef *node)
 	WRITE_BOOL_FIELD(is_from_type);
 	WRITE_INT_FIELD(attnum);
 	WRITE_INT_FIELD(storage);
+	WRITE_STRING_FIELD(storage_name);
 	WRITE_NODE_FIELD(raw_default);
 	WRITE_NODE_FIELD(cooked_default);
 

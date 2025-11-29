@@ -6748,3 +6748,41 @@ _copyPathTarget(const PathTarget *from)
 
 	return newnode;
 }
+
+static AlteredTableInfo *
+_copyAlteredTableInfo(const AlteredTableInfo *from)
+{
+	int	i;
+
+	AlteredTableInfo *newnode = makeNode(AlteredTableInfo);
+
+	COPY_SCALAR_FIELD(relid);
+	COPY_SCALAR_FIELD(relkind);
+	newnode->oldDesc = CreateTupleDescCopyConstr(from->oldDesc);
+
+	for (i = 0; i < AT_NUM_PASSES; i++)
+		COPY_NODE_FIELD(subcmds[i]);
+
+	COPY_NODE_FIELD(constraints);
+	COPY_NODE_FIELD(newvals);
+	COPY_NODE_FIELD(afterStmts);
+	COPY_SCALAR_FIELD(verify_new_notnull);
+	COPY_SCALAR_FIELD(rewrite);
+	COPY_SCALAR_FIELD(dist_opfamily_changed);
+	COPY_SCALAR_FIELD(new_opclass);
+	COPY_SCALAR_FIELD(newTableSpace);
+	COPY_SCALAR_FIELD(chgPersistence);
+	COPY_SCALAR_FIELD(newrelpersistence);
+	COPY_NODE_FIELD(partition_constraint);
+	COPY_SCALAR_FIELD(validate_default);
+	COPY_NODE_FIELD(changedConstraintOids);
+	COPY_NODE_FIELD(changedConstraintDefs);
+	COPY_NODE_FIELD(changedIndexOids);
+	COPY_NODE_FIELD(changedIndexDefs);
+	COPY_STRING_FIELD(replicaIdentityIndex);
+	COPY_STRING_FIELD(clusterOnIndex);
+	COPY_NODE_FIELD(beforeStmtLists);
+	COPY_NODE_FIELD(constraintLists);
+
+	return newnode;
+}

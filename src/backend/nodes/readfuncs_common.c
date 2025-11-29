@@ -535,6 +535,7 @@ _readColumnDef(void)
 	READ_BOOL_FIELD(is_from_type);
 	READ_INT_FIELD(attnum);
 	READ_INT_FIELD(storage);
+	READ_STRING_FIELD(storage_name);
 	READ_NODE_FIELD(raw_default);
 	READ_NODE_FIELD(cooked_default);
 

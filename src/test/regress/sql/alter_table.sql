@@ -3158,7 +3158,6 @@ insert into attach_parted_part1 values (2, 1);
 alter table target_parted detach partition attach_parted;
 insert into attach_parted_part1 values (2, 1);
 
-<<<<<<< HEAD
 CREATE TABLE IF NOT EXISTS table_issue_15494(c0 boolean NULL);
 ALTER TABLE table_issue_15494 ALTER c0 SET DEFAULT (6>5) IS NULL;
 DROP TABLE table_issue_15494;
@@ -3194,7 +3193,7 @@ drop table atown_part;
 reset role;
 drop role atown_r1;
 drop role atown_r2;
-=======
+
 -- Test altering table having publication
 create schema alter1;
 create schema alter2;
@@ -3207,4 +3206,3 @@ alter table alter1.t1 set schema alter2;
 drop publication pub1;
 drop schema alter1 cascade;
 drop schema alter2 cascade;
->>>>>>> REL_16_9
