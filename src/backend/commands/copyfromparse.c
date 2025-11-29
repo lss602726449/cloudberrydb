@@ -1951,8 +1951,11 @@ CopyReadAttributesText(CopyFromState cstate, int stop_processing_at_field)
 				 strncmp(start_ptr, cstate->opts.default_print, input_len) == 0)
 		{
 			/* fieldno is 0-indexed and attnum is 1-indexed */
-			int			m = list_nth_int(cstate->attnumlist, fieldno) - 1;
-
+			int			m;
+			if (cstate->dispatch_mode != COPY_EXECUTOR)
+				m = list_nth_int(cstate->attnumlist, fieldno) - 1;
+			else
+				m = list_nth_int(cstate->qe_attnumlist, fieldno) -1;
 			if (cstate->defexprs[m] != NULL)
 			{
 				/* defaults contain entries for all physical attributes */
@@ -2185,7 +2188,11 @@ endfield:
 				 strncmp(start_ptr, cstate->opts.default_print, input_len) == 0)
 		{
 			/* fieldno is 0-index and attnum is 1-index */
-			int			m = list_nth_int(cstate->attnumlist, fieldno) - 1;
+			int			m;
+			if (cstate->dispatch_mode != COPY_EXECUTOR)
+				m = list_nth_int(cstate->attnumlist, fieldno) - 1;
+			else
+				m = list_nth_int(cstate->qe_attnumlist, fieldno) -1;
 
 			if (cstate->defexprs[m] != NULL)
 			{

@@ -91,9 +91,9 @@ LINE 1: COPY x from stdin (encoding 'sql_ascii', encoding 'sql_ascii...
                                                  ^
 -- incorrect options
 COPY x from stdin (format BINARY, delimiter ',');
-ERROR:  cannot specify DELIMITER in BINARY mode
+ERROR:  COPY cannot specify DELIMITER in BINARY mode
 COPY x from stdin (format BINARY, null 'x');
-ERROR:  cannot specify NULL in BINARY mode
+ERROR:  COPY cannot specify NULL in BINARY mode
 COPY x from stdin (format TEXT, force_quote(a));
 ERROR:  COPY force quote available only in CSV mode
 COPY x from stdin (format CSV, force_quote(a));
@@ -601,7 +601,6 @@ DROP ROLE regress_rls_copy_user;
 DROP ROLE regress_rls_copy_user_colperms;
 DROP FUNCTION fn_x_before();
 DROP FUNCTION fn_x_after();
-<<<<<<< HEAD
 -- When error reject limit is set, copy should be able to continue after hit a corrupted end-of-copy marker 
 CREATE TABLE copy_eoc_marker(a int, b int);
 NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Apache Cloudberry data distribution key for this table.
@@ -615,11 +614,6 @@ SELECT * FROM copy_eoc_marker;
 (1 row)
 
 DROP TABLE copy_eoc_marker;
-=======
-DROP TABLE instead_of_insert_tbl;
-DROP VIEW instead_of_insert_tbl_view;
-DROP VIEW instead_of_insert_tbl_view_2;
-DROP FUNCTION fun_instead_of_insert_tbl();
 --
 -- COPY FROM ... DEFAULT
 --
@@ -718,4 +712,3 @@ truncate copy_default;
 -- DEFAULT cannot be used in COPY TO
 copy (select 1 as test) TO stdout with (default '\D');
 ERROR:  COPY DEFAULT only available using COPY FROM
->>>>>>> REL_16_9

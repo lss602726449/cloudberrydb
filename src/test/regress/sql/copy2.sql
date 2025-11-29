@@ -484,7 +484,6 @@ DROP ROLE regress_rls_copy_user;
 DROP ROLE regress_rls_copy_user_colperms;
 DROP FUNCTION fn_x_before();
 DROP FUNCTION fn_x_after();
-<<<<<<< HEAD
 
 -- When error reject limit is set, copy should be able to continue after hit a corrupted end-of-copy marker 
 CREATE TABLE copy_eoc_marker(a int, b int);
@@ -494,11 +493,6 @@ COPY copy_eoc_marker FROM stdin LOG ERRORS SEGMENT REJECT LIMIT 5;
 \.
 SELECT * FROM copy_eoc_marker;
 DROP TABLE copy_eoc_marker;
-=======
-DROP TABLE instead_of_insert_tbl;
-DROP VIEW instead_of_insert_tbl_view;
-DROP VIEW instead_of_insert_tbl_view_2;
-DROP FUNCTION fun_instead_of_insert_tbl();
 
 --
 -- COPY FROM ... DEFAULT
@@ -600,4 +594,3 @@ truncate copy_default;
 
 -- DEFAULT cannot be used in COPY TO
 copy (select 1 as test) TO stdout with (default '\D');
->>>>>>> REL_16_9
