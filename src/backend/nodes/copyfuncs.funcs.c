@@ -6786,3 +6786,19 @@ _copyAlteredTableInfo(const AlteredTableInfo *from)
 
 	return newnode;
 }
+
+static CookedConstraint *
+_copyCookedConstraint(const CookedConstraint *from)
+{
+	CookedConstraint *newnode = makeNode(CookedConstraint);
+
+	COPY_SCALAR_FIELD(contype);
+	COPY_STRING_FIELD(name);
+	COPY_SCALAR_FIELD(attnum);
+	COPY_NODE_FIELD(expr);
+	COPY_SCALAR_FIELD(is_local);
+	COPY_SCALAR_FIELD(inhcount);
+	COPY_SCALAR_FIELD(is_no_inherit);
+
+	return newnode;
+}

@@ -1189,3 +1189,7 @@
 		case T_AlteredTableInfo:
 			retval = _copyAlteredTableInfo(from);
 			break;
+
+		case T_CookedConstraint:
+			retval = _copyCookedConstraint(from);
+			break;

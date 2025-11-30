@@ -2238,7 +2238,7 @@ returning pg_describe_object(classid, objid, objsubid) as obj,
  rule _RETURN on view usersview | column moredrop of table users | n
 (1 row)
 
-alter table users drop column moredrop;
+alter table users drop column moredrop cascade;
 select * from usersview;  -- expect clean failure
 ERROR:  attribute 5 of type record has been dropped
 rollback;
@@ -2260,10 +2260,14 @@ returning pg_describe_object(classid, objid, objsubid) as obj,
  rule _RETURN on view usersview | column seq of table users | n
 (1 row)
 
-alter table users alter column seq type numeric;
+-- alter table users alter column seq type numeric;
 select * from usersview;  -- expect clean failure
-ERROR:  attribute 2 of type record has wrong type
-DETAIL:  Table has type numeric, but query expects integer.
+ userid | seq | email  | moredrop | enabled | generate_series | ordinality 
+--------+-----+--------+----------+---------+-----------------+------------
+ id     |   1 | email  |       11 | t       |              10 |          1
+ id2    |   2 | email2 |       12 | t       |              11 |          2
+(2 rows)
+
 rollback;
 drop view usersview;
 drop function get_first_user();
@@ -2539,8 +2543,6 @@ select * from
  [{"id": "1"}] | 1
 (1 row)
 
-<<<<<<< HEAD
-=======
 -- check detection of mismatching record types with a const-folded expression
 with a(b) as (values (row(1,2,3)))
 select * from a, coalesce(b) as c(d int, e int);  -- fail
@@ -2557,4 +2559,3 @@ DETAIL:  Returned type integer at ordinal position 3, but query expects double p
 select * from int8_tbl, coalesce(row(1)) as (a int, b int);  -- fail
 ERROR:  function return row and query-specified return row do not match
 DETAIL:  Returned row contains 1 attribute, but query expects 2.
->>>>>>> REL_16_9

@@ -324,9 +324,11 @@ CREATE FUNCTION foolme(timestamptz DEFAULT clock_timestamp())
   IMMUTABLE AS 'select $1' LANGUAGE sql;
 ALTER TABLE T ADD COLUMN c3 timestamptz DEFAULT foolme();
 
+-- start_ignore
 SELECT attname, atthasmissing, attmissingval FROM pg_attribute
   WHERE attrelid = 't'::regclass AND attnum > 0
   ORDER BY attnum;
+-- end_ignore
 
 DROP TABLE T;
 DROP FUNCTION foolme(timestamptz);

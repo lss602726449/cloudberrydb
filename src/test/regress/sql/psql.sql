@@ -1316,7 +1316,7 @@ create function psql_df_plpgsql ()
 comment on function psql_df_plpgsql () is 'some comment';
 
 \df+ psql_df_*
-    rollback;
+rollback;
 drop role regress_psql_user;
 
 -- check \sf

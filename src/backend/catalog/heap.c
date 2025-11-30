@@ -413,7 +413,6 @@ heap_create(const char *relname,
 		create_storage = false;
 	else
 	{
-		create_storage = true;
 		/*
 		 * In PostgreSQL, the relation OID is used as the relfilenode initially.
 		 * In GPDB, relfilenode is assigned using a separate counter. Pass '1'

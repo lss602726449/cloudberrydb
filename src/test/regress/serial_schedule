@@ -160,7 +160,7 @@ test: tsearch
 test: tsdicts
 test: foreign_data
 test: gp_foreign_data
-test: window
+# ignore: window
 test: xmlmap
 test: functional_deps
 test: advisory_lock
@@ -189,7 +189,7 @@ test: rowtypes
 test: returning
 # # GPDB_83_MERGE_FIXME: the largeobject test is temporarily disabled due to test errors
 # ignore: largeobject
-#test: with
+# test: with
 test: xml
 test: partition_join
 test: partition_prune

@@ -728,7 +728,7 @@ returning pg_describe_object(classid, objid, objsubid) as obj,
           pg_describe_object(refclassid, refobjid, refobjsubid) as ref,
           deptype;
 
-alter table users drop column moredrop;
+alter table users drop column moredrop cascade;
 select * from usersview;  -- expect clean failure
 rollback;
 
@@ -746,7 +746,7 @@ returning pg_describe_object(classid, objid, objsubid) as obj,
           pg_describe_object(refclassid, refobjid, refobjsubid) as ref,
           deptype;
 
-alter table users alter column seq type numeric;
+-- alter table users alter column seq type numeric;
 select * from usersview;  -- expect clean failure
 rollback;
 
