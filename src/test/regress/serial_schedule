@@ -144,8 +144,8 @@ test: psql_crosstab
 test: amutils
 test: stats_ext
 test: collate.linux.utf8
-#test: select_parallel
-# test: write_parallel
+test: select_parallel
+test: write_parallel
 test: publication
 test: subscription
 test: select_views

@@ -2180,6 +2180,7 @@ set_append_path_locus(PlannerInfo *root, Path *pathnode, RelOptInfo *rel,
 				!CdbPathLocus_IsGeneral(targetlocus) &&
 				!CdbPathLocus_IsSingleQE(targetlocus), targetlocus.parallel_workers > 1);
 	pathnode->parallel_workers = targetlocus.parallel_workers;
+	pathnode->parallel_aware = pathnode->parallel_workers > 1 ? true : false;
 
 	*subpaths_out = new_subpaths;
 

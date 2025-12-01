@@ -401,14 +401,9 @@ explain (costs off)
 
 -- to increase the parallel query test coverage
 SAVEPOINT settings;
-<<<<<<< HEAD
-SET LOCAL force_parallel_mode = 1;
+SET LOCAL debug_parallel_query = 1;
 -- CBDB_PARALLEL_FIXME: analyze actual rows may be different by running multiple times.
 EXPLAIN (timing off, summary off, costs off) SELECT * FROM tenk1;
-=======
-SET LOCAL debug_parallel_query = 1;
-EXPLAIN (analyze, timing off, summary off, costs off) SELECT * FROM tenk1;
->>>>>>> REL_16_9
 ROLLBACK TO SAVEPOINT settings;
 
 -- provoke error in worker
@@ -477,10 +472,6 @@ SELECT 1 FROM tenk1_vw_sec
 
 rollback;
 
-<<<<<<< HEAD
-reset enable_parallel;
-reset optimizer;
-=======
 -- test that function option SET ROLE works in parallel workers.
 create role regress_parallel_worker;
 
@@ -534,4 +525,6 @@ SET debug_parallel_query = on;
 DELETE FROM parallel_hang WHERE 380 <= i AND i <= 420;
 
 ROLLBACK;
->>>>>>> REL_16_9
+
+reset enable_parallel;
+reset optimizer;
