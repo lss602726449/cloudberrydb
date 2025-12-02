@@ -125,7 +125,7 @@ test: groupingsets
 test: drop_operator
 test: password
 test: identity
-# test: generated
+test: generated
 test: join_hash
 test: create_table_like
 test: alter_generic

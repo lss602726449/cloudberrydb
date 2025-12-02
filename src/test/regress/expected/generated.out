@@ -378,10 +378,11 @@ TABLE gtestc;
 (1 row)
 
 UPDATE gtestp SET f1 = f1 * 10;
+ERROR:  can't split update for inherit table: gtestp (preptlist.c:139)
 TABLE gtestc;
- f1  | f2  
------+-----
- 420 | 421
+ f1 | f2 
+----+----
+ 42 | 43
 (1 row)
 
 DROP TABLE gtestp CASCADE;

@@ -191,7 +191,7 @@ preprocess_targetlist(PlannerInfo *root)
 				action->targetList = expand_insert_targetlist(root,
 															  action->targetList,
 															  target_relation,
-															  result_relation);
+															  0);
 			else if (action->commandType == CMD_UPDATE)
 				action->updateColnos =
 					extract_update_targetlist_colnos(action->targetList, false);

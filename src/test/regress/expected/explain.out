@@ -107,111 +107,6 @@ select explain_filter('explain (analyze, buffers, format text) select * from int
  Execution Time: N.N ms
 (8 rows)
 
-<<<<<<< HEAD
-select explain_filter('explain (analyze, buffers, format json) select * from int8_tbl i8');
-                explain_filter                 
------------------------------------------------
- [                                            +
-   {                                          +
-     "Plan": {                                +
-       "Node Type": "Gather Motion",          +
-       "Senders": N,                          +
-       "Receivers": N,                        +
-       "Slice": N,                            +
-       "Segments": N,                         +
-       "Gang Type": "primary reader",         +
-       "Parallel Aware": false,               +
-       "Startup Cost": N.N,                   +
-       "Total Cost": N.N,                     +
-       "Plan Rows": N,                        +
-       "Plan Width": N,                       +
-       "Actual Startup Time": N.N,            +
-       "Actual Total Time": N.N,              +
-       "Actual Rows": N,                      +
-       "Actual Loops": N,                     +
-       "Shared Hit Blocks": N,                +
-       "Shared Read Blocks": N,               +
-       "Shared Dirtied Blocks": N,            +
-       "Shared Written Blocks": N,            +
-       "Local Hit Blocks": N,                 +
-       "Local Read Blocks": N,                +
-       "Local Dirtied Blocks": N,             +
-       "Local Written Blocks": N,             +
-       "Temp Read Blocks": N,                 +
-       "Temp Written Blocks": N,              +
-       "Plans": [                             +
-         {                                    +
-           "Node Type": "Seq Scan",           +
-           "Parent Relationship": "Outer",    +
-           "Slice": N,                        +
-           "Segments": N,                     +
-           "Gang Type": "primary reader",     +
-           "Parallel Aware": false,           +
-           "Relation Name": "int8_tbl",       +
-           "Alias": "i8",                     +
-           "Startup Cost": N.N,               +
-           "Total Cost": N.N,                 +
-           "Plan Rows": N,                    +
-           "Plan Width": N,                   +
-           "Actual Startup Time": N.N,        +
-           "Actual Total Time": N.N,          +
-           "Actual Rows": N,                  +
-           "Actual Loops": N,                 +
-           "Shared Hit Blocks": N,            +
-           "Shared Read Blocks": N,           +
-           "Shared Dirtied Blocks": N,        +
-           "Shared Written Blocks": N,        +
-           "Local Hit Blocks": N,             +
-           "Local Read Blocks": N,            +
-           "Local Dirtied Blocks": N,         +
-           "Local Written Blocks": N,         +
-           "Temp Read Blocks": N,             +
-           "Temp Written Blocks": N           +
-         }                                    +
-       ]                                      +
-     },                                       +
-     "Planning": {                            +
-       "Planning Time": N.N,                  +
-       "Shared Hit Blocks": N,                +
-       "Shared Read Blocks": N,               +
-       "Shared Dirtied Blocks": N,            +
-       "Shared Written Blocks": N,            +
-       "Local Hit Blocks": N,                 +
-       "Local Read Blocks": N,                +
-       "Local Dirtied Blocks": N,             +
-       "Local Written Blocks": N,             +
-       "Temp Read Blocks": N,                 +
-       "Temp Written Blocks": N               +
-     },                                       +
-     "Triggers": [                            +
-     ],                                       +
-     "Slice statistics": [                    +
-       {                                      +
-         "Slice": N,                          +
-         "Executor Memory": N                 +
-       },                                     +
-       {                                      +
-         "Slice": N,                          +
-         "Executor Memory": {                 +
-           "Average": N,                      +
-           "Workers": N,                      +
-           "Maximum Memory Used": N           +
-         }                                    +
-       }                                      +
-     ],                                       +
-     "Statement statistics": {                +
-       "Memory used": N                       +
-     },                                       +
-     "Settings": {                            +
-       "Optimizer": "Postgres query optimizer"+
-     },                                       +
-     "Execution Time": N.N                    +
-   }                                          +
- ]
-(1 row)
-
-=======
->>>>>>> REL_16_9
 select explain_filter('explain (analyze, buffers, format xml) select * from int8_tbl i8');
                        explain_filter                       
 ------------------------------------------------------------
@@ -485,60 +380,119 @@ select explain_filter('explain (buffers, format json) select * from int8_tbl i8'
 -- but always set in JSON format, so check them only in this case.
 set track_io_timing = on;
 select explain_filter('explain (analyze, buffers, format json) select * from int8_tbl i8');
-           explain_filter           
-------------------------------------
- [                                 +
-   {                               +
-     "Plan": {                     +
-       "Node Type": "Seq Scan",    +
-       "Parallel Aware": false,    +
-       "Async Capable": false,     +
-       "Relation Name": "int8_tbl",+
-       "Alias": "i8",              +
-       "Startup Cost": N.N,        +
-       "Total Cost": N.N,          +
-       "Plan Rows": N,             +
-       "Plan Width": N,            +
-       "Actual Startup Time": N.N, +
-       "Actual Total Time": N.N,   +
-       "Actual Rows": N,           +
-       "Actual Loops": N,          +
-       "Shared Hit Blocks": N,     +
-       "Shared Read Blocks": N,    +
-       "Shared Dirtied Blocks": N, +
-       "Shared Written Blocks": N, +
-       "Local Hit Blocks": N,      +
-       "Local Read Blocks": N,     +
-       "Local Dirtied Blocks": N,  +
-       "Local Written Blocks": N,  +
-       "Temp Read Blocks": N,      +
-       "Temp Written Blocks": N,   +
-       "I/O Read Time": N.N,       +
-       "I/O Write Time": N.N,      +
-       "Temp I/O Read Time": N.N,  +
-       "Temp I/O Write Time": N.N  +
-     },                            +
-     "Planning": {                 +
-       "Shared Hit Blocks": N,     +
-       "Shared Read Blocks": N,    +
-       "Shared Dirtied Blocks": N, +
-       "Shared Written Blocks": N, +
-       "Local Hit Blocks": N,      +
-       "Local Read Blocks": N,     +
-       "Local Dirtied Blocks": N,  +
-       "Local Written Blocks": N,  +
-       "Temp Read Blocks": N,      +
-       "Temp Written Blocks": N,   +
-       "I/O Read Time": N.N,       +
-       "I/O Write Time": N.N,      +
-       "Temp I/O Read Time": N.N,  +
-       "Temp I/O Write Time": N.N  +
-     },                            +
-     "Planning Time": N.N,         +
-     "Triggers": [                 +
-     ],                            +
-     "Execution Time": N.N         +
-   }                               +
+                explain_filter                 
+-----------------------------------------------
+ [                                            +
+   {                                          +
+     "Plan": {                                +
+       "Node Type": "Gather Motion",          +
+       "Senders": N,                          +
+       "Receivers": N,                        +
+       "Slice": N,                            +
+       "Segments": N,                         +
+       "Gang Type": "primary reader",         +
+       "Parallel Aware": false,               +
+       "Async Capable": false,                +
+       "Startup Cost": N.N,                   +
+       "Total Cost": N.N,                     +
+       "Plan Rows": N,                        +
+       "Plan Width": N,                       +
+       "Actual Startup Time": N.N,            +
+       "Actual Total Time": N.N,              +
+       "Actual Rows": N,                      +
+       "Actual Loops": N,                     +
+       "Shared Hit Blocks": N,                +
+       "Shared Read Blocks": N,               +
+       "Shared Dirtied Blocks": N,            +
+       "Shared Written Blocks": N,            +
+       "Local Hit Blocks": N,                 +
+       "Local Read Blocks": N,                +
+       "Local Dirtied Blocks": N,             +
+       "Local Written Blocks": N,             +
+       "Temp Read Blocks": N,                 +
+       "Temp Written Blocks": N,              +
+       "I/O Read Time": N.N,                  +
+       "I/O Write Time": N.N,                 +
+       "Temp I/O Read Time": N.N,             +
+       "Temp I/O Write Time": N.N,            +
+       "Plans": [                             +
+         {                                    +
+           "Node Type": "Seq Scan",           +
+           "Parent Relationship": "Outer",    +
+           "Slice": N,                        +
+           "Segments": N,                     +
+           "Gang Type": "primary reader",     +
+           "Parallel Aware": false,           +
+           "Async Capable": false,            +
+           "Relation Name": "int8_tbl",       +
+           "Alias": "i8",                     +
+           "Startup Cost": N.N,               +
+           "Total Cost": N.N,                 +
+           "Plan Rows": N,                    +
+           "Plan Width": N,                   +
+           "Actual Startup Time": N.N,        +
+           "Actual Total Time": N.N,          +
+           "Actual Rows": N,                  +
+           "Actual Loops": N,                 +
+           "Shared Hit Blocks": N,            +
+           "Shared Read Blocks": N,           +
+           "Shared Dirtied Blocks": N,        +
+           "Shared Written Blocks": N,        +
+           "Local Hit Blocks": N,             +
+           "Local Read Blocks": N,            +
+           "Local Dirtied Blocks": N,         +
+           "Local Written Blocks": N,         +
+           "Temp Read Blocks": N,             +
+           "Temp Written Blocks": N,          +
+           "I/O Read Time": N.N,              +
+           "I/O Write Time": N.N,             +
+           "Temp I/O Read Time": N.N,         +
+           "Temp I/O Write Time": N.N         +
+         }                                    +
+       ]                                      +
+     },                                       +
+     "Settings": {                            +
+       "Optimizer": "Postgres query optimizer"+
+     },                                       +
+     "Planning": {                            +
+       "Shared Hit Blocks": N,                +
+       "Shared Read Blocks": N,               +
+       "Shared Dirtied Blocks": N,            +
+       "Shared Written Blocks": N,            +
+       "Local Hit Blocks": N,                 +
+       "Local Read Blocks": N,                +
+       "Local Dirtied Blocks": N,             +
+       "Local Written Blocks": N,             +
+       "Temp Read Blocks": N,                 +
+       "Temp Written Blocks": N,              +
+       "I/O Read Time": N.N,                  +
+       "I/O Write Time": N.N,                 +
+       "Temp I/O Read Time": N.N,             +
+       "Temp I/O Write Time": N.N             +
+     },                                       +
+     "Planning Time": N.N,                    +
+     "Triggers": [                            +
+     ],                                       +
+     "Slice statistics": [                    +
+       {                                      +
+         "Slice": N,                          +
+         "Executor Memory": N                 +
+       },                                     +
+       {                                      +
+         "Slice": N,                          +
+         "Executor Memory": {                 +
+           "Average": N,                      +
+           "Workers": N,                      +
+           "Subworkers": N,                   +
+           "Maximum Memory Used": N           +
+         }                                    +
+       }                                      +
+     ],                                       +
+     "Statement statistics": {                +
+       "Memory used": N                       +
+     },                                       +
+     "Execution Time": N.N                    +
+   }                                          +
  ]
 (1 row)
 
@@ -565,13 +519,15 @@ select explain_filter_to_json('explain (settings, format json) select * from int
 rollback;
 -- GENERIC_PLAN option
 select explain_filter('explain (generic_plan) select unique1 from tenk1 where thousand = $1');
-                                 explain_filter                                  
----------------------------------------------------------------------------------
- Bitmap Heap Scan on tenk1  (cost=N.N..N.N rows=N width=N)
-   Recheck Cond: (thousand = $N)
-   ->  Bitmap Index Scan on tenk1_thous_tenthous  (cost=N.N..N.N rows=N width=N)
-         Index Cond: (thousand = $N)
-(4 rows)
+                                    explain_filter                                     
+---------------------------------------------------------------------------------------
+ Gather Motion N:N  (slice1; segments: N)  (cost=N.N..N.N rows=N width=N)
+   ->  Bitmap Heap Scan on tenk1  (cost=N.N..N.N rows=N width=N)
+         Recheck Cond: (thousand = $N)
+         ->  Bitmap Index Scan on tenk1_thous_tenthous  (cost=N.N..N.N rows=N width=N)
+               Index Cond: (thousand = $N)
+ Optimizer: Postgres query optimizer
+(6 rows)
 
 -- should fail
 select explain_filter('explain (analyze, generic_plan) select unique1 from tenk1 where thousand = $1');
@@ -595,14 +551,16 @@ create table gen_part_2
   partition of gen_part for values in (2);
 -- should scan gen_part_1_1 and gen_part_1_2, but not gen_part_2
 select explain_filter('explain (generic_plan) select key1, key2 from gen_part where key1 = 1 and key2 = $1');
-                              explain_filter                               
----------------------------------------------------------------------------
- Append  (cost=N.N..N.N rows=N width=N)
-   ->  Seq Scan on gen_part_1_1 gen_part_1  (cost=N.N..N.N rows=N width=N)
-         Filter: ((key1 = N) AND (key2 = $N))
-   ->  Seq Scan on gen_part_1_2 gen_part_2  (cost=N.N..N.N rows=N width=N)
-         Filter: ((key1 = N) AND (key2 = $N))
-(5 rows)
+                                 explain_filter                                  
+---------------------------------------------------------------------------------
+ Gather Motion N:N  (slice1; segments: N)  (cost=N.N..N.N rows=N width=N)
+   ->  Append  (cost=N.N..N.N rows=N width=N)
+         ->  Seq Scan on gen_part_1_1 gen_part_1  (cost=N.N..N.N rows=N width=N)
+               Filter: ((key1 = N) AND (key2 = $N))
+         ->  Seq Scan on gen_part_1_2 gen_part_2  (cost=N.N..N.N rows=N width=N)
+               Filter: ((key1 = N) AND (key2 = $N))
+ Optimizer: Postgres query optimizer
+(7 rows)
 
 drop table gen_part;
 --
@@ -709,13 +667,6 @@ select jsonb_pretty(
                      "Sort Key": [                          +
                          "tenk1.tenthous"                   +
                      ],                                     +
-                     "work_mem": {                          +
-                         "Used": 0,                         +
-                         "Segments": 0,                     +
-                         "Max Memory": 0,                   +
-                         "Workfile Spilling": 0,            +
-                         "Max Memory Segment": 0            +
-                     },                                     +
                      "Gang Type": "primary reader",         +
                      "Node Type": "Sort",                   +
                      "Plan Rows": 0,                        +
@@ -806,8 +757,8 @@ select jsonb_pretty(
              "Shared Written Blocks": 0                     +
          },                                                 +
          "Settings": {                                      +
+             "jit": "off",                                  +
              "Optimizer": "Postgres query optimizer",       +
-             "optimizer": "off",                            +
              "enable_parallel": "off",                      +
              "parallel_setup_cost": "0",                    +
              "parallel_tuple_cost": "0",                    +
@@ -829,8 +780,7 @@ select jsonb_pretty(
                      "Workers": 0,                          +
                      "Subworkers": 0,                       +
                      "Maximum Memory Used": 0               +
-                 },                                         +
-                 "Work Maximum Memory": 0                   +
+                 }                                          +
              }                                              +
          ],                                                 +
          "Statement statistics": {                          +
@@ -846,12 +796,16 @@ create temp table t1(f1 float8);
 create function pg_temp.mysin(float8) returns float8 language plpgsql
 as 'begin return sin($1); end';
 select explain_filter('explain (verbose) select * from t1 where pg_temp.mysin(f1) < 0.5');
-                       explain_filter                       
-------------------------------------------------------------
- Seq Scan on pg_temp.t1  (cost=N.N..N.N rows=N width=N)
+                              explain_filter                              
+--------------------------------------------------------------------------
+ Gather Motion N:N  (slice1; segments: N)  (cost=N.N..N.N rows=N width=N)
    Output: f1
-   Filter: (pg_temp.mysin(t1.f1) < 'N.N'::double precision)
-(3 rows)
+   ->  Seq Scan on pg_temp.t1  (cost=N.N..N.N rows=N width=N)
+         Output: f1
+         Filter: (pg_temp.mysin(t1.f1) < 'N.N'::double precision)
+ Settings: jit = 'off', enable_parallel = 'off'
+ Optimizer: Postgres query optimizer
+(7 rows)
 
 -- Test compute_query_id
 set compute_query_id = on;
