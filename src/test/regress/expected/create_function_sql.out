@@ -279,11 +279,7 @@ CREATE FUNCTION functest_S_13() RETURNS boolean
         SELECT 1;
         SELECT false;
     END;
-<<<<<<< HEAD:src/test/regress/expected/create_function_3.out
--- check display of function argments in sub-SELECT
-=======
 -- check display of function arguments in sub-SELECT
->>>>>>> REL_16_9:src/test/regress/expected/create_function_sql.out
 CREATE TABLE functest1 (i int);
 CREATE FUNCTION functest_S_16(a int, b int) RETURNS void
     LANGUAGE SQL
@@ -585,7 +581,6 @@ SELECT * FROM functest_sri1();
 (3 rows)
 
 EXPLAIN (verbose, costs off) SELECT * FROM functest_sri1();
-<<<<<<< HEAD:src/test/regress/expected/create_function_3.out
                  QUERY PLAN                 
 --------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -594,13 +589,6 @@ EXPLAIN (verbose, costs off) SELECT * FROM functest_sri1();
          Output: functest3.a
  Optimizer: Postgres query optimizer
 (5 rows)
-=======
-              QUERY PLAN              
---------------------------------------
- Seq Scan on temp_func_test.functest3
-   Output: functest3.a
-(2 rows)
->>>>>>> REL_16_9:src/test/regress/expected/create_function_sql.out
 
 CREATE FUNCTION functest_sri2() RETURNS SETOF int
 LANGUAGE SQL
@@ -617,7 +605,6 @@ SELECT * FROM functest_sri2();
 (3 rows)
 
 EXPLAIN (verbose, costs off) SELECT * FROM functest_sri2();
-<<<<<<< HEAD:src/test/regress/expected/create_function_3.out
                  QUERY PLAN                 
 --------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -626,13 +613,6 @@ EXPLAIN (verbose, costs off) SELECT * FROM functest_sri2();
          Output: functest3.a
  Optimizer: Postgres query optimizer
 (5 rows)
-=======
-              QUERY PLAN              
---------------------------------------
- Seq Scan on temp_func_test.functest3
-   Output: functest3.a
-(2 rows)
->>>>>>> REL_16_9:src/test/regress/expected/create_function_sql.out
 
 DROP TABLE functest3 CASCADE;
 NOTICE:  drop cascades to function functest_sri2()
@@ -734,7 +714,7 @@ CREATE FUNCTION test1 (int) RETURNS int LANGUAGE SQL
 ERROR:  only one AS item needed for language "sql"
 -- Cleanup
 DROP SCHEMA temp_func_test CASCADE;
-NOTICE:  drop cascades to 29 other objects
+NOTICE:  drop cascades to 30 other objects
 DETAIL:  drop cascades to function functest_a_1(text,date)
 drop cascades to function functest_a_2(text[])
 drop cascades to function functest_a_3()

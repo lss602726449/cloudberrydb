@@ -15,20 +15,19 @@ set max_parallel_workers_per_gather=4;
 -- Parallel Append with partial-subplans
 explain (costs off)
   select round(avg(aa)), sum(aa) from a_star;
-                     QUERY PLAN                      
------------------------------------------------------
- Finalize Aggregate
+                   QUERY PLAN                   
+------------------------------------------------
+ Aggregate
    ->  Gather Motion 9:1  (slice1; segments: 9)
-         ->  Partial Aggregate
-               ->  Parallel Append
-                     ->  Seq Scan on d_star a_star_4
-                     ->  Seq Scan on f_star a_star_6
-                     ->  Seq Scan on e_star a_star_5
-                     ->  Seq Scan on b_star a_star_2
-                     ->  Seq Scan on c_star a_star_3
-                     ->  Seq Scan on a_star a_star_1
+         ->  Parallel Append
+               ->  Seq Scan on d_star a_star_4
+               ->  Seq Scan on f_star a_star_6
+               ->  Seq Scan on e_star a_star_5
+               ->  Seq Scan on b_star a_star_2
+               ->  Seq Scan on c_star a_star_3
+               ->  Seq Scan on a_star a_star_1
  Optimizer: Postgres query optimizer
-(11 rows)
+(10 rows)
 
 select round(avg(aa)), sum(aa) from a_star a1;
  round | sum 
@@ -41,20 +40,19 @@ alter table c_star set (parallel_workers = 0);
 alter table d_star set (parallel_workers = 0);
 explain (costs off)
   select round(avg(aa)), sum(aa) from a_star;
-                     QUERY PLAN                      
------------------------------------------------------
- Finalize Aggregate
+                   QUERY PLAN                   
+------------------------------------------------
+ Aggregate
    ->  Gather Motion 9:1  (slice1; segments: 9)
-         ->  Partial Aggregate
-               ->  Parallel Append
-                     ->  Seq Scan on d_star a_star_4
-                     ->  Seq Scan on f_star a_star_6
-                     ->  Seq Scan on e_star a_star_5
-                     ->  Seq Scan on b_star a_star_2
-                     ->  Seq Scan on c_star a_star_3
-                     ->  Seq Scan on a_star a_star_1
+         ->  Parallel Append
+               ->  Seq Scan on d_star a_star_4
+               ->  Seq Scan on f_star a_star_6
+               ->  Seq Scan on e_star a_star_5
+               ->  Seq Scan on b_star a_star_2
+               ->  Seq Scan on c_star a_star_3
+               ->  Seq Scan on a_star a_star_1
  Optimizer: Postgres query optimizer
-(11 rows)
+(10 rows)
 
 select round(avg(aa)), sum(aa) from a_star a2;
  round | sum 
@@ -69,20 +67,19 @@ alter table e_star set (parallel_workers = 0);
 alter table f_star set (parallel_workers = 0);
 explain (costs off)
   select round(avg(aa)), sum(aa) from a_star;
-                     QUERY PLAN                      
------------------------------------------------------
- Finalize Aggregate
+                   QUERY PLAN                   
+------------------------------------------------
+ Aggregate
    ->  Gather Motion 9:1  (slice1; segments: 9)
-         ->  Partial Aggregate
-               ->  Parallel Append
-                     ->  Seq Scan on d_star a_star_4
-                     ->  Seq Scan on f_star a_star_6
-                     ->  Seq Scan on e_star a_star_5
-                     ->  Seq Scan on b_star a_star_2
-                     ->  Seq Scan on c_star a_star_3
-                     ->  Seq Scan on a_star a_star_1
+         ->  Parallel Append
+               ->  Seq Scan on d_star a_star_4
+               ->  Seq Scan on f_star a_star_6
+               ->  Seq Scan on e_star a_star_5
+               ->  Seq Scan on b_star a_star_2
+               ->  Seq Scan on c_star a_star_3
+               ->  Seq Scan on a_star a_star_1
  Optimizer: Postgres query optimizer
-(11 rows)
+(10 rows)
 
 select round(avg(aa)), sum(aa) from a_star a3;
  round | sum 
@@ -170,15 +167,14 @@ drop table part_pa_test;
 set parallel_leader_participation = off;
 explain (costs off)
   select count(*) from tenk1 where stringu1 = 'GRAAAA';
-                       QUERY PLAN                        
----------------------------------------------------------
- Finalize Aggregate
+                    QUERY PLAN                     
+---------------------------------------------------
+ Aggregate
    ->  Gather Motion 12:1  (slice1; segments: 12)
-         ->  Partial Aggregate
-               ->  Parallel Seq Scan on tenk1
-                     Filter: (stringu1 = 'GRAAAA'::name)
+         ->  Parallel Seq Scan on tenk1
+               Filter: (stringu1 = 'GRAAAA'::name)
  Optimizer: Postgres query optimizer
-(6 rows)
+(5 rows)
 
 select count(*) from tenk1 where stringu1 = 'GRAAAA';
  count 
@@ -191,15 +187,14 @@ select count(*) from tenk1 where stringu1 = 'GRAAAA';
 set max_parallel_workers = 0;
 explain (costs off)
   select count(*) from tenk1 where stringu1 = 'GRAAAA';
-                       QUERY PLAN                        
----------------------------------------------------------
- Finalize Aggregate
+                    QUERY PLAN                     
+---------------------------------------------------
+ Aggregate
    ->  Gather Motion 12:1  (slice1; segments: 12)
-         ->  Partial Aggregate
-               ->  Parallel Seq Scan on tenk1
-                     Filter: (stringu1 = 'GRAAAA'::name)
+         ->  Parallel Seq Scan on tenk1
+               Filter: (stringu1 = 'GRAAAA'::name)
  Optimizer: Postgres query optimizer
-(6 rows)
+(5 rows)
 
 select count(*) from tenk1 where stringu1 = 'GRAAAA';
  count 
@@ -859,25 +854,22 @@ select * from
   (select string4, count(unique2)
    from tenk1 group by string4 order by string4) ss
   right join (values (1),(2),(3)) v(x) on true;
-                                  QUERY PLAN                                  
-------------------------------------------------------------------------------
+                         QUERY PLAN                         
+------------------------------------------------------------
  Nested Loop Left Join
    ->  Values Scan on "*VALUES*"
    ->  Materialize
-         ->  Gather Motion 3:1  (slice1; segments: 3)
-               ->  Finalize GroupAggregate
-                     Group Key: tenk1.string4
-                     ->  Sort
-                           Sort Key: tenk1.string4
-                           ->  Redistribute Motion 3:3  (slice2; segments: 3)
-                                 Hash Key: tenk1.string4
-                                 ->  Partial GroupAggregate
-                                       Group Key: tenk1.string4
-                                       ->  Sort
-                                             Sort Key: tenk1.string4
-                                             ->  Seq Scan on tenk1
+         ->  Finalize GroupAggregate
+               Group Key: tenk1.string4
+               ->  Gather Motion 3:1  (slice1; segments: 3)
+                     Merge Key: tenk1.string4
+                     ->  Partial GroupAggregate
+                           Group Key: tenk1.string4
+                           ->  Sort
+                                 Sort Key: tenk1.string4
+                                 ->  Seq Scan on tenk1
  Optimizer: Postgres query optimizer
-(16 rows)
+(13 rows)
 
 select * from
   (select string4, count(unique2)
@@ -1110,8 +1102,7 @@ explain (costs off)
 
 -- to increase the parallel query test coverage
 SAVEPOINT settings;
-<<<<<<< HEAD
-SET LOCAL force_parallel_mode = 1;
+SET LOCAL debug_parallel_query = 1;
 -- CBDB_PARALLEL_FIXME: analyze actual rows may be different by running multiple times.
 EXPLAIN (timing off, summary off, costs off) SELECT * FROM tenk1;
                 QUERY PLAN                
@@ -1120,17 +1111,6 @@ EXPLAIN (timing off, summary off, costs off) SELECT * FROM tenk1;
    ->  Parallel Seq Scan on tenk1
  Optimizer: Postgres query optimizer
 (3 rows)
-=======
-SET LOCAL debug_parallel_query = 1;
-EXPLAIN (analyze, timing off, summary off, costs off) SELECT * FROM tenk1;
-                         QUERY PLAN                          
--------------------------------------------------------------
- Gather (actual rows=10000 loops=1)
-   Workers Planned: 4
-   Workers Launched: 4
-   ->  Parallel Seq Scan on tenk1 (actual rows=2000 loops=5)
-(4 rows)
->>>>>>> REL_16_9
 
 ROLLBACK TO SAVEPOINT settings;
 -- provoke error in worker
@@ -1302,10 +1282,6 @@ SELECT 1 FROM tenk1_vw_sec
 (12 rows)
 
 rollback;
-<<<<<<< HEAD
-reset enable_parallel;
-reset optimizer;
-=======
 -- test that function option SET ROLE works in parallel workers.
 create role regress_parallel_worker;
 create function set_and_report_role() returns text as
@@ -1334,7 +1310,6 @@ select set_and_report_role();
 select set_role_and_error(0);
 ERROR:  division by zero
 CONTEXT:  SQL function "set_role_and_error" statement 1
-parallel worker
 reset debug_parallel_query;
 drop function set_and_report_role();
 drop function set_role_and_error(int);
@@ -1363,4 +1338,5 @@ CREATE UNIQUE INDEX parallel_hang_idx
 SET debug_parallel_query = on;
 DELETE FROM parallel_hang WHERE 380 <= i AND i <= 420;
 ROLLBACK;
->>>>>>> REL_16_9
+reset enable_parallel;
+reset optimizer;

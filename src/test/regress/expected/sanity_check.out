@@ -212,7 +212,6 @@ tableam_parted_d_heap2|f
 tableam_parted_heap2|f
 tableam_tbl_heap2|f
 tableam_tblas_heap2|f
-tablespace_table1|f
 tbl_include_box|t
 tbl_include_box_pk|f
 tbl_include_pk|t

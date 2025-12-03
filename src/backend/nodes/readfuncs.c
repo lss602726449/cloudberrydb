@@ -2996,6 +2996,73 @@ _readWindowDef(void)
 	READ_DONE();
 }
 
+static JsonConstructorExpr *
+_readJsonConstructorExpr(void)
+{
+	READ_LOCALS(JsonConstructorExpr);
+
+	READ_ENUM_FIELD(type, JsonConstructorType);
+	READ_NODE_FIELD(args);
+	READ_NODE_FIELD(func);
+	READ_NODE_FIELD(coercion);
+	READ_NODE_FIELD(returning);
+	READ_BOOL_FIELD(absent_on_null);
+	READ_BOOL_FIELD(unique);
+	READ_LOCATION_FIELD(location);
+
+	READ_DONE();
+}
+
+static JsonIsPredicate *
+_readJsonIsPredicate(void)
+{
+	READ_LOCALS(JsonIsPredicate);
+
+	READ_NODE_FIELD(expr);
+	READ_NODE_FIELD(format);
+	READ_ENUM_FIELD(item_type, JsonValueType);
+	READ_BOOL_FIELD(unique_keys);
+	READ_LOCATION_FIELD(location);
+
+	READ_DONE();
+}
+
+static JsonReturning *
+_readJsonReturning(void)
+{
+	READ_LOCALS(JsonReturning);
+
+	READ_NODE_FIELD(format);
+	READ_OID_FIELD(typid);
+	READ_INT_FIELD(typmod);
+
+	READ_DONE();
+}
+
+static JsonValueExpr *
+_readJsonValueExpr(void)
+{
+	READ_LOCALS(JsonValueExpr);
+
+	READ_NODE_FIELD(raw_expr);
+	READ_NODE_FIELD(formatted_expr);
+	READ_NODE_FIELD(format);
+
+	READ_DONE();
+}
+
+static JsonFormat *
+_readJsonFormat(void)
+{
+	READ_LOCALS(JsonFormat);
+
+	READ_ENUM_FIELD(format_type, JsonFormatType);
+	READ_ENUM_FIELD(encoding, JsonEncoding);
+	READ_LOCATION_FIELD(location);
+
+	READ_DONE();
+}
+
 #include "readfuncs_common.c"
 #ifndef COMPILING_BINARY_FUNCS
 /*
@@ -3525,6 +3592,16 @@ parseNodeString(void)
 		return_value = _readPublicationTable();
 	else if (MATCHX("WINDOWDEF"))
 		return_value = _readWindowDef();
+	else if (MATCHX("JSONCONSTRUCTOREXPR"))
+		return_value = _readJsonConstructorExpr();
+	else if (MATCHX("JSONISPREDICATE"))
+		return_value = _readJsonIsPredicate();
+	else if (MATCHX("JSONRETURNING"))
+		return_value = _readJsonReturning();
+	else if (MATCHX("JSONVALUEEXPR"))
+		return_value = _readJsonValueExpr();
+	else if (MATCHX("JSONFORMAT"))
+		return_value = _readJsonFormat();
 	else
 	{
         ereport(ERROR,

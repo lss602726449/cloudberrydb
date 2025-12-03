@@ -2976,6 +2976,21 @@ readNodeBinary(void)
 			case T_WindowDef:
 				return_value = _readWindowDef();
 				break;
+			case T_JsonConstructorExpr:
+				return_value = _readJsonConstructorExpr();
+				break;
+			case T_JsonIsPredicate:
+				return_value = _readJsonIsPredicate();
+				break;
+			case T_JsonReturning:
+				return_value = _readJsonReturning();
+				break;
+			case T_JsonValueExpr:
+				return_value = _readJsonValueExpr();
+				break;
+			case T_JsonFormat:
+				return_value = _readJsonFormat();
+				break;
 			default:
 				return_value = NULL; /* keep the compiler silent */
 				elog(ERROR, "could not deserialize unrecognized node type: %d",

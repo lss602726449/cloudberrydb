@@ -642,7 +642,8 @@ SELECT JSON_OBJECT('foo' : '1' FORMAT JSON, 'bar' : 'baz' RETURNING json);
 ------------------------------------------------------------------------------
  Result
    Output: JSON_OBJECT('foo' : '1'::json, 'bar' : 'baz'::text RETURNING json)
-(2 rows)
+ Optimizer: Postgres query optimizer
+(3 rows)
 
 CREATE VIEW json_object_view AS
 SELECT JSON_OBJECT('foo' : '1' FORMAT JSON, 'bar' : 'baz' RETURNING json);
@@ -657,7 +658,8 @@ SELECT JSON_ARRAY('1' FORMAT JSON, 2 RETURNING json);
 ---------------------------------------------------
  Result
    Output: JSON_ARRAY('1'::json, 2 RETURNING json)
-(2 rows)
+ Optimizer: Postgres query optimizer
+(3 rows)
 
 CREATE VIEW json_array_view AS
 SELECT JSON_ARRAY('1' FORMAT JSON, 2 RETURNING json);
@@ -685,6 +687,7 @@ FROM generate_series(1,5) i;
 -----------------------------------------------------------------------------------------------------------------------------------
  WindowAgg
    Output: JSON_OBJECTAGG(i : (('111'::text || (i)::text))::bytea FORMAT JSON WITH UNIQUE KEYS RETURNING text) OVER (?), ((i % 2))
+   Partition By: ((i.i % 2))
    ->  Sort
          Output: ((i % 2)), i
          Sort Key: ((i.i % 2))
@@ -721,6 +724,7 @@ FROM generate_series(1,5) i;
 --------------------------------------------------------------------------------------------------------------------------
  WindowAgg
    Output: JSON_ARRAYAGG((('111'::text || (i)::text))::bytea FORMAT JSON NULL ON NULL RETURNING text) OVER (?), ((i % 2))
+   Partition By: ((i.i % 2))
    ->  Sort
          Output: ((i % 2)), i
          Sort Key: ((i.i % 2))

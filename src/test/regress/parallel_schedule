@@ -45,7 +45,6 @@ test: copy copyselect copydml insert insert_conflict
 test: create_function_c create_misc create_operator create_procedure create_table create_type create_schema
 test: create_index create_index_spgist create_view index_including index_including_gist
 # Depends on things setup for create_index
-test: gp_gin_index
 
 # ----------
 # Another group of parallel tests
@@ -155,6 +154,8 @@ test: select_views portals_p2 cluster dependency guc bitmapops combocid tsearch 
 # Another group of parallel tests (JSON related)
 # ----------
 test: json jsonb json_encoding jsonpath jsonpath_encoding jsonb_jsonpath sqljson
+
+test: gp_gin_index
 
 # ----------
 # Another group of parallel tests

@@ -1,12 +1,9 @@
 -- Perform tests on the Memoize node.
 
-<<<<<<< HEAD
 -- GPDB_14_MERGE_FIXME:
 -- 1.test memoize in CBDB as enable_nestloop is false by default
 -- 2.enable memoize in orca
 
-=======
->>>>>>> REL_16_9
 -- The cache hits/misses/evictions from the Memoize node can vary between
 -- machines.  Let's just replace the number with an 'N'.  In order to allow us
 -- to perform validation when the measure was zero, we replace a zero value
@@ -30,10 +27,7 @@ begin
         ln := regexp_replace(ln, 'Evictions: 0', 'Evictions: Zero');
         ln := regexp_replace(ln, 'Evictions: \d+', 'Evictions: N');
         ln := regexp_replace(ln, 'Memory Usage: \d+', 'Memory Usage: N');
-<<<<<<< HEAD
         ln := regexp_replace(ln, 'Memory: \d+', 'Memory: N');
-=======
->>>>>>> REL_16_9
 	ln := regexp_replace(ln, 'Heap Fetches: \d+', 'Heap Fetches: N');
 	ln := regexp_replace(ln, 'loops=\d+', 'loops=N');
         return next ln;
@@ -42,11 +36,8 @@ end;
 $$;
 
 -- Ensure we get a memoize node on the inner side of the nested loop
-<<<<<<< HEAD
 SET optimizer_enable_hashjoin TO off;
 SET optimizer_enable_bitmapscan TO off;
-=======
->>>>>>> REL_16_9
 SET enable_hashjoin TO off;
 SET enable_bitmapscan TO off;
 
@@ -63,24 +54,12 @@ WHERE t2.unique1 < 1000;
 -- Try with LATERAL joins
 SELECT explain_memoize('
 SELECT COUNT(*),AVG(t2.unique1) FROM tenk1 t1,
-<<<<<<< HEAD
-LATERAL (SELECT t2.unique1 FROM tenk1 t2 WHERE t1.twenty = t2.unique1) t2
-=======
 LATERAL (SELECT t2.unique1 FROM tenk1 t2
          WHERE t1.twenty = t2.unique1 OFFSET 0) t2
->>>>>>> REL_16_9
 WHERE t1.unique1 < 1000;', false);
 
 -- And check we get the expected results.
 SELECT COUNT(*),AVG(t2.unique1) FROM tenk1 t1,
-<<<<<<< HEAD
-LATERAL (SELECT t2.unique1 FROM tenk1 t2 WHERE t1.twenty = t2.unique1) t2
-WHERE t1.unique1 < 1000;
-
--- Reduce work_mem so that we see some cache evictions
-SET work_mem TO '64kB';
-SET enable_mergejoin TO off;
-=======
 LATERAL (SELECT t2.unique1 FROM tenk1 t2
          WHERE t1.twenty = t2.unique1 OFFSET 0) t2
 WHERE t1.unique1 < 1000;
@@ -110,7 +89,6 @@ DROP TABLE expr_key;
 -- Reduce work_mem and hash_mem_multiplier so that we see some cache evictions
 SET work_mem TO '64kB';
 SET hash_mem_multiplier TO 1.0;
->>>>>>> REL_16_9
 -- Ensure we get some evictions.  We're unable to validate the hits and misses
 -- here as the number of entries that fit in the cache at once will vary
 -- between different machines.
@@ -141,11 +119,7 @@ DROP TABLE flt;
 CREATE TABLE strtest (n name, t text);
 CREATE INDEX strtest_n_idx ON strtest (n);
 CREATE INDEX strtest_t_idx ON strtest (t);
-<<<<<<< HEAD
-INSERT INTO strtest VALUES('one','one'),('two','two'),('three',repeat(md5('three'),100));
-=======
 INSERT INTO strtest VALUES('one','one'),('two','two'),('three',repeat(fipshash('three'),100));
->>>>>>> REL_16_9
 -- duplicate rows so we get some cache hits
 INSERT INTO strtest SELECT * FROM strtest;
 ANALYZE strtest;
@@ -160,8 +134,6 @@ SELECT * FROM strtest s1 INNER JOIN strtest s2 ON s1.t >= s2.t;', false);
 
 DROP TABLE strtest;
 
-<<<<<<< HEAD
-=======
 -- Ensure memoize works with partitionwise join
 SET enable_partitionwise_join TO on;
 
@@ -189,7 +161,6 @@ DROP TABLE prt;
 
 RESET enable_partitionwise_join;
 
->>>>>>> REL_16_9
 -- Exercise Memoize code that flushes the cache when a parameter changes which
 -- is not part of the cache key.
 
@@ -213,16 +184,11 @@ WHERE unique1 < 3
 RESET enable_seqscan;
 RESET enable_mergejoin;
 RESET work_mem;
-<<<<<<< HEAD
 RESET enable_bitmapscan;
 RESET enable_hashjoin;
 RESET optimizer_enable_hashjoin;
 RESET optimizer_enable_bitmapscan;
-=======
 RESET hash_mem_multiplier;
-RESET enable_bitmapscan;
-RESET enable_hashjoin;
->>>>>>> REL_16_9
 
 -- Test parallel plans with Memoize
 SET min_parallel_table_scan_size TO 0;

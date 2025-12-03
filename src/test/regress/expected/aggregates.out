@@ -2482,7 +2482,6 @@ select * from v_pagg_test order by y;
  9 |   19 | 4999 |        250 | 1019 | 999  |        250 |   19 | 4999 |        250 |    19 |  4999 |         250
 (10 rows)
 
--- end_ignore
 -- Ensure parallel aggregation is actually being used.
 explain (costs off) select * from v_pagg_test order by y;
                                                                  QUERY PLAN                                                                 
@@ -2522,6 +2521,7 @@ select * from v_pagg_test order by y;
  9 |   19 | 4999 |        250 | 1019 | 999  |        250 |   19 | 4999 |        250 |    19 |  4999 |         250
 (10 rows)
 
+-- end_ignore
 -- Check that we don't fail on anonymous record types.
 set max_parallel_workers_per_gather = 2;
 explain (costs off)

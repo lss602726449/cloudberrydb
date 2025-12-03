@@ -180,11 +180,7 @@ CREATE FUNCTION functest_S_13() RETURNS boolean
         SELECT false;
     END;
 
-<<<<<<< HEAD:src/test/regress/sql/create_function_3.sql
--- check display of function argments in sub-SELECT
-=======
 -- check display of function arguments in sub-SELECT
->>>>>>> REL_16_9:src/test/regress/sql/create_function_sql.sql
 CREATE TABLE functest1 (i int);
 CREATE FUNCTION functest_S_16(a int, b int) RETURNS void
     LANGUAGE SQL

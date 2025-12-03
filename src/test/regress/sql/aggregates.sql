@@ -993,7 +993,6 @@ group by y;
 -- Ensure results are correct.
 -- start_ignore
 select * from v_pagg_test order by y;
--- end_ignore
 
 -- Ensure parallel aggregation is actually being used.
 explain (costs off) select * from v_pagg_test order by y;
@@ -1001,6 +1000,7 @@ explain (costs off) select * from v_pagg_test order by y;
 -- Ensure results are the same without parallel aggregation.
 set max_parallel_workers_per_gather = 0;
 select * from v_pagg_test order by y;
+-- end_ignore
 
 -- Check that we don't fail on anonymous record types.
 set max_parallel_workers_per_gather = 2;

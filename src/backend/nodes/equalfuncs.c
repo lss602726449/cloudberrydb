@@ -3674,6 +3674,63 @@ _equalMergeAction(const MergeAction *a, const MergeAction *b)
 	return true;
 }
 
+static bool
+_equalJsonConstructorExpr(const JsonConstructorExpr *a, const JsonConstructorExpr *b)
+{
+	COMPARE_SCALAR_FIELD(type);
+	COMPARE_NODE_FIELD(args);
+	COMPARE_NODE_FIELD(func);
+	COMPARE_NODE_FIELD(coercion);
+	COMPARE_NODE_FIELD(returning);
+	COMPARE_SCALAR_FIELD(absent_on_null);
+	COMPARE_SCALAR_FIELD(unique);
+	COMPARE_LOCATION_FIELD(location);
+
+	return true;
+}
+
+static bool
+_equalJsonIsPredicate(const JsonIsPredicate *a, const JsonIsPredicate *b)
+{
+	COMPARE_NODE_FIELD(expr);
+	COMPARE_NODE_FIELD(format);
+	COMPARE_SCALAR_FIELD(item_type);
+	COMPARE_SCALAR_FIELD(unique_keys);
+	COMPARE_LOCATION_FIELD(location);
+
+	return true;
+}
+
+static bool
+_equalJsonReturning(const JsonReturning *a, const JsonReturning *b)
+{
+	COMPARE_NODE_FIELD(format);
+	COMPARE_SCALAR_FIELD(typid);
+	COMPARE_SCALAR_FIELD(typmod);
+
+	return true;
+}
+
+static bool
+_equalJsonValueExpr(const JsonValueExpr *a, const JsonValueExpr *b)
+{
+	COMPARE_NODE_FIELD(raw_expr);
+	COMPARE_NODE_FIELD(formatted_expr);
+	COMPARE_NODE_FIELD(format);
+
+	return true;
+}
+
+static bool
+_equalJsonFormat(const JsonFormat *a, const JsonFormat *b)
+{
+	COMPARE_SCALAR_FIELD(format_type);
+	COMPARE_SCALAR_FIELD(encoding);
+	COMPARE_LOCATION_FIELD(location);
+
+	return true;
+}
+
 /*
  * equal
  *	  returns whether two nodes are equal
@@ -4571,7 +4628,21 @@ equal(const void *a, const void *b)
 		case T_MergeAction:
 			retval = _equalMergeAction(a, b);
 			break;
-
+		case T_JsonConstructorExpr:
+			retval = _equalJsonConstructorExpr(a, b);
+			break;
+		case T_JsonIsPredicate:
+			retval = _equalJsonIsPredicate(a, b);
+			break;
+		case T_JsonReturning:
+			retval = _equalJsonReturning(a, b);
+			break;
+		case T_JsonValueExpr:
+			retval = _equalJsonValueExpr(a, b);
+			break;
+		case T_JsonFormat:
+			retval = _equalJsonFormat(a, b);
+			break;
 		default:
 			elog(ERROR, "unrecognized node type: %d",
 				 (int) nodeTag(a));
