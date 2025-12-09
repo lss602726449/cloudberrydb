@@ -1854,7 +1854,7 @@ cdbpathtoplan_create_sri_plan(RangeTblEntry *rte, PlannerInfo *subroot, Path *su
 										  targetPolicy->nattrs,
 										  targetPolicy->attrs);
 	hashOpfamilies = NIL;
-	for (i = 0; i < targetPolicy->nattrs; i++)
+	for (int i = 0; i < targetPolicy->nattrs; i++)
 	{
 		Oid			opfamily = get_opclass_family(targetPolicy->opclasses[i]);
 
