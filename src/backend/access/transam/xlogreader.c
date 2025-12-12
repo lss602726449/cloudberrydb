@@ -562,7 +562,6 @@ XLogDecodeNextRecord(XLogReaderState *state, bool nonblocking)
 	state->errormsg_buf[0] = '\0';
 	decoded = NULL;
 
-	ResetDecoder(state);
 	state->abortedRecPtr = InvalidXLogRecPtr;
 	state->missingContrecPtr = InvalidXLogRecPtr;
 
@@ -758,7 +757,6 @@ restart:
 			if (pageHeader->xlp_info & XLP_FIRST_IS_OVERWRITE_CONTRECORD)
 			{
 				state->overwrittenRecPtr = RecPtr;
-				ResetDecoder(state);
 				RecPtr = targetPagePtr;
 				goto restart;
 			}

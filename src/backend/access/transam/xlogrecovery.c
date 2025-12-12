@@ -817,6 +817,17 @@ InitWalRecovery(ControlFileData *ControlFile, bool *wasShutdown_ptr,
 	}
 
 	/*
+	 * gpdb specific: Do pgdata fsync for the case that is almost not possible
+	 * on real production scenarios. See previous code that calls
+	 * SyncAllXLogFiles() for details.
+	 */
+	if (!checkPoint.fullPageWrites &&
+		!haveBackupLabel &&
+		ControlFile->state != DB_SHUTDOWNED &&
+		ControlFile->state != DB_SHUTDOWNED_IN_RECOVERY)
+		SyncDataDirectory();
+
+	/*
 	 * If the location of the checkpoint record is not on the expected
 	 * timeline in the history of the requested timeline, we cannot proceed:
 	 * the backup is not part of the history of the requested timeline.
@@ -1961,6 +1972,32 @@ ApplyWalRecord(XLogReaderState *xlogreader, XLogRecord *record, TimeLineID *repl
 	XLogRecoveryCtl->lastReplayedEndRecPtr = xlogreader->EndRecPtr;
 	XLogRecoveryCtl->lastReplayedTLI = *replayTLI;
 	SpinLockRelease(&XLogRecoveryCtl->info_lck);
+
+	if (create_restartpoint_on_ckpt_record_replay && ArchiveRecoveryRequested)
+	{
+		/*
+		 * Create restartpoint on checkpoint record if requested.
+		 *
+		 * The bgwriter creates restartpoints during archive
+		 * recovery at its own leisure. But gp_replica_check fails
+		 * with this, because it bypasses the shared buffer cache
+		 * and reads directly from disk. So, via GUC it can
+		 * request to force creating restart point mainly to flush
+		 * the shared buffers to disk.
+		 */
+		uint8 xlogRecInfo = record->xl_info & ~XLR_INFO_MASK;
+
+		if (record->xl_rmid == RM_XLOG_ID &&
+			(xlogRecInfo == XLOG_CHECKPOINT_SHUTDOWN ||
+			 xlogRecInfo == XLOG_CHECKPOINT_ONLINE))
+		{
+			if (ArchiveRecoveryRequested && IsUnderPostmaster)
+				RequestCheckpoint(CHECKPOINT_IMMEDIATE | CHECKPOINT_WAIT);
+			else
+				elog(LOG, "Skipping CreateRestartPoint() as bgwriter is not launched.");
+		}
+	}
+
 
 	/* ------
 	 * Wakeup walsenders:
@@ -4034,6 +4071,11 @@ ReadCheckpointRecord(XLogPrefetcher *xlogprefetcher, XLogRecPtr RecPtr,
 {
 	XLogRecord *record;
 	uint8		info;
+	bool sizeOk;
+	uint32 chkpt_len;
+	uint32 chkpt_hdr_len_short;
+	uint32 chkpt_hdr_len_long;
+	bool length_match;
 
 	Assert(xlogreader != NULL);
 
@@ -4067,7 +4109,31 @@ ReadCheckpointRecord(XLogPrefetcher *xlogprefetcher, XLogRecPtr RecPtr,
 				(errmsg("invalid xl_info in checkpoint record")));
 		return NULL;
 	}
-	if (record->xl_tot_len < SizeOfXLogRecord + SizeOfXLogRecordDataHeaderShort + sizeof(CheckPoint))
+
+	/*
+	 * GPDB: Verify the Checkpoint record length. For an extended Checkpoint
+	 * record (when record total length is greater than regular checkpoint
+	 * record total length, e.g. in the case of containing DTX info), compare
+	 * the difference between the regular checkpoint size and the extended
+	 * variable size.
+	 */
+	sizeOk = false;
+	chkpt_len = XLogRecGetDataLen(xlogreader);
+	chkpt_hdr_len_short = SizeOfXLogRecord + SizeOfXLogRecordDataHeaderShort + sizeof(CheckPoint);
+	chkpt_hdr_len_long = SizeOfXLogRecord + SizeOfXLogRecordDataHeaderLong + sizeof(CheckPoint);
+
+	if (chkpt_len > 255) /* for XLR_BLOCK_ID_DATA_LONG */
+		length_match = ((chkpt_len - sizeof(CheckPoint)) == (record->xl_tot_len - chkpt_hdr_len_long));
+	else /* for XLR_BLOCK_ID_DATA_SHORT */
+		length_match = ((chkpt_len - sizeof(CheckPoint)) == (record->xl_tot_len - chkpt_hdr_len_short));
+
+	if ((chkpt_len == sizeof(CheckPoint) && record->xl_tot_len == chkpt_hdr_len_short) ||
+		((chkpt_len > sizeof(CheckPoint) &&
+		  record->xl_tot_len > chkpt_hdr_len_short &&
+		  length_match)))
+		sizeOk = true;
+
+	if (!sizeOk)
 	{
 		ereport(PANIC,
 				(errmsg("invalid length of checkpoint record")));

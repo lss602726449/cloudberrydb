@@ -2232,7 +2232,7 @@ make_template0(FILE *cmdfd)
 	/*
 	 * Finally vacuum to clean up dead rows in pg_database
 	 */
-	// PG_CMD_PUTS("VACUUM pg_database;\n\n");
+	 PG_CMD_PUTS("VACUUM pg_database;\n\n");
 }
 
 /*
@@ -2248,10 +2248,6 @@ make_postgres(FILE *cmdfd)
 	PG_CMD_PUTS("CREATE DATABASE postgres OID = " CppAsString2(PostgresDbOid)
 				" STRATEGY = file_copy;\n\n");
 	PG_CMD_PUTS("COMMENT ON DATABASE postgres IS 'default administrative connection database';\n\n");
-	PG_CMD_PUTS("UPDATE pg_database SET "
-				"	datistemplate = 't' "
-				"    WHERE datname = 'postgres';\n\n");
-	//PG_CMD_PUTS("VACUUM FULL pg_database;\n\n");
 }
 
 /*
@@ -3433,7 +3429,7 @@ initialize_data_directory(void)
 	 * vacuum template1 to remove the dead tuples. otherwise, some mismatch error 
 	 * will be reported in gp_replica_check.
 	 */
-//	vacuum_db(cmdfd);
+	vacuum_db(cmdfd);
 
 	PG_CMD_CLOSE;
 
