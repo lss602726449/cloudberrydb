@@ -2,6 +2,8 @@
 -- m/WARNING:  tablespace symlink path is too long for TAR/
 -- m/DETAIL:  The symlinked path \".*\" will be truncated to 100 characters when sending a TAR to the utilities \(e.g. pg_basebackup\)/
 -- end_matchignore
+\getenv abs_builddir PG_ABS_BUILDDIR
+\set testtablespace :abs_builddir '/testtablespace'
 create or replace function has_init_file_for_oid(object oid) returns boolean as $$
 	select count(pg_stat_file(p.pg_relation_filepath || '_init')) = 1 as success
 	 from (select * from pg_relation_filepath(object)) p;
@@ -36,17 +38,17 @@ END;
 $$ language plpgsql;
 
 -- create tablespaces we can use
-CREATE TABLESPACE testspace LOCATION '@testtablespace@';
-CREATE TABLESPACE ul_testspace LOCATION '@testtablespace@_unlogged';
+CREATE TABLESPACE testspace LOCATION :'testtablespace';
+CREATE TABLESPACE ul_testspace LOCATION :'testtablespace' '_unlogged';
 SELECT gp_segment_id,
        CASE tblspc_loc
-            WHEN '@testtablespace@' THEN 'testtablespace'
+            WHEN :'testtablespace' THEN 'testtablespace'
             ELSE 'testtablespace_unknown'
        END AS tblspc_loc
 FROM gp_tablespace_location((SELECT oid FROM pg_tablespace WHERE spcname='testspace'));
 SELECT gp_segment_id,
        CASE tblspc_loc
-            WHEN '@testtablespace@_unlogged' THEN 'testtablespace_unlogged'
+            WHEN :'testtablespace' '_unlogged' THEN 'testtablespace_unlogged'
             ELSE 'testtablespace_unknown'
        END AS tblspc_loc
 FROM gp_tablespace_location((SELECT oid FROM pg_tablespace WHERE spcname='ul_testspace'));
@@ -59,7 +61,7 @@ FROM pg_tablespace WHERE spcname = 'testspace';
 
 -- Ensure mirrors have applied filesystem changes
 SELECT force_mirrors_to_catch_up();
-\! ls @testtablespace@;
+\! ls :'testtablespace';
 
 -- Test moving AO/AOCO tables from one tablespace to another.
 CREATE TABLE ao_ts_table (id int4, t text) with (appendonly=true, orientation=row) distributed by (id);
@@ -188,12 +190,12 @@ drop table aoco_ul_ctas;
 drop tablespace ul_testspace;
 
 -- Cloudberry tablespaces have the option to define tablespace location for specific segments
-CREATE TABLESPACE testspace_otherloc LOCATION '@testtablespace@' WITH (content9999='@testtablespace@_otherloc'); -- should fail
-CREATE TABLESPACE testspace_otherloc LOCATION '@testtablespace@' WITH (content1='@testtablespace@_otherloc');
+CREATE TABLESPACE testspace_otherloc LOCATION :'testtablespace' WITH (content9999=:'testtablespace' '_otherloc'); -- should fail
+CREATE TABLESPACE testspace_otherloc LOCATION :'testtablespace' WITH (content1=:'testtablespace' '_otherloc');
 SELECT gp_segment_id,
        CASE tblspc_loc
-            WHEN '@testtablespace@' THEN 'testtablespace'
-            WHEN '@testtablespace@_otherloc' THEN 'testtablespace_otherloc'
+            WHEN :'testtablespace' THEN 'testtablespace'
+            WHEN :'testtablespace' '_otherloc' THEN 'testtablespace_otherloc'
             ELSE 'testtablespace_unknown'
        END AS tblspc_loc
 FROM gp_tablespace_location((SELECT oid FROM pg_tablespace WHERE spcname='testspace_otherloc'));
@@ -222,7 +224,7 @@ DROP TABLESPACE testspace_existing_version_dir;
 
 -- Ensure mirrors have applied filesystem changes
 SELECT force_mirrors_to_catch_up();
-\! ls @testtablespace@_existing_version_dir/*;
+\! ls :'testtablespace'_existing_version_dir/*;
 
 -- Test alter tablespace: PG does not seem to test these.
 
