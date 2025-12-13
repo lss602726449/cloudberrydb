@@ -3,6 +3,9 @@
 -- m/waiting for server to shut down.* done/
 -- m/waiting for server to start.* done/
 -- end_matchignore
+-- directory paths are passed to us in environment variables
+-----------------------------------------------------------------------------------
+\getenv abs_srcdir PG_ABS_SRCDIR
 
 -- Setting up test functions to acquire keepalive parameters from the cdbgang
 -- QD/QE libpq connection TCP sockets. Store the results in a table to diff
@@ -15,7 +18,7 @@ CREATE OR REPLACE FUNCTION gp_keepalives_check(
     OUT keepalives_interval int,
     OUT keepalives_count int,
     OUT keepalives_idle int)
-RETURNS SETOF record AS 'filename',
+RETURNS SETOF record AS :'filename',
 'gp_keepalives_check' LANGUAGE C VOLATILE EXECUTE ON MASTER;
 
 CREATE OR REPLACE LANGUAGE plpython3u;
