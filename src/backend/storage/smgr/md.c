@@ -1652,7 +1652,7 @@ _mdnblocks(SMgrRelation reln, ForkNumber forknum, MdfdVec *seg)
 int
 mdsyncfiletag(const FileTag *ftag, char *path)
 {
-	SMgrRelation reln = smgropen(ftag->rlocator, InvalidBackendId, 0, NULL);
+	SMgrRelation reln = smgropen(ftag->rlocator, InvalidBackendId, SMGR_MD, NULL);
 	File		file;
 	instr_time	io_start;
 	bool		need_to_close;

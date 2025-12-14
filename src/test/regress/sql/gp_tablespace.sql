@@ -38,8 +38,9 @@ END;
 $$ language plpgsql;
 
 -- create tablespaces we can use
+\set testtablespace_unlogged :testtablespace '_unlogged'
 CREATE TABLESPACE testspace LOCATION :'testtablespace';
-CREATE TABLESPACE ul_testspace LOCATION :'testtablespace' '_unlogged';
+CREATE TABLESPACE ul_testspace LOCATION :'testtablespace_unlogged';
 SELECT gp_segment_id,
        CASE tblspc_loc
             WHEN :'testtablespace' THEN 'testtablespace'
@@ -48,7 +49,7 @@ SELECT gp_segment_id,
 FROM gp_tablespace_location((SELECT oid FROM pg_tablespace WHERE spcname='testspace'));
 SELECT gp_segment_id,
        CASE tblspc_loc
-            WHEN :'testtablespace' '_unlogged' THEN 'testtablespace_unlogged'
+            WHEN :'testtablespace_unlogged' THEN 'testtablespace_unlogged'
             ELSE 'testtablespace_unknown'
        END AS tblspc_loc
 FROM gp_tablespace_location((SELECT oid FROM pg_tablespace WHERE spcname='ul_testspace'));
@@ -61,7 +62,7 @@ FROM pg_tablespace WHERE spcname = 'testspace';
 
 -- Ensure mirrors have applied filesystem changes
 SELECT force_mirrors_to_catch_up();
-\! ls :'testtablespace';
+\! ls :testtablespace;
 
 -- Test moving AO/AOCO tables from one tablespace to another.
 CREATE TABLE ao_ts_table (id int4, t text) with (appendonly=true, orientation=row) distributed by (id);
@@ -190,19 +191,21 @@ drop table aoco_ul_ctas;
 drop tablespace ul_testspace;
 
 -- Cloudberry tablespaces have the option to define tablespace location for specific segments
-CREATE TABLESPACE testspace_otherloc LOCATION :'testtablespace' WITH (content9999=:'testtablespace' '_otherloc'); -- should fail
-CREATE TABLESPACE testspace_otherloc LOCATION :'testtablespace' WITH (content1=:'testtablespace' '_otherloc');
+\set testtablespace_otherloc :testtablespace '_otherloc'
+CREATE TABLESPACE testspace_otherloc LOCATION :'testtablespace' WITH (content9999=:'testtablespace_otherloc'); -- should fail
+CREATE TABLESPACE testspace_otherloc LOCATION :'testtablespace' WITH (content1=:'testtablespace_otherloc');
 SELECT gp_segment_id,
        CASE tblspc_loc
             WHEN :'testtablespace' THEN 'testtablespace'
-            WHEN :'testtablespace' '_otherloc' THEN 'testtablespace_otherloc'
+            WHEN :'testtablespace_otherloc' THEN 'testtablespace_otherloc'
             ELSE 'testtablespace_unknown'
        END AS tblspc_loc
 FROM gp_tablespace_location((SELECT oid FROM pg_tablespace WHERE spcname='testspace_otherloc'));
 
 -- Create a tablespace with an existing GP_TABLESPACE_VERSION_DIRECTORY for
 -- another version of GPDB.
-CREATE TABLESPACE testspace_existing_version_dir LOCATION '@testtablespace@_existing_version_dir';
+\set testtablespace_existing_version_dir :testtablespace '_existing_version_dir'
+CREATE TABLESPACE testspace_existing_version_dir LOCATION :'testtablespace_existing_version_dir';
 
 SELECT * FROM
   (SELECT pg_ls_dir('pg_tblspc/' || oid) AS versiondirs
@@ -224,7 +227,8 @@ DROP TABLESPACE testspace_existing_version_dir;
 
 -- Ensure mirrors have applied filesystem changes
 SELECT force_mirrors_to_catch_up();
-\! ls :'testtablespace'_existing_version_dir/*;
+\set testtablespace_existing_version_dir :testtablespace '_existing_version_dir'
+\! ls testtablespace_existing_version_dir/*;
 
 -- Test alter tablespace: PG does not seem to test these.
 
@@ -253,7 +257,7 @@ SELECT COUNT(*) FROM tblspc_otherloc_heap;
 DROP TABLE tblspc_otherloc_heap;
 DROP TABLESPACE testspace_otherloc;
 
-CREATE TABLESPACE testspace_dir_empty LOCATION '@testtablespace@';
+CREATE TABLESPACE testspace_dir_empty LOCATION :'testtablespace';
 CREATE TABLE t_dir_empty(a int);
 \! rm -rf @testtablespace@/*;
 DROP TABLE IF EXISTS t_dir_empty;
