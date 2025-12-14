@@ -62,11 +62,7 @@ typedef struct BlockInfoRecord
 {
 	Oid			database;
 	Oid			tablespace;
-<<<<<<< HEAD
-	Oid filenode;
-=======
 	RelFileNumber filenumber;
->>>>>>> REL_16_9
 	ForkNumber	forknum;
 	BlockNumber blocknum;
 } BlockInfoRecord;
