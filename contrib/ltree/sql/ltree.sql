@@ -331,15 +331,10 @@ SELECT * FROM ltreetest WHERE t ? '{23.*.1,23.*.2}' order by t asc;
 
 drop index tstidx;
 create index tstidx on ltreetest using gist (t gist_ltree_ops(siglen=0));
-<<<<<<< HEAD
 create index tstidx on ltreetest using gist (t gist_ltree_ops(siglen=8169));
+create index tstidx on ltreetest using gist (t gist_ltree_ops(siglen=8172));
+create index tstidx on ltreetest using gist (t gist_ltree_ops(siglen=8167));
 create index tstidx on ltreetest using gist (t gist_ltree_ops(siglen=8168));
-=======
-create index tstidx on ltreetest using gist (t gist_ltree_ops(siglen=2025));
-create index tstidx on ltreetest using gist (t gist_ltree_ops(siglen=2028));
-create index tstidx on ltreetest using gist (t gist_ltree_ops(siglen=2019));
-create index tstidx on ltreetest using gist (t gist_ltree_ops(siglen=2024));
->>>>>>> REL_16_9
 
 SELECT count(*) FROM ltreetest WHERE t <  '12.3';
 SELECT count(*) FROM ltreetest WHERE t <= '12.3';
@@ -397,10 +392,9 @@ SELECT count(*) FROM _ltreetest WHERE t ~ '23.*.1' ;
 SELECT count(*) FROM _ltreetest WHERE t ~ '23.*.2' ;
 SELECT count(*) FROM _ltreetest WHERE t ? '{23.*.1,23.*.2}' ;
 
-<<<<<<< HEAD
 -- Test that has all opclasses
 select opcname,amname from pg_opclass opc,  pg_am am  where am.oid=opc.opcmethod and opcintype='ltree'::regtype;
-=======
+
 -- test non-error-throwing input
 
 SELECT str as "value", typ as "type",
@@ -419,4 +413,3 @@ FROM (VALUES ('.2.3', 'ltree'),
              ('!tree & aWdf@*','ltxtquery'))
       AS a(str,typ),
      LATERAL pg_input_error_info(a.str, a.typ) as errinfo;
->>>>>>> REL_16_9

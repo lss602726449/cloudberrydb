@@ -739,13 +739,9 @@ ltree_gist_options(PG_FUNCTION_ARGS)
 	init_local_reloptions(relopts, sizeof(LtreeGistOptions));
 	add_local_int_reloption(relopts, "siglen",
 							"signature length in bytes",
-<<<<<<< HEAD
-							LTREE_SIGLEN_DEFAULT, 1, LTREE_SIGLEN_MAX,
-=======
 							LTREE_SIGLEN_DEFAULT,
 							INTALIGN(1),
 							LTREE_SIGLEN_MAX,
->>>>>>> REL_16_9
 							offsetof(LtreeGistOptions, siglen));
 	register_reloptions_validator(relopts, ltree_gist_relopts_validator);
 
