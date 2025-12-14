@@ -18,10 +18,7 @@
 #define NUM_BUFFERCACHE_PAGES_MIN_ELEM	8
 #define NUM_BUFFERCACHE_PAGES_ELEM	9
 #define NUM_BUFFERCACHE_SUMMARY_ELEM 5
-<<<<<<< HEAD
-=======
 #define NUM_BUFFERCACHE_USAGE_COUNTS_ELEM 4
->>>>>>> REL_16_9
 
 PG_MODULE_MAGIC;
 
@@ -31,11 +28,7 @@ PG_MODULE_MAGIC;
 typedef struct
 {
 	uint32		bufferid;
-<<<<<<< HEAD
-	Oid relfilenode;
-=======
 	RelFileNumber relfilenumber;
->>>>>>> REL_16_9
 	Oid			reltablespace;
 	Oid			reldatabase;
 	ForkNumber	forknum;
@@ -69,10 +62,7 @@ typedef struct
  */
 PG_FUNCTION_INFO_V1(pg_buffercache_pages);
 PG_FUNCTION_INFO_V1(pg_buffercache_summary);
-<<<<<<< HEAD
-=======
 PG_FUNCTION_INFO_V1(pg_buffercache_usage_counts);
->>>>>>> REL_16_9
 
 Datum
 pg_buffercache_pages(PG_FUNCTION_ARGS)
@@ -316,8 +306,6 @@ pg_buffercache_summary(PG_FUNCTION_ARGS)
 
 	PG_RETURN_DATUM(result);
 }
-<<<<<<< HEAD
-=======
 
 Datum
 pg_buffercache_usage_counts(PG_FUNCTION_ARGS)
@@ -359,4 +347,3 @@ pg_buffercache_usage_counts(PG_FUNCTION_ARGS)
 
 	return (Datum) 0;
 }
->>>>>>> REL_16_9
