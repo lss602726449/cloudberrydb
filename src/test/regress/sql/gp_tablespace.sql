@@ -62,7 +62,6 @@ FROM pg_tablespace WHERE spcname = 'testspace';
 
 -- Ensure mirrors have applied filesystem changes
 SELECT force_mirrors_to_catch_up();
-\! ls :testtablespace;
 
 -- Test moving AO/AOCO tables from one tablespace to another.
 CREATE TABLE ao_ts_table (id int4, t text) with (appendonly=true, orientation=row) distributed by (id);
@@ -227,8 +226,6 @@ DROP TABLESPACE testspace_existing_version_dir;
 
 -- Ensure mirrors have applied filesystem changes
 SELECT force_mirrors_to_catch_up();
-\set testtablespace_existing_version_dir :testtablespace '_existing_version_dir'
-\! ls testtablespace_existing_version_dir/*;
 
 -- Test alter tablespace: PG does not seem to test these.
 
@@ -238,7 +235,8 @@ SELECT spcoptions FROM pg_tablespace WHERE spcname = 'testspace_otherloc';
 CREATE ROLE t_owner;
 ALTER TABLESPACE testspace_otherloc OWNER TO t_owner;
 SELECT rolname from pg_roles WHERE oid in (SELECT spcowner FROM pg_tablespace WHERE spcname = 'testspace_otherloc');
-ALTER TABLESPACE testspace_otherloc OWNER TO @curusername@;
+\getenv curusername PG_CURUSERNAME
+ALTER TABLESPACE testspace_otherloc OWNER TO :curusername;
 DROP ROLE t_owner;
 
 -- test RENAME
@@ -259,7 +257,6 @@ DROP TABLESPACE testspace_otherloc;
 
 CREATE TABLESPACE testspace_dir_empty LOCATION :'testtablespace';
 CREATE TABLE t_dir_empty(a int);
-\! rm -rf @testtablespace@/*;
 DROP TABLE IF EXISTS t_dir_empty;
 DROP TABLESPACE testspace_dir_empty;
 

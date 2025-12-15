@@ -256,16 +256,20 @@ mdunlink_ao(RelFileLocatorBackend rnode, ForkNumber forkNumber, bool isRedo)
 	/*
 	 * Unlogged AO tables have INIT_FORK, in addition to MAIN_FORK.  It is
 	 * created once, regardless of the number of segment files (or the number
-	 * of columns for column-oriented tables).  Sync requests for INIT_FORKs
-	 * are not remembered, so they need not be forgotten.
+	 * of columns for column-oriented tables).
 	 */
 	if (forkNumber == INIT_FORKNUM)
 	{
+		FileTag tag;
+		
 		path = relpath(rnode, forkNumber);
 		if (unlink(path) < 0 && errno != ENOENT)
 			ereport(WARNING,
 					(errcode_for_file_access(),
 					 errmsg("could not remove file \"%s\": %m", path)));
+		INIT_FILETAG(tag, rnode.locator, INIT_FORKNUM, 0,
+					 SYNC_HANDLER_MD);
+		RegisterSyncRequest(&tag, SYNC_FORGET_REQUEST, true);
 	}
 	/* This storage manager is not concerned with forks other than MAIN_FORK */
 	else if (forkNumber == MAIN_FORKNUM)

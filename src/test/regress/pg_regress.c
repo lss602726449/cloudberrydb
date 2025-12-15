@@ -1271,6 +1271,8 @@ get_expectfile(const char *testname, const char *file, const char *default_expec
 static void
 initialize_environment(void)
 {
+	char *errstr;
+
 	/*
 	 * Set default application_name.  (The test_start_function may choose to
 	 * override this, but if it doesn't, we have something useful in place.)
@@ -1284,6 +1286,7 @@ initialize_environment(void)
 	setenv("PG_ABS_BUILDDIR", outputdir, 1);
 	setenv("PG_LIBDIR", dlpath, 1);
 	setenv("PG_DLSUFFIX", DLSUFFIX, 1);
+	setenv("PG_CURUSERNAME", get_user_name(&errstr), 1);
 
 	if (nolocale)
 	{

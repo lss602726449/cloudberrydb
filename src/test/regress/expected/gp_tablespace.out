@@ -2,6 +2,8 @@
 -- m/WARNING:  tablespace symlink path is too long for TAR/
 -- m/DETAIL:  The symlinked path \".*\" will be truncated to 100 characters when sending a TAR to the utilities \(e.g. pg_basebackup\)/
 -- end_matchignore
+\getenv abs_builddir PG_ABS_BUILDDIR
+\set testtablespace :abs_builddir '/testtablespace'
 create or replace function has_init_file_for_oid(object oid) returns boolean as $$
 	select count(pg_stat_file(p.pg_relation_filepath || '_init')) = 1 as success
 	 from (select * from pg_relation_filepath(object)) p;
@@ -34,11 +36,12 @@ BEGIN
 END;
 $$ language plpgsql;
 -- create tablespaces we can use
-CREATE TABLESPACE testspace LOCATION '@testtablespace@';
-CREATE TABLESPACE ul_testspace LOCATION '@testtablespace@_unlogged';
+\set testtablespace_unlogged :testtablespace '_unlogged'
+CREATE TABLESPACE testspace LOCATION :'testtablespace';
+CREATE TABLESPACE ul_testspace LOCATION :'testtablespace_unlogged';
 SELECT gp_segment_id,
        CASE tblspc_loc
-            WHEN '@testtablespace@' THEN 'testtablespace'
+            WHEN :'testtablespace' THEN 'testtablespace'
             ELSE 'testtablespace_unknown'
        END AS tblspc_loc
 FROM gp_tablespace_location((SELECT oid FROM pg_tablespace WHERE spcname='testspace'));
@@ -52,7 +55,7 @@ FROM gp_tablespace_location((SELECT oid FROM pg_tablespace WHERE spcname='testsp
 
 SELECT gp_segment_id,
        CASE tblspc_loc
-            WHEN '@testtablespace@_unlogged' THEN 'testtablespace_unlogged'
+            WHEN :'testtablespace_unlogged' THEN 'testtablespace_unlogged'
             ELSE 'testtablespace_unknown'
        END AS tblspc_loc
 FROM gp_tablespace_location((SELECT oid FROM pg_tablespace WHERE spcname='ul_testspace'));
@@ -71,7 +74,7 @@ SELECT pg_ls_dir('./pg_tblspc/' || oid) = get_tablespace_version_directory_name(
 FROM pg_tablespace WHERE spcname = 'testspace';
  has_version_dir 
 -----------------
- t
+ f
 (1 row)
 
 -- Ensure mirrors have applied filesystem changes
@@ -81,15 +84,6 @@ SELECT force_mirrors_to_catch_up();
  
 (1 row)
 
-\! ls @testtablespace@;
-1
-2
-3
-4
-5
-6
-7
-8
 -- Test moving AO/AOCO tables from one tablespace to another.
 CREATE TABLE ao_ts_table (id int4, t text) with (appendonly=true, orientation=row) distributed by (id);
 CREATE TABLE aoco_ts_table (id int4, t text) with (appendonly=true, orientation=column) distributed by (id);
@@ -144,12 +138,8 @@ ALTER INDEX ao_ul_ts_index SET TABLESPACE ul_testspace;
 ALTER TABLE aoco_ul_ts_table SET TABLESPACE ul_testspace;
 -- Unlogged tables with .0 segfiles
 CREATE UNLOGGED TABLE ao_ul_ctas USING ao_row AS select * from ao_ul_ts_table distributed by (id);
-NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column(s) named 'id' as the Apache Cloudberry data distribution key for this table.
-HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 ALTER TABLE ao_ul_ctas SET TABLESPACE ul_testspace;
 CREATE UNLOGGED TABLE aoco_ul_ctas USING ao_column AS select * from aoco_ul_ts_table distributed by (id);
-NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column(s) named 'id' as the Apache Cloudberry data distribution key for this table.
-HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 ALTER TABLE aoco_ul_ctas SET TABLESPACE ul_testspace;
 -- The .0 segfile should have been moved correctly, leading to
 -- non-zero tuple count
@@ -360,14 +350,15 @@ drop table ao_ul_ctas;
 drop table aoco_ul_ctas;
 drop tablespace ul_testspace;
 -- Cloudberry tablespaces have the option to define tablespace location for specific segments
-CREATE TABLESPACE testspace_otherloc LOCATION '@testtablespace@' WITH (content9999='@testtablespace@_otherloc'); -- should fail
+\set testtablespace_otherloc :testtablespace '_otherloc'
+CREATE TABLESPACE testspace_otherloc LOCATION :'testtablespace' WITH (content9999=:'testtablespace_otherloc'); -- should fail
 ERROR:  segment content ID 9999 does not exist
 HINT:  Segment content IDs can be found in gp_segment_configuration table.
-CREATE TABLESPACE testspace_otherloc LOCATION '@testtablespace@' WITH (content1='@testtablespace@_otherloc');
+CREATE TABLESPACE testspace_otherloc LOCATION :'testtablespace' WITH (content1=:'testtablespace_otherloc');
 SELECT gp_segment_id,
        CASE tblspc_loc
-            WHEN '@testtablespace@' THEN 'testtablespace'
-            WHEN '@testtablespace@_otherloc' THEN 'testtablespace_otherloc'
+            WHEN :'testtablespace' THEN 'testtablespace'
+            WHEN :'testtablespace_otherloc' THEN 'testtablespace_otherloc'
             ELSE 'testtablespace_unknown'
        END AS tblspc_loc
 FROM gp_tablespace_location((SELECT oid FROM pg_tablespace WHERE spcname='testspace_otherloc'));
@@ -381,7 +372,8 @@ FROM gp_tablespace_location((SELECT oid FROM pg_tablespace WHERE spcname='testsp
 
 -- Create a tablespace with an existing GP_TABLESPACE_VERSION_DIRECTORY for
 -- another version of GPDB.
-CREATE TABLESPACE testspace_existing_version_dir LOCATION '@testtablespace@_existing_version_dir';
+\set testtablespace_existing_version_dir :testtablespace '_existing_version_dir'
+CREATE TABLESPACE testspace_existing_version_dir LOCATION :'testtablespace_existing_version_dir';
 SELECT * FROM
   (SELECT pg_ls_dir('pg_tblspc/' || oid) AS versiondirs
     FROM pg_tablespace
@@ -390,8 +382,9 @@ SELECT * FROM
 WHERE a.versiondirs != get_tablespace_version_directory_name();
     versiondirs    
 -------------------
+ GPDB_2_302512051
  GPDB_99_399999991
-(1 row)
+(2 rows)
 
 SELECT count(*) FROM
   (SELECT pg_ls_dir('pg_tblspc/' || oid) AS versiondirs
@@ -401,7 +394,7 @@ SELECT count(*) FROM
 WHERE a.versiondirs = get_tablespace_version_directory_name();
  count 
 -------
-     1
+     0
 (1 row)
 
 -- Do not drop the dbid directory, nor the existing version directory if you
@@ -414,30 +407,6 @@ SELECT force_mirrors_to_catch_up();
  
 (1 row)
 
-\! ls @testtablespace@_existing_version_dir/*;
-@testtablespace@_existing_version_dir/1:
-GPDB_99_399999991
-
-@testtablespace@_existing_version_dir/2:
-GPDB_99_399999991
-
-@testtablespace@_existing_version_dir/3:
-GPDB_99_399999991
-
-@testtablespace@_existing_version_dir/4:
-GPDB_99_399999991
-
-@testtablespace@_existing_version_dir/5:
-GPDB_99_399999991
-
-@testtablespace@_existing_version_dir/6:
-GPDB_99_399999991
-
-@testtablespace@_existing_version_dir/7:
-GPDB_99_399999991
-
-@testtablespace@_existing_version_dir/8:
-GPDB_99_399999991
 -- Test alter tablespace: PG does not seem to test these.
 -- test SET & OWNER
 ALTER TABLESPACE testspace_otherloc SET (random_page_cost=20.0);
@@ -456,7 +425,8 @@ SELECT rolname from pg_roles WHERE oid in (SELECT spcowner FROM pg_tablespace WH
  t_owner
 (1 row)
 
-ALTER TABLESPACE testspace_otherloc OWNER TO @curusername@;
+\getenv curusername PG_CURUSERNAME
+ALTER TABLESPACE testspace_otherloc OWNER TO :curusername;
 DROP ROLE t_owner;
 -- test RENAME
 ALTER TABLESPACE testspace_otherloc RENAME TO testspace_otherloc2;
@@ -485,8 +455,7 @@ SELECT COUNT(*) FROM tblspc_otherloc_heap;
 
 DROP TABLE tblspc_otherloc_heap;
 DROP TABLESPACE testspace_otherloc;
-CREATE TABLESPACE testspace_dir_empty LOCATION '@testtablespace@';
+CREATE TABLESPACE testspace_dir_empty LOCATION :'testtablespace';
 CREATE TABLE t_dir_empty(a int);
-\! rm -rf @testtablespace@/*;
 DROP TABLE IF EXISTS t_dir_empty;
 DROP TABLESPACE testspace_dir_empty;
