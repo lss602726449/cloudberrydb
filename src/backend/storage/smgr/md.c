@@ -398,10 +398,6 @@ mdunlinkfork(RelFileLocatorBackend rlocator, ForkNumber forknum, bool isRedo)
 	int			save_errno;
 
 	path = relpath(rlocator, forknum);
-
-	elog(LOG, "UNLINK RelFileLocator %u %u %u, BackendId %d, ForkNum %d",
-		 rlocator.locator.spcOid, rlocator.locator.dbOid, rlocator.locator.relNumber,
-		 rlocator.backend, forknum);
 	
 	/*
 	 * Truncate and then unlink the first segment, or just register a request
@@ -1307,9 +1303,6 @@ register_forget_request(RelFileLocatorBackend rlocator, ForkNumber forknum,
 
 	INIT_MD_FILETAG(tag, rlocator.locator, forknum, segno);
 
-	elog(LOG, "FORGET RelFileLocator %u %u %u, BackendId %d, ForkNum %d",
-		 rlocator.locator.spcOid, rlocator.locator.dbOid, rlocator.locator.relNumber,
-		 rlocator.backend, forknum);
 	RegisterSyncRequest(&tag, SYNC_FORGET_REQUEST, true /* retryOnError */ );
 }
 

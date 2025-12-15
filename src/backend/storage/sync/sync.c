@@ -551,12 +551,7 @@ RememberSyncRequest(const FileTag *ftag, SyncRequestType type)
 												  HASH_FIND,
 												  NULL);
 		if (entry != NULL)
-		{
-			elog(LOG, "CANCEL RelFileLocator %u %u %u, ForkNum %d",
-				 entry->tag.rlocator.spcOid, entry->tag.rlocator.dbOid, entry->tag.rlocator.relNumber,
-				 entry->tag.forknum);
 			entry->canceled = true;
-		}
 	}
 	else if (type == SYNC_FILTER_REQUEST)
 	{
@@ -617,10 +612,6 @@ RememberSyncRequest(const FileTag *ftag, SyncRequestType type)
 			entry->cycle_ctr = sync_cycle_ctr;
 			entry->canceled = false;
 		}
-
-		elog(LOG, "INSERT RelFileLocator %u %u %u, ForkNum %d",
-			 entry->tag.rlocator.spcOid, entry->tag.rlocator.dbOid, entry->tag.rlocator.relNumber,
-			 entry->tag.forknum);
 		
 		/*
 		 * NB: it's intentional that we don't change cycle_ctr if the entry
