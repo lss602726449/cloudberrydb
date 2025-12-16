@@ -7584,15 +7584,21 @@ heap_freeze_tuple_wal_logged(Relation rel, HeapTuple tup)
 	/* WAL logging */
 	if (RelationNeedsWAL(rel))
 	{
-		XLogRecPtr      	recptr;
+		xl_heap_freeze_plan plans[MaxHeapTuplesPerPage];
+		OffsetNumber offsets[MaxHeapTuplesPerPage];
+		int			nplans;
 		xl_heap_freeze_page xlrec;
+		XLogRecPtr	recptr;
 
 		/* Caller should not call me on a non-WAL-logged relation */
 		Assert(RelationNeedsWAL(rel));
 
+		/* Prepare deduplicated representation for use in WAL record */
+		nplans = heap_log_freeze_plan(&frozen, 1, plans, offsets);
+
 		xlrec.snapshotConflictHorizon = InvalidTransactionId;
-		xlrec.nplans = 1;
-		xlrec.isCatalogRel = (RelationGetRelid(rel) < FirstNormalObjectId);
+		xlrec.nplans = nplans;
+		xlrec.isCatalogRel = RelationIsAccessibleInLogicalDecoding(rel);
 
 		XLogBeginInsert();
 		XLogRegisterData((char *) &xlrec, SizeOfHeapFreezePage);
@@ -7603,8 +7609,10 @@ heap_freeze_tuple_wal_logged(Relation rel, HeapTuple tup)
 		 * not be stored too.
 		 */
 		XLogRegisterBuffer(0, buffer, REGBUF_STANDARD);
-		XLogRegisterBufData(0, (char *) &frozen,
-							sizeof(HeapTupleFreeze));
+		XLogRegisterBufData(0, (char *) plans,
+							nplans * sizeof(xl_heap_freeze_plan));
+		XLogRegisterBufData(0, (char *) offsets,
+							1 * sizeof(OffsetNumber));
 
 		recptr = XLogInsert(RM_HEAP2_ID, XLOG_HEAP2_FREEZE_PAGE);
 
