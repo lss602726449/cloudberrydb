@@ -129,7 +129,7 @@ _bitmap_create_lov_heapandindex(Relation rel,
 		 * After creating the new relfilenode for a btee index, this is not
 		 * a btree anymore. We create the new metapage for this btree.
 		 */
-		btree_metabuf = _bt_getbuf(lovIndex, P_NEW, BT_WRITE);
+		btree_metabuf = _bt_allocbuf(lovIndex, lovHeap);
 		Assert (BTREE_METAPAGE == BufferGetBlockNumber(btree_metabuf));
 		btree_metapage = BufferGetPage(btree_metabuf);
 		_bt_initmetapage(btree_metapage, P_NONE, 0, _bt_allequalimage(lovIndex, true));
