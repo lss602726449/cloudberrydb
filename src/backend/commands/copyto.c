@@ -200,7 +200,18 @@ void CopySendEndOfRow(CopyToState cstate)
 			(void) pq_putmessage('d', fe_msgbuf->data, fe_msgbuf->len);
 			break;
 		case COPY_CALLBACK:
-			cstate->data_dest_cb(fe_msgbuf->data, fe_msgbuf->len);
+			if (cstate->data_dest_cb)
+				cstate->data_dest_cb(fe_msgbuf->data, fe_msgbuf->len);
+			else
+			{
+				/* we don't actually do the write here, we let the caller do it */
+#ifndef WIN32
+				CopySendChar(cstate, '\n');
+#else
+				CopySendString(cstate, "\r\n");
+#endif
+				return; /* don't want to reset msgbuf quite yet */
+			}
 			break;
 	}
 
@@ -338,6 +349,12 @@ BeginCopyTo(ParseState *pstate,
 					(errcode(ERRCODE_SYNTAX_ERROR),
 					 errmsg("STDOUT is not supported by 'COPY ON SEGMENT'")));
 	}
+	else if (data_dest_cb)
+	{
+		progress_vals[1] = PROGRESS_COPY_TYPE_CALLBACK;
+		cstate->copy_dest = COPY_CALLBACK;
+		cstate->data_dest_cb = data_dest_cb;
+	}
 	else if (pipe)
 	{
 		progress_vals[1] = PROGRESS_COPY_TYPE_PIPE;
@@ -466,7 +483,7 @@ EndCopyTo(CopyToState cstate, uint64 *processed)
 uint64
 DoCopyTo(CopyToState cstate)
 {
-	bool		pipe = (cstate->filename == NULL);
+	bool		pipe = (cstate->filename == NULL && cstate->data_dest_cb == NULL);
 	bool		fe_copy = (pipe && whereToSendOutput == DestRemote);
 	uint64		processed;
 

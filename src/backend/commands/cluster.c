@@ -527,10 +527,6 @@ cluster_rel(Oid tableOid, Oid indexOid, ClusterParams *params)
 		goto out;
 	}
 
-	Assert(OldHeap->rd_rel->relkind == RELKIND_RELATION ||
-		   OldHeap->rd_rel->relkind == RELKIND_MATVIEW ||
-		   OldHeap->rd_rel->relkind == RELKIND_TOASTVALUE);
-
 	/*
 	 * All predicate locks on the tuples or pages are about to be made
 	 * invalid, because we move tuples around.  Promote them to relation
