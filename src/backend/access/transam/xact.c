@@ -7180,13 +7180,12 @@ XactLogAbortRecord(TimestampTz abort_time,
 	xl_xact_abort xlrec;
 	xl_xact_xinfo xl_xinfo;
 	xl_xact_subxacts xl_subxacts;
-	xl_xact_relfilenodes xl_relfilenodes;
-	xl_xact_deldbs xl_deldbs;
+	xl_xact_relfilelocators xl_relfilelocators;
 	xl_xact_stats_items xl_dropped_stats;
 	xl_xact_twophase xl_twophase;
 	xl_xact_dbinfo xl_dbinfo;
 	xl_xact_origin xl_origin;
-	xl_xact_relfilelocators xl_relfilelocators;
+	xl_xact_deldbs xl_deldbs;
 
 	uint8		info;
 
@@ -7218,7 +7217,7 @@ XactLogAbortRecord(TimestampTz abort_time,
 	if (nrels > 0)
 	{
 		xl_xinfo.xinfo |= XACT_XINFO_HAS_RELFILELOCATORS;
-		xl_relfilenodes.nrels = nrels;
+		xl_relfilelocators.nrels = nrels;
 		info |= XLR_SPECIAL_REL_UPDATE;
 	}
 

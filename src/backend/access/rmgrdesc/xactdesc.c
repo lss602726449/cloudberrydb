@@ -209,17 +209,6 @@ ParseAbortRecord(uint8 info, xl_xact_abort *xlrec, xl_xact_parsed_abort *parsed)
 		data += xl_rellocator->nrels * sizeof(RelFileNodePendingDelete);
 	}
 
-	if (parsed->xinfo & XACT_XINFO_HAS_DELDBS)
-	{
-		xl_xact_deldbs *xl_deldbs = (xl_xact_deldbs *) data;
-
-		parsed->ndeldbs = xl_deldbs->ndeldbs;
-		parsed->deldbs = xl_deldbs->deldbs;
-
-		data += MinSizeOfXactDelDbs;
-		data += xl_deldbs->ndeldbs * sizeof(DbDirNode);
-	}
-
 	if (parsed->xinfo & XACT_XINFO_HAS_DROPPED_STATS)
 	{
 		xl_xact_stats_items *xl_drops = (xl_xact_stats_items *) data;
@@ -229,6 +218,17 @@ ParseAbortRecord(uint8 info, xl_xact_abort *xlrec, xl_xact_parsed_abort *parsed)
 
 		data += MinSizeOfXactStatsItems;
 		data += xl_drops->nitems * sizeof(xl_xact_stats_item);
+	}
+
+	if (parsed->xinfo & XACT_XINFO_HAS_DELDBS)
+	{
+		xl_xact_deldbs *xl_deldbs = (xl_xact_deldbs *) data;
+
+		parsed->ndeldbs = xl_deldbs->ndeldbs;
+		parsed->deldbs = xl_deldbs->deldbs;
+
+		data += MinSizeOfXactDelDbs;
+		data += xl_deldbs->ndeldbs * sizeof(DbDirNode);
 	}
 
 	if (parsed->xinfo & XACT_XINFO_HAS_TWOPHASE)
