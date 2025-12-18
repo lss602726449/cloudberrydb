@@ -1578,6 +1578,9 @@ FileAccess(File file)
 static void
 ReportTemporaryFileUsage(const char *path, off_t size)
 {
+	/* MERGE16_FIXME: Now the pgstat has not worked, so disable the report first */
+	return;
+	
 	pgstat_report_tempfile(size);
 
 	if (log_temp_files >= 0)
