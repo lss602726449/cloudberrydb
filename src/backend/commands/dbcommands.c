@@ -649,6 +649,8 @@ CreateDatabaseUsingFileCopy(Oid src_dboid, Oid dst_dboid, Oid src_tsid,
 		 */
 		copydir(srcpath, dstpath, false);
 
+		SIMPLE_FAULT_INJECTOR("create_db_after_file_copy");
+
 		/* Record the filesystem change in XLOG */
 		{
 			xl_dbase_create_file_copy_rec xlrec;
@@ -668,6 +670,9 @@ CreateDatabaseUsingFileCopy(Oid src_dboid, Oid dst_dboid, Oid src_tsid,
 		pfree(srcpath);
 		pfree(dstpath);
 	}
+
+	SIMPLE_FAULT_INJECTOR("after_xlog_create_database");
+
 	table_endscan(scan);
 	table_close(rel, AccessShareLock);
 

@@ -17,7 +17,7 @@ $$;
 --
 --CASE 0: createdb do well
 --
-create database dowell;
+create database dowell STRATEGY = file_copy;
 select force_mirrors_to_catch_up();
 select count(*)=0 as result from
   (select db_dirs(oid) from pg_database where datname = 'dowell') as foo;
@@ -41,7 +41,7 @@ select gp_inject_fault('create_db_after_file_copy', 'error', dbid)
 from gp_segment_configuration where content=0 and role='p';
 
 -- should fail
-create database db_with_leftover_files;
+create database db_with_leftover_files STRATEGY = file_copy;;
 
 -- Wait until replay_lsn = flush_lsn.
 select force_mirrors_to_catch_up();
@@ -63,7 +63,7 @@ select gp_inject_fault('all', 'reset', dbid) from gp_segment_configuration;
 select gp_inject_fault('after_xlog_create_database', 'error', dbid)
 from gp_segment_configuration where content=-1 and role='p';
 -- should fail
-create database db2;
+create database db2 STRATEGY = file_copy;
 
 select force_mirrors_to_catch_up();
 
@@ -83,7 +83,7 @@ select gp_inject_fault('all', 'reset', dbid) from gp_segment_configuration;
 select gp_inject_fault('after_xlog_create_database', 'error', dbid)
 from gp_segment_configuration where content=0 and role='p';
 -- should fail
-create database db3;
+create database db3 STRATEGY = file_copy;
 
 select force_mirrors_to_catch_up();
 
@@ -105,7 +105,7 @@ from gp_segment_configuration where content=-1 and role='p';
 select gp_inject_fault('end_prepare_two_phase', 'panic', dbid)
 from gp_segment_configuration where content=0 and role='p';
 -- should fail
-create database db4;
+create database db4 STRATEGY = file_copy;
 
 select force_mirrors_to_catch_up();
 
