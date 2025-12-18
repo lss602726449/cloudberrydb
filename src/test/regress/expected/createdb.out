@@ -77,7 +77,7 @@ from gp_segment_configuration where content=0 and role='p';
 
 -- should fail
 create database db_with_leftover_files STRATEGY = file_copy;;
-ERROR:  fault triggered, fault name:'create_db_after_file_copy' fault type:'error' 
+ERROR:  fault triggered, fault name:'create_db_after_file_copy' fault type:'error'  (seg0 127.0.1.1:7002 pid=1195018)
 -- Wait until replay_lsn = flush_lsn.
 select force_mirrors_to_catch_up();
  force_mirrors_to_catch_up 
@@ -161,7 +161,7 @@ from gp_segment_configuration where content=0 and role='p';
 
 -- should fail
 create database db3 STRATEGY = file_copy;
-ERROR:  fault triggered, fault name:'after_xlog_create_database' fault type:'error' 
+ERROR:  fault triggered, fault name:'after_xlog_create_database' fault type:'error'  (seg0 127.0.1.1:7002 pid=1195018)
 select force_mirrors_to_catch_up();
  force_mirrors_to_catch_up 
 ---------------------------
@@ -211,7 +211,8 @@ HINT:  Inject an infinite 'skip' into the 'fts_probe' fault to disable FTS probi
 
 -- should fail
 create database db4 STRATEGY = file_copy;
-ERROR:  fault triggered, fault name:'end_prepare_two_phase' fault type:'panic' 
+ERROR:  fault triggered, fault name:'end_prepare_two_phase' fault type:'panic'  (seg0 127.0.1.1:7002 pid=1195018)
+NOTICE:  Releasing segworker groups to retry broadcast.
 select force_mirrors_to_catch_up();
  force_mirrors_to_catch_up 
 ---------------------------

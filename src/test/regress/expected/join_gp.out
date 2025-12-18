@@ -341,12 +341,21 @@ create table bar (c int, d int) distributed randomly;
 insert into foo select generate_series(1,10);
 insert into bar select generate_series(1,10);
 explain select a from foo where a<1 and a>1 and not exists (select c from bar where c=a);
-                QUERY PLAN
-------------------------------------------
- Result  (cost=0.00..0.01 rows=1 width=0)
-   One-Time Filter: false
- Optimizer status: Postgres query optimizer
-(3 rows)
+                                               QUERY PLAN                                               
+--------------------------------------------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)  (cost=473.83..1458.05 rows=430 width=4)
+   ->  Hash Right Anti Join  (cost=473.83..1452.31 rows=144 width=4)
+         Hash Cond: (bar.c = foo.a)
+         ->  Redistribute Motion 3:3  (slice2; segments: 3)  (cost=0.00..895.00 rows=28700 width=4)
+               Hash Key: bar.c
+               ->  Seq Scan on bar  (cost=0.00..321.00 rows=28700 width=4)
+         ->  Hash  (cost=470.24..470.24 rows=287 width=4)
+               ->  Redistribute Motion 3:3  (slice3; segments: 3)  (cost=0.00..470.24 rows=287 width=4)
+                     Hash Key: foo.a
+                     ->  Seq Scan on foo  (cost=0.00..464.50 rows=287 width=4)
+                           Filter: ((a < 1) AND (a > 1))
+ Optimizer: Postgres query optimizer
+(12 rows)
 
 select a from foo where a<1 and a>1 and not exists (select c from bar where c=a);
  a 
@@ -1953,17 +1962,17 @@ explain select fooJoinPruning.* from fooJoinPruning left join barJoinPruning on 
 
 -- Unique key of inner relation ie 'p' is present in the join condition and is equal to a column from outer relation but output columns are from inner relation --
 explain select barJoinPruning.* from fooJoinPruning left join barJoinPruning on barJoinPruning.p=fooJoinPruning.b  where fooJoinPruning.b>1000;
-                                            QUERY PLAN                                             
----------------------------------------------------------------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)  (cost=618.25..1605.44 rows=25967 width=12)
-   ->  Hash Left Join  (cost=618.25..1259.22 rows=8656 width=12)
-         Hash Cond: (foojoinpruning.b = barjoinpruning.p)
-         ->  Redistribute Motion 3:3  (slice2; segments: 3)  (cost=0.00..531.69 rows=8656 width=4)
-               Hash Key: foojoinpruning.b
-               ->  Seq Scan on foojoinpruning  (cost=0.00..358.58 rows=8656 width=4)
-                     Filter: (b > 1000)
-         ->  Hash  (cost=293.67..293.67 rows=25967 width=12)
-               ->  Seq Scan on barjoinpruning  (cost=0.00..293.67 rows=25967 width=12)
+                                               QUERY PLAN                                                
+---------------------------------------------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)  (cost=639.89..1551.60 rows=25967 width=12)
+   ->  Hash Right Join  (cost=639.89..1205.38 rows=8656 width=12)
+         Hash Cond: (barjoinpruning.p = foojoinpruning.b)
+         ->  Seq Scan on barjoinpruning  (cost=0.00..293.67 rows=25967 width=12)
+         ->  Hash  (cost=531.69..531.69 rows=8656 width=4)
+               ->  Redistribute Motion 3:3  (slice2; segments: 3)  (cost=0.00..531.69 rows=8656 width=4)
+                     Hash Key: foojoinpruning.b
+                     ->  Seq Scan on foojoinpruning  (cost=0.00..358.58 rows=8656 width=4)
+                           Filter: (b > 1000)
  Optimizer: Postgres query optimizer
 (10 rows)
 

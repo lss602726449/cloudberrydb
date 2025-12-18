@@ -1,5 +1,8 @@
-create tablespace some_default_tablespace location '@testtablespace@_default_tablespace';
-create tablespace some_database_tablespace location '@testtablespace@_database_tablespace';
+\getenv abs_builddir PG_ABS_BUILDDIR
+\set default_tablespace :abs_builddir '/testtablespace_default_tablespace'
+\set database_tablespace :abs_builddir '/testtablespace_database_tablespace'
+create tablespace some_default_tablespace location :'default_tablespace';
+create tablespace some_database_tablespace location :'database_tablespace';
 create database database_for_default_tablespace;
 \c database_for_default_tablespace;
 set default_tablespace to some_default_tablespace;
