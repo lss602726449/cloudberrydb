@@ -702,6 +702,12 @@ BaseInit(void)
 	Assert(MyProc != NULL);
 
 	/*
+	 * Set up resource manager 
+	 */
+	if (!IsUnderPostmaster)
+		ResManagerShmemInit();
+
+	/*
 	 * Initialize our input/output/debugging file descriptors.
 	 */
 	DebugFileOpen();
