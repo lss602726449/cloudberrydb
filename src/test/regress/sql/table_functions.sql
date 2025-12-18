@@ -90,52 +90,54 @@ CREATE FUNCTION scalar_tf_6(IN a anyelement) RETURNS SETOF example
 
 
 /* CREATE some multiset input table functions */
+\getenv abs_builddir PG_ABS_BUILDDIR
+\set regress_dll :abs_builddir '/regress.so'
 
 /* scalar value outputs */
 CREATE FUNCTION multiset_scalar_null(anytable) RETURNS int
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_scalar_null' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_scalar_null' LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION multiset_scalar_value(anytable) RETURNS int
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_scalar_value' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_scalar_value' LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION multiset_scalar_tuple(anytable) RETURNS example
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_scalar_tuple' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_scalar_tuple' LANGUAGE C READS SQL DATA;
 
 
 /* set value outputs */
 CREATE FUNCTION multiset_setof_null(anytable) RETURNS setof int
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_setof_null' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_setof_null' LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION multiset_setof_value(anytable) RETURNS setof int
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_setof_value' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_setof_value' LANGUAGE C READS SQL DATA;
 
 
 /* Bunches of different ways of saying "returns a setof rows */
 CREATE FUNCTION multiset_materialize_good(anytable)
 	   RETURNS TABLE(a int, b text)
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_materialize_good' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_materialize_good' LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION multiset_materialize_bad(anytable)
 	   RETURNS TABLE(a int, b text)
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_materialize_bad' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_materialize_bad' LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION multiset_1(a anytable) RETURNS TABLE(a int, b text)
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_example' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_example' LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION multiset_2(a anytable) RETURNS TABLE(a int, b text)
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_example' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_example' LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION multiset_3(a anytable, out a int, out b text) RETURNS SETOF RECORD
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_example' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_example' LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION multiset_4(a anytable) RETURNS SETOF RECORD
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_example' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_example' LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION multiset_5(a anytable) RETURNS SETOF example
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_example' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_example' LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION multiset_6(a anytable) RETURNS SETOF record
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_example' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_example' LANGUAGE C READS SQL DATA;
 
 
 /* Negative test cases around CREATE FUNCTION */
@@ -166,7 +168,7 @@ CREATE FUNCTION error() RETURNS TABLE(a setof example)
 
 /* ERROR: anytable cannot have default value */
 CREATE FUNCTION error(a anytable DEFAULT TABLE(select 1,'test')) RETURNS TABLE(a int, b text)
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_example' LANGUAGE C;
+    AS :'regress_dll', 'multiset_example' LANGUAGE C;
 
 /* Negative test cases around the "anytable" type */
 CREATE TABLE fail(x anytable);
@@ -381,7 +383,7 @@ SELECT * from nameres(5);                -- should work
 SELECT * from nameres(TABLE(SELECT 5));  -- should fail
 
 CREATE FUNCTION nameres(anytable) RETURNS int
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_scalar_value' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_scalar_value' LANGUAGE C READS SQL DATA;
 SELECT * from nameres(5);                -- should work
 SELECT * from nameres(TABLE(SELECT 5));  -- should work
 
@@ -556,7 +558,7 @@ DROP view v3;
 -- Interaction with set returning functions
 -- ========================================
 CREATE FUNCTION multi_args(a anytable, x int) RETURNS SETOF example
-    AS '@abs_builddir@/regress@DLSUFFIX@', 'multiset_example' LANGUAGE C READS SQL DATA;
+    AS :'regress_dll', 'multiset_example' LANGUAGE C READS SQL DATA;
 
 -- In select list requires some extra setrefs logic in planning
 SELECT *, generate_series(1,2) FROM multi_args( TABLE(SELECT 1::int, 'hello'::text), 2);
@@ -612,12 +614,12 @@ CREATE FUNCTION tf_python(anytable) returns int AS $$ return 1 $$ language plpyt
 -- Create a function and a describe method
 CREATE FUNCTION sessionize_describe(internal)
   RETURNS internal
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'describe'
+  AS :'regress_dll', 'describe'
   LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION sessionize(anytable, interval)
   RETURNS setof record
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'sessionize'
+  AS :'regress_dll', 'sessionize'
   LANGUAGE C READS SQL DATA;
 
 -- No dependency yet, all three queries should return 0 rows
@@ -631,20 +633,20 @@ DROP FUNCTION sessionize_describe(internal);
 -- Should fail, no such function
 CREATE OR REPLACE FUNCTION sessionize(anytable, interval)
   RETURNS setof record
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'sessionize'
+  AS :'regress_dll', 'sessionize'
   LANGUAGE C READS SQL DATA
   WITH (describe = sessionize_describe);
 
 -- Recreate describe function
 CREATE OR REPLACE FUNCTION sessionize_describe(internal)
   RETURNS internal
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'describe'
+  AS :'regress_dll', 'describe'
   LANGUAGE C READS SQL DATA;
 
 -- Alter the existing function to add the describe callback
 CREATE OR REPLACE FUNCTION sessionize(anytable, interval)
   RETURNS setof record
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'sessionize'
+  AS :'regress_dll', 'sessionize'
   LANGUAGE C READS SQL DATA
   WITH (describe = sessionize_describe);
 
@@ -664,12 +666,12 @@ SELECT * FROM pg_proc_callback where procallback not in (select oid from pg_proc
 -- Recreate both functions
 CREATE OR REPLACE FUNCTION sessionize_describe(internal)
   RETURNS internal
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'describe'
+  AS :'regress_dll', 'describe'
   LANGUAGE C READS SQL DATA;
 
 CREATE OR REPLACE FUNCTION sessionize(anytable, interval)
   RETURNS setof record
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'sessionize'
+  AS :'regress_dll', 'sessionize'
   LANGUAGE C READS SQL DATA
   WITH (describe = sessionize_describe);
 
@@ -680,7 +682,7 @@ SELECT * FROM pg_proc_callback where profnoid = 'sessionize'::regproc;
 -- Alter existing function to remove the describe callback
 CREATE OR REPLACE FUNCTION sessionize(anytable, interval)
   RETURNS setof record
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'sessionize'
+  AS :'regress_dll', 'sessionize'
   LANGUAGE C READS SQL DATA;
 
 -- Check the dependency again, drop should succeed
@@ -695,22 +697,22 @@ SELECT * FROM pg_proc_callback where procallback not in (select oid from pg_proc
 -- One more time, creating without using "OR REPLACE"
 CREATE FUNCTION sessionize_describe(internal)
   RETURNS internal
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'describe'
+  AS :'regress_dll', 'describe'
   LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION sessionize_plain(anytable, interval)
   RETURNS setof record
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'sessionize'
+  AS :'regress_dll', 'sessionize'
   LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION sessionize_static(anytable, interval)
   RETURNS TABLE(id integer, "time" timestamp, sessionnum integer)
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'sessionize'
+  AS :'regress_dll', 'sessionize'
   LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION sessionize_dynamic(anytable, interval)
   RETURNS setof record
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'sessionize'
+  AS :'regress_dll', 'sessionize'
   LANGUAGE C READS SQL DATA
   WITH (describe = sessionize_describe);
 
@@ -883,7 +885,7 @@ FROM sessionize_plain(
 
 CREATE OR REPLACE FUNCTION sessionize_plain(anytable, interval)
   RETURNS setof record
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'sessionize'
+  AS :'regress_dll', 'sessionize'
   LANGUAGE C READS SQL DATA
   WITH (describe = sessionize_describe);  -- ERROR: views exist
 
@@ -894,12 +896,12 @@ DROP VIEW supported;
 -- ========================
 CREATE FUNCTION project_describe(internal)
   RETURNS internal
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'project_describe'
+  AS :'regress_dll', 'project_describe'
   LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION project(anytable, integer)
   RETURNS setof record
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'project'
+  AS :'regress_dll', 'project'
   LANGUAGE C READS SQL DATA
   WITH (describe = project_describe);
 
@@ -935,11 +937,11 @@ SELECT * FROM project( TABLE( SELECT * FROM pg_am ), (ROW(1, '')::example_r).a);
 -- User data exmaple
 -- ========================
 CREATE FUNCTION ud_describe(internal) RETURNS internal
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'userdata_describe'
+  AS :'regress_dll', 'userdata_describe'
   LANGUAGE C READS SQL DATA;
 
 CREATE FUNCTION ud_project(anytable) RETURNS setof RECORD
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'userdata_project'
+  AS :'regress_dll', 'userdata_project'
   LANGUAGE C READS SQL DATA
   WITH (describe = ud_describe);
 
@@ -949,7 +951,7 @@ SELECT * FROM ud_project( TABLE( SELECT * FROM history ) );
 -- Passing input without modification
 -- ========================
 CREATE FUNCTION noop_project(anytable) RETURNS setof RECORD
-  AS '@abs_builddir@/regress@DLSUFFIX@'
+  AS :'regress_dll'
   LANGUAGE C READS SQL DATA;
 
 SELECT * FROM noop_project( TABLE( SELECT * FROM history ) ) AS s (id integer, time timestamp);
@@ -965,25 +967,25 @@ SELECT * FROM noop_project( TABLE( SELECT count(*) FROM history GROUP BY time SC
 
 -- explicit return type not suitable for dynamic type resolution
 CREATE FUNCTION x() returns int
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'sessionize'
+  AS :'regress_dll', 'sessionize'
   LANGUAGE C READS SQL DATA
   WITH (describe = sessionize_describe);
 
 -- explicit return type (setof) not suitable for dynamic type resolution
 CREATE FUNCTION x() returns setof int
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'sessionize'
+  AS :'regress_dll', 'sessionize'
   LANGUAGE C READS SQL DATA
   WITH (describe = sessionize_describe);
 
 -- explicit return type (TABLE) not suitable for dynamic type resolution
 CREATE FUNCTION x() returns TABLE(id integer, "time" timestamp, sessionnum integer)
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'sessionize'
+  AS :'regress_dll', 'sessionize'
   LANGUAGE C READS SQL DATA
   WITH (describe = sessionize_describe);
 
 -- explicit return type (OUT PARAMS) not suitable for dynamic type resolution
 CREATE FUNCTION x(OUT id integer, OUT "time" timestamp, OUT sessionnum integer)
-  AS '@abs_builddir@/regress@DLSUFFIX@', 'sessionize'
+  AS :'regress_dll', 'sessionize'
   LANGUAGE C READS SQL DATA
   WITH (describe = sessionize_describe);
 
