@@ -1287,6 +1287,8 @@ initialize_environment(void)
 	setenv("PG_LIBDIR", dlpath, 1);
 	setenv("PG_DLSUFFIX", DLSUFFIX, 1);
 	setenv("PG_CURUSERNAME", get_user_name(&errstr), 1);
+	setenv("PG_BINDDIR", bindir, 1);
+	setenv("PG_HOSTNAME", get_host_name(is_singlenode_mode ? -1 : 0, 'p'), 1);
 
 	if (nolocale)
 	{

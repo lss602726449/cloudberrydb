@@ -23,31 +23,33 @@ CREATE TABLE sreh_copy(a int, b int, c int) distributed by(a);
 -- 
 -- ROW reject limit only
 --
-COPY sreh_copy FROM '@abs_srcdir@/data/bad_data1.data' DELIMITER '|' SEGMENT REJECT LIMIT 1000;
+\getenv abs_srcdir PG_ABS_SRCDIR
+\set bad_data1 :abs_srcdir '/data/bad_data1.data'
+COPY sreh_copy FROM :'bad_data1' DELIMITER '|' SEGMENT REJECT LIMIT 1000;
 SELECT * FROM sreh_copy ORDER BY a,b,c;
 
 -- 
 -- ROW reject limit only - low value that gets reached
 --
-COPY sreh_copy FROM '@abs_srcdir@/data/bad_data1.data' DELIMITER '|' SEGMENT REJECT LIMIT 2;
+COPY sreh_copy FROM :'bad_data1' DELIMITER '|' SEGMENT REJECT LIMIT 2;
 SELECT * FROM sreh_copy ORDER BY a,b,c;
 
 -- 
 -- error logs
 --
 DROP TABLE IF EXISTS sreh_copy; CREATE TABLE sreh_copy(a int, b int, c int) distributed by(a);
-COPY sreh_copy FROM '@abs_srcdir@/data/bad_data1.data' DELIMITER '|' LOG ERRORS INTO WHATEVER SEGMENT REJECT LIMIT 1000;
+COPY sreh_copy FROM :'bad_data1' DELIMITER '|' LOG ERRORS INTO WHATEVER SEGMENT REJECT LIMIT 1000;
 
 SET gp_ignore_error_table=true;
 
-COPY sreh_copy FROM '@abs_srcdir@/data/bad_data1.data' DELIMITER '|' LOG ERRORS INTO WHATEVER SEGMENT REJECT LIMIT 1000;
+COPY sreh_copy FROM :'bad_data1' DELIMITER '|' LOG ERRORS INTO WHATEVER SEGMENT REJECT LIMIT 1000;
 SELECT * FROM sreh_copy ORDER BY a,b,c;
 WITH error_log AS (SELECT gp_read_error_log('sreh_copy')) select count(*) from error_log;
 
 --
 -- error logs - do the same thing again. this time error logs exist and should get data appended
 --
-COPY sreh_copy FROM '@abs_srcdir@/data/bad_data1.data' DELIMITER '|' LOG ERRORS SEGMENT REJECT LIMIT 1000;
+COPY sreh_copy FROM :'bad_data1' DELIMITER '|' LOG ERRORS SEGMENT REJECT LIMIT 1000;
 SELECT * FROM sreh_copy ORDER BY a,b,c;
 SELECT linenum, rawdata FROM gp_read_error_log('sreh_copy') ORDER BY linenum;
 
@@ -101,16 +103,17 @@ SELECT * FROM sreh_constr; -- should exist and be empty
 -- so the percent calculation should always be the same regardless of number of
 -- QE's in the system.
 --
+\set bad_data3 :abs_srcdir '/data/bad_data3.data'
 set gp_reject_percent_threshold = 100;
-COPY sreh_copy FROM '@abs_srcdir@/data/bad_data3.data' DELIMITER '|' SEGMENT REJECT LIMIT 10 PERCENT; --pass
-COPY sreh_copy FROM '@abs_srcdir@/data/bad_data3.data' DELIMITER '|' SEGMENT REJECT LIMIT 2 PERCENT; --fail
+COPY sreh_copy FROM :'bad_data3' DELIMITER '|' SEGMENT REJECT LIMIT 10 PERCENT; --pass
+COPY sreh_copy FROM :'bad_data3' DELIMITER '|' SEGMENT REJECT LIMIT 2 PERCENT; --fail
 
 --
 -- test PERCENT reject limit logic with custom threshold 10 (only practical for test purposes)
 --
 set gp_reject_percent_threshold = 10;
-COPY sreh_copy FROM '@abs_srcdir@/data/bad_data3.data' DELIMITER '|' SEGMENT REJECT LIMIT 10 PERCENT; --fail
-COPY sreh_copy FROM '@abs_srcdir@/data/bad_data3.data' DELIMITER '|' SEGMENT REJECT LIMIT 20 PERCENT; --pass
+COPY sreh_copy FROM :'bad_data3' DELIMITER '|' SEGMENT REJECT LIMIT 10 PERCENT; --fail
+COPY sreh_copy FROM :'bad_data3' DELIMITER '|' SEGMENT REJECT LIMIT 20 PERCENT; --pass
 
 -- MPP-2933 (multiple dist-key attr conversion errors)
 create table t2933 (col1 varchar(3) NULL , col2 char(1) NULL, col3 varchar(4) NULL, col4 char(1) NULL, col5 varchar(20) NULL) 
@@ -126,9 +129,9 @@ DROP TABLE sreh_constr;
 -- ###########################################################
 -- External Tables 
 -- ###########################################################
-
+\getenv binddir PG_BINDDIR
 CREATE EXTERNAL WEB TABLE gpfdist_sreh_start (x text)
-execute E'((@bindir@/gpfdist -p 8080 -d @abs_srcdir@/data  </dev/null >/dev/null 2>&1 &); for i in `seq 1 30`; do curl 127.0.0.1:8080 >/dev/null 2>&1 && break; sleep 1; done; echo "starting...") '
+execute E'(('||:'binddir'||'/gpfdist -p 8080 -d '||:'abs_srcdir'||'/data  </dev/null >/dev/null 2>&1 &); for i in `seq 1 30`; do curl 127.0.0.1:8080 >/dev/null 2>&1 && break; sleep 1; done; echo "starting...") '
 on MASTER
 FORMAT 'text' (delimiter '|');
 
@@ -146,8 +149,9 @@ CREATE TABLE sreh_target(a int, b int, c int) distributed by(a);
 -- 
 -- reject limit only
 --
+\getenv hostname PG_HOSTNAME
 CREATE EXTERNAL TABLE sreh_ext(a int, b int, c int)
-LOCATION ('gpfdist://@hostname@:8080/bad_data1.data' )
+LOCATION ('gpfdist://'||'@hostname@'||':8080/bad_data1.data' )
 FORMAT 'text' (delimiter '|')
 SEGMENT REJECT LIMIT 10000;
 

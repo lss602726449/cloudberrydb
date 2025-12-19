@@ -146,8 +146,10 @@ drop table t;
 -- This test case use UDF assign_new_record() to generate a new record type in cache
 -- for each tuple, these types should be sync to receiver. 
 -- test function
+\getenv abs_builddir PG_ABS_BUILDDIR
+\set regress_dll :abs_builddir '/regress.so'
 create or replace function assign_new_record()
-returns SETOF record as '@abs_builddir@/regress@DLSUFFIX@',
+returns SETOF record as :'regress_dll',
 'assign_new_record' LANGUAGE C VOLATILE;
 
 -- transfer record types via motion incrementally

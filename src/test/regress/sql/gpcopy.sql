@@ -944,7 +944,9 @@ CREATE TABLE LINEITEM_6 (LIKE LINEITEM);
 CREATE TABLE LINEITEM_7 (LIKE LINEITEM);
 CREATE TABLE LINEITEM_8 (LIKE LINEITEM);
 
-COPY LINEITEM FROM '@abs_srcdir@/data/lineitem.csv' WITH DELIMITER '|' CSV;
+\getenv abs_srcdir PG_ABS_SRCDIR
+\set lineitem_csv :abs_srcdir '/data/lineitem.csv'
+COPY LINEITEM FROM :'lineitem_csv' WITH DELIMITER '|' CSV;
 ANALYZE LINEITEM;
 SELECT COUNT(*) FROM LINEITEM;
 COPY LINEITEM TO '/tmp/lineitem.csv' CSV;
@@ -1264,10 +1266,12 @@ CREATE FUNCTION broken_int4in(cstring)
    RETURNS broken_int4
    AS 'int4in'
    LANGUAGE internal IMMUTABLE STRICT;
+\getenv abs_builddir PG_ABS_BUILDDIR
+\set regress_dll :abs_builddir '/regress.so'
 
 CREATE FUNCTION broken_int4out(broken_int4)
    RETURNS cstring
-   AS '@abs_builddir@/regress@DLSUFFIX@', 'broken_int4out'
+   AS :'regress_dll', 'broken_int4out'
    LANGUAGE C IMMUTABLE STRICT;
 
 CREATE TYPE broken_int4 (

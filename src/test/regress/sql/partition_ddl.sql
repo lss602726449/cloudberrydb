@@ -626,7 +626,9 @@ subpartition by range (unique2) subpartition template ( start (0) end (1000) eve
 ( start (0) end (1000) every (100));
 alter table mpp3250 add default partition default_part;
 
-copy mpp3250 from '@abs_srcdir@/data/onek.data';
+\getenv abs_srcdir PG_ABS_SRCDIR
+\set onek_data :abs_srcdir '/data/onek.data'
+copy mpp3250 from :'onek_data';
 
 CREATE TABLE mpp3375 (
         unique1         int4,
@@ -647,7 +649,7 @@ CREATE TABLE mpp3375 (
         string4         name
 );
 
-copy mpp3375 from '@abs_srcdir@/data/onek.data';
+copy mpp3375 from :'onek_data';
 
 CREATE TABLE mpp3375a (
         unique1         int4,
@@ -736,7 +738,7 @@ CREATE TABLE mpp3261 (
         string4         name
 );
 
-copy mpp3261 from '@abs_srcdir@/data/onek.data';
+copy mpp3261 from :'onek_data';
 
 
 CREATE TABLE mpp3261_part (
