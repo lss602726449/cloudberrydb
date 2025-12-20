@@ -848,13 +848,21 @@ create_tablespace_directories(const char *location, const Oid tablespaceoid)
 	elog(DEBUG5, "creating tablespace directories for tablespaceoid %d on dbid %d",
 		tablespaceoid, GpIdentity.dbid);
 
-	in_place = strlen(location) == 0;
-
 	linkloc = psprintf("pg_tblspc/%u", tablespaceoid);
-	location_with_dbid_dir = psprintf("%s/%d", in_place ? linkloc : location, GpIdentity.dbid);
+
+	/*
+	 * If we're asked to make an 'in place' tablespace, create the directory
+	 * directly where the symlink would normally go.  This is a developer-only
+	 * option for now, to facilitate regression testing.
+	 */
+	in_place = strlen(location) == 0;
+	if (in_place)
+		location_with_dbid_dir = psprintf("%s", linkloc);
+	else
+		location_with_dbid_dir = psprintf("%s/%d", location, GpIdentity.dbid);
+
 	location_with_version_dir = psprintf("%s/%s", location_with_dbid_dir,
 										 GP_TABLESPACE_VERSION_DIRECTORY);
-	in_place = strlen(location) == 0;
 
 	/*
 	 * Attempt to coerce target directory to safe permissions.  If this fails,
@@ -877,6 +885,31 @@ create_tablespace_directories(const char *location, const Oid tablespaceoid)
 							location)));
 	}
 
+	/*
+	 * In GPDB each segment has a directory with its unique dbid under the
+	 * tablespace path. Unlike the location_with_version_dir, do not error out
+	 * if it already exists.
+	 */
+	if (!in_place && stat(location_with_dbid_dir, &st) < 0)
+	{
+		if (errno == ENOENT)
+		{
+			if (mkdir(location_with_dbid_dir, S_IRWXU) < 0)
+				ereport(ERROR,
+						(errcode_for_file_access(),
+								errmsg("could not create directory \"%s\": %m", location_with_dbid_dir)));
+		}
+		else
+			ereport(ERROR,
+					(errcode_for_file_access(),
+							errmsg("could not stat directory \"%s\": %m", location_with_dbid_dir)));
+
+	}
+	else
+		ereport(DEBUG1,
+				(errmsg("directory \"%s\" already exists in tablespace",
+						location_with_dbid_dir)));
+	
 	/*
 	 * The creation of the version directory prevents more than one tablespace
 	 * in a single location.  This imitates TablespaceCreateDbspace(), but it

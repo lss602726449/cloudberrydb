@@ -124,8 +124,8 @@ GetDatabasePath(Oid dbOid, Oid spcOid)
 	else
 	{
 		/* All other tablespaces are accessed via symlinks */
-		return psprintf("pg_tblspc/%u/%d/%s/%u",
-						spcOid, GpIdentity.dbid, GP_TABLESPACE_VERSION_DIRECTORY, dbOid);
+		return psprintf("pg_tblspc/%u/%s/%u",
+						spcOid, GP_TABLESPACE_VERSION_DIRECTORY, dbOid);
 	}
 }
 
