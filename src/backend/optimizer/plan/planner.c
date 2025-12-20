@@ -8883,21 +8883,6 @@ create_partial_grouping_paths(PlannerInfo *root,
 													 root->group_pathkeys,
 													 -1.0);
 
-				//if (parse->hasAggs)
-				{
-					add_partial_path(partially_grouped_rel, (Path *)
-									 create_agg_path(root,
-													 partially_grouped_rel,
-													 path,
-													 partially_grouped_rel->reltarget,
-													 parse->groupClause ? AGG_SORTED : AGG_PLAIN,
-													 AGGSPLIT_INITIAL_SERIAL,
-													 false,
-													 root->processed_groupClause,
-													 NIL,
-													 agg_partial_costs,
-													 dNumPartialPartialGroups));
-				}
 						/* Group nodes are not used in GPDB */
 #if 0
 				else
@@ -8911,6 +8896,22 @@ create_partial_grouping_paths(PlannerInfo *root,
 #endif
 			}
 
+			//if (parse->hasAggs)
+			{
+				add_partial_path(partially_grouped_rel, (Path *)
+						create_agg_path(root,
+										partially_grouped_rel,
+										path,
+										partially_grouped_rel->reltarget,
+										parse->groupClause ? AGG_SORTED : AGG_PLAIN,
+										AGGSPLIT_INITIAL_SERIAL,
+										false,
+										root->processed_groupClause,
+										NIL,
+										agg_partial_costs,
+										dNumPartialPartialGroups));
+			}
+			
 			/*
 			 * Now we may consider incremental sort on this path, but only
 			 * when the path is not already sorted and when incremental sort
