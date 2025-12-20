@@ -2233,14 +2233,11 @@ delete from pg_depend where
 returning pg_describe_object(classid, objid, objsubid) as obj,
           pg_describe_object(refclassid, refobjid, refobjsubid) as ref,
           deptype;
-              obj               |              ref               | deptype 
---------------------------------+--------------------------------+---------
- rule _RETURN on view usersview | column moredrop of table users | n
-(1 row)
-
+ERROR:  permission denied: "pg_depend" is a system catalog
 alter table users drop column moredrop cascade;
+ERROR:  current transaction is aborted, commands ignored until end of transaction block
 select * from usersview;  -- expect clean failure
-ERROR:  attribute 5 of type record has been dropped
+ERROR:  current transaction is aborted, commands ignored until end of transaction block
 rollback;
 alter table users alter column seq type numeric;  -- fail, view has reference
 ERROR:  cannot alter type of a column used by a view or rule
@@ -2255,19 +2252,10 @@ delete from pg_depend where
 returning pg_describe_object(classid, objid, objsubid) as obj,
           pg_describe_object(refclassid, refobjid, refobjsubid) as ref,
           deptype;
-              obj               |            ref            | deptype 
---------------------------------+---------------------------+---------
- rule _RETURN on view usersview | column seq of table users | n
-(1 row)
-
+ERROR:  permission denied: "pg_depend" is a system catalog
 -- alter table users alter column seq type numeric;
 select * from usersview;  -- expect clean failure
- userid | seq | email  | moredrop | enabled | generate_series | ordinality 
---------+-----+--------+----------+---------+-----------------+------------
- id     |   1 | email  |       11 | t       |              10 |          1
- id2    |   2 | email2 |       12 | t       |              11 |          2
-(2 rows)
-
+ERROR:  current transaction is aborted, commands ignored until end of transaction block
 rollback;
 drop view usersview;
 drop function get_first_user();
