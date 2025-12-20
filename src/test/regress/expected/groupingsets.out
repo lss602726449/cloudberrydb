@@ -1979,6 +1979,7 @@ analyze bug_16784;
 alter table bug_16784 set (autovacuum_enabled = 'false');
 WARNING:  autovacuum is not supported in Cloudberry
 update pg_class set reltuples = 10 where relname='bug_16784';
+ERROR:  permission denied: "pg_class" is a system catalog
 insert into bug_16784 select g/10, g from generate_series(1,40) g;
 set work_mem='64kB';
 set enable_sort = false;
@@ -2175,6 +2176,7 @@ analyze gs_data_1;
 alter table gs_data_1 set (autovacuum_enabled = 'false');
 WARNING:  autovacuum is not supported in Cloudberry
 update pg_class set reltuples = 10 where relname='gs_data_1';
+ERROR:  permission denied: "pg_class" is a system catalog
 set work_mem='64kB';
 -- Produce results with sorting.
 set enable_sort = true;
