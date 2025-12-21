@@ -115,7 +115,7 @@ extern void process_source_file(const char *path, file_type_t type,
 								size_t size, const char *link_target);
 extern void process_target_file(const char *path, file_type_t type,
 								size_t size, const char *link_target);
-extern void process_target_wal_aofile_change(RelFileNode rnode,
+extern void process_target_wal_aofile_change(RelFileLocator rlocator,
 											 int segno,
 											 int64 offset);
 extern void process_target_wal_block_change(ForkNumber forknum,

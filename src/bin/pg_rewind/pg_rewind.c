@@ -1276,13 +1276,7 @@ ensureCleanShutdown(const char *argv0)
 	 * since the commands (e.g. create database with template
 	 * DB_FOR_COMMON_ACCESS) would fail.
 	 */
-<<<<<<< HEAD
-
-	snprintf(cmd, MAXCMDLEN, "\"%s\" --single -D \"%s\" %s < %s",
-			 exec_path, datadir_target, DB_FOR_COMMON_ACCESS, DEVNULL);
-=======
 	postgres_cmd = createPQExpBuffer();
->>>>>>> REL_16_9
 
 	/* path to postgres, properly quoted */
 	appendShellString(postgres_cmd, exec_path);
@@ -1299,7 +1293,7 @@ ensureCleanShutdown(const char *argv0)
 	}
 
 	/* finish with the database name, and a properly quoted redirection */
-	appendPQExpBufferStr(postgres_cmd, " template1 < ");
+	appendPQExpBufferStr(postgres_cmd, " "DB_FOR_COMMON_ACCESS" < ");
 	appendShellString(postgres_cmd, DEVNULL);
 
 	fflush(NULL);

@@ -407,12 +407,7 @@ process_target_wal_block_change(ForkNumber forknum, RelFileLocator rlocator,
 	segno = blkno / RELSEG_SIZE;
 	blkno_inseg = blkno % RELSEG_SIZE;
 
-<<<<<<< HEAD
-	path = datasegpath(rnode, forknum, segno);
-
-=======
 	path = datasegpath(rlocator, forknum, segno);
->>>>>>> REL_16_9
 	entry = lookup_filehash_entry(path);
 	pfree(path);
 
@@ -455,12 +450,12 @@ process_target_wal_block_change(ForkNumber forknum, RelFileLocator rlocator,
 }
 
 void
-process_target_wal_aofile_change(RelFileNode rnode, int segno, int64 offset)
+process_target_wal_aofile_change(RelFileLocator rlocator, int segno, int64 offset)
 {
 	char	   *path;
 	file_entry_t *entry;
 
-	path = datasegpath(rnode, MAIN_FORKNUM, segno);
+	path = datasegpath(rlocator, MAIN_FORKNUM, segno);
 	entry = lookup_filehash_entry(path);
 	pfree(path);
 
@@ -718,13 +713,8 @@ isRelDataFile(const char *path)
 		}
 		else
 		{
-<<<<<<< HEAD
 			nmatch = sscanf(path, "pg_tblspc/%u/" GP_TABLESPACE_VERSION_DIRECTORY "/%u/%u.%u",
-							&rnode.spcNode, &rnode.dbNode, &rnode.relNode,
-=======
-			nmatch = sscanf(path, "pg_tblspc/%u/" TABLESPACE_VERSION_DIRECTORY "/%u/%u.%u",
 							&rlocator.spcOid, &rlocator.dbOid, &rlocator.relNumber,
->>>>>>> REL_16_9
 							&segNo);
 			if (nmatch == 3 || nmatch == 4)
 				matched = true;

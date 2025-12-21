@@ -465,7 +465,6 @@ extractPageInfo(XLogReaderState *record)
 				 "lsn: %X/%X, rmid: %d, rmgr: %s, info: %02X",
 				 LSN_FORMAT_ARGS(record->ReadRecPtr),
 				 rmid, RmgrName(rmid), info);
-<<<<<<< HEAD
 	}
 	else if (rmid == RM_APPEND_ONLY_ID)
 	{
@@ -484,8 +483,6 @@ extractPageInfo(XLogReaderState *record)
 			 * and will copy the missing tail from remote system.
 			 */
 		}
-=======
->>>>>>> REL_16_9
 	}
 
 	for (block_id = 0; block_id <= XLogRecMaxBlockId(record); block_id++)
