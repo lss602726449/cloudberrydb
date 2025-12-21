@@ -3772,10 +3772,6 @@ appendOrderByClause(List *pathkeys, bool has_final_sort,
 {
 	ListCell   *lcell;
 	int			nestlevel;
-<<<<<<< HEAD
-	const char *delim = " ";
-=======
->>>>>>> REL_16_9
 	StringInfo	buf = context->buf;
 	bool		gotone = false;
 
@@ -3815,8 +3811,6 @@ appendOrderByClause(List *pathkeys, bool has_final_sort,
 		em_expr = em->em_expr;
 
 		/*
-<<<<<<< HEAD
-=======
 		 * If the member is a Const expression then we needn't add it to the
 		 * ORDER BY clause.  This can happen in UNION ALL queries where the
 		 * union child targetlist has a Const.  Adding these would be
@@ -3837,7 +3831,6 @@ appendOrderByClause(List *pathkeys, bool has_final_sort,
 			appendStringInfoString(buf, ", ");
 
 		/*
->>>>>>> REL_16_9
 		 * Lookup the operator corresponding to the strategy in the opclass.
 		 * The datatype used by the opfamily is not necessarily the same as
 		 * the expression type (for array types for example).

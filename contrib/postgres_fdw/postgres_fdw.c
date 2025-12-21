@@ -1649,11 +1649,7 @@ postgresReScanForeignScan(ForeignScanState *node)
 		return;
 
 	/*
-<<<<<<< HEAD
-	 * If the node is async-capable, and an asynchronous fetch for it has been
-=======
 	 * If the node is async-capable, and an asynchronous fetch for it has
->>>>>>> REL_16_9
 	 * begun, the asynchronous fetch might not have yet completed.  Check if
 	 * the node is async-capable, and an asynchronous fetch for it is still in
 	 * progress; if so, complete the asynchronous fetch before restarting the
@@ -2057,14 +2053,9 @@ postgresGetForeignModifyBatchSize(ResultRelInfo *resultRelInfo)
 		batch_size = get_batch_size_option(resultRelInfo->ri_RelationDesc);
 
 	/*
-<<<<<<< HEAD
-	 * Disable batching when we have to use RETURNING or there are any
-	 * BEFORE/AFTER ROW INSERT triggers on the foreign table.
-=======
 	 * Disable batching when we have to use RETURNING, there are any
 	 * BEFORE/AFTER ROW INSERT triggers on the foreign table, or there are any
 	 * WITH CHECK OPTION constraints from parent views.
->>>>>>> REL_16_9
 	 *
 	 * When there are any BEFORE ROW INSERT triggers on the table, we can't
 	 * support it, because such triggers might query the table we're inserting
@@ -2076,8 +2067,6 @@ postgresGetForeignModifyBatchSize(ResultRelInfo *resultRelInfo)
 		(resultRelInfo->ri_TrigDesc &&
 		 (resultRelInfo->ri_TrigDesc->trig_insert_before_row ||
 		  resultRelInfo->ri_TrigDesc->trig_insert_after_row)))
-<<<<<<< HEAD
-=======
 		return 1;
 
 	/*
@@ -2087,7 +2076,6 @@ postgresGetForeignModifyBatchSize(ResultRelInfo *resultRelInfo)
 	 * case fmstate must be non-NULL.
 	 */
 	if (fmstate && list_length(fmstate->target_attrs) == 0)
->>>>>>> REL_16_9
 		return 1;
 
 	/*
@@ -5561,29 +5549,16 @@ postgresImportForeignSchema(ImportForeignSchemaStmt *stmt, Oid serverOid)
 							   "SELECT relname, "
 							   "  attname, "
 							   "  format_type(atttypid, atttypmod), "
-<<<<<<< HEAD
-							   "  attnotnull, ");
-=======
 							   "  attnotnull, "
 							   "  pg_get_expr(adbin, adrelid), ");
->>>>>>> REL_16_9
 
 		/* Generated columns are supported since Postgres 12 */
 		if (PQserverVersion(conn) >= 120000)
 			appendStringInfoString(&buf,
-<<<<<<< HEAD
-								   "  attgenerated, "
-								   "  pg_get_expr(adbin, adrelid), ");
-		else
-			appendStringInfoString(&buf,
-								   "  NULL, "
-								   "  pg_get_expr(adbin, adrelid), ");
-=======
 								   "  attgenerated, ");
 		else
 			appendStringInfoString(&buf,
 								   "  NULL, ");
->>>>>>> REL_16_9
 
 		if (import_collate)
 			appendStringInfoString(&buf,
@@ -5609,20 +5584,6 @@ postgresImportForeignSchema(ImportForeignSchemaStmt *stmt, Oid serverOid)
 								   "    coll.oid = attcollation "
 								   "  LEFT JOIN pg_namespace collnsp ON "
 								   "    collnsp.oid = collnamespace ");
-<<<<<<< HEAD
-		else
-			appendStringInfoString(&buf,
-								   "  NULL, NULL "
-								   "FROM pg_class c "
-								   "  JOIN pg_namespace n ON "
-								   "    relnamespace = n.oid "
-								   "  LEFT JOIN pg_attribute a ON "
-								   "    attrelid = c.oid AND attnum > 0 "
-								   "      AND NOT attisdropped "
-								   "  LEFT JOIN pg_attrdef ad ON "
-								   "    adrelid = c.oid AND adnum = attnum ");
-=======
->>>>>>> REL_16_9
 
 		appendStringInfoString(&buf,
 							   "WHERE c.relkind IN ("
@@ -5703,13 +5664,9 @@ postgresImportForeignSchema(ImportForeignSchemaStmt *stmt, Oid serverOid)
 				attname = PQgetvalue(res, i, 1);
 				typename = PQgetvalue(res, i, 2);
 				attnotnull = PQgetvalue(res, i, 3);
-				attgenerated = PQgetisnull(res, i, 4) ? (char *) NULL :
+				attdefault = PQgetisnull(res, i, 4) ? (char *) NULL :
 					PQgetvalue(res, i, 4);
-<<<<<<< HEAD
-				attdefault = PQgetisnull(res, i, 5) ? (char *) NULL :
-=======
 				attgenerated = PQgetisnull(res, i, 5) ? (char *) NULL :
->>>>>>> REL_16_9
 					PQgetvalue(res, i, 5);
 				collname = PQgetisnull(res, i, 6) ? (char *) NULL :
 					PQgetvalue(res, i, 6);
@@ -7326,16 +7283,6 @@ postgresForeignAsyncConfigureWait(AsyncRequest *areq)
 	{
 		/*
 		 * This is the case when the in-process request was made by another
-<<<<<<< HEAD
-		 * Append.  Note that it might be useless to process the request,
-		 * because the query might not need tuples from that Append anymore.
-		 * If there are any child subplans of the same parent that are ready
-		 * for new requests, skip the given request.  Likewise, if there are
-		 * any configured events other than the postmaster death event, skip
-		 * it.  Otherwise, process the in-process request, then begin a fetch
-		 * to configure the event below, because we might otherwise end up
-		 * with no configured events other than the postmaster death event.
-=======
 		 * Append.  Note that it might be useless to process the request made
 		 * by that Append, because the query might not need tuples from that
 		 * Append anymore; so we avoid processing it to begin a fetch for the
@@ -7346,7 +7293,6 @@ postgresForeignAsyncConfigureWait(AsyncRequest *areq)
 		 * in-process request, then begin a fetch to configure the event
 		 * below, because we might otherwise end up with no configured events
 		 * other than the postmaster death event.
->>>>>>> REL_16_9
 		 */
 		if (!bms_is_empty(requestor->as_needrequest))
 			return;
@@ -7516,11 +7462,7 @@ void
 process_pending_request(AsyncRequest *areq)
 {
 	ForeignScanState *node = (ForeignScanState *) areq->requestee;
-<<<<<<< HEAD
-	PgFdwScanState *fsstate PG_USED_FOR_ASSERTS_ONLY = (PgFdwScanState *) node->fdw_state;
-=======
 	PgFdwScanState *fsstate = (PgFdwScanState *) node->fdw_state;
->>>>>>> REL_16_9
 
 	/* The request would have been pending for a callback */
 	Assert(areq->callback_pending);

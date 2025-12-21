@@ -287,18 +287,15 @@ InitPgFdwOptions(void)
 		 */
 		{"sslcert", UserMappingRelationId, true},
 		{"sslkey", UserMappingRelationId, true},
-
-<<<<<<< HEAD
-		/* num_segments is available on server only */
-		{"num_segments", ForeignServerRelationId, false},
-=======
 		/*
 		 * gssdelegation is also a libpq option but should be allowed in a
 		 * user mapping context too
 		 */
 		{"gssdelegation", UserMappingRelationId, true},
 
->>>>>>> REL_16_9
+		/* num_segments is available on server only */
+		{"num_segments", ForeignServerRelationId, false},
+
 		{NULL, InvalidOid, false}
 	};
 

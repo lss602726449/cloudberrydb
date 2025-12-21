@@ -17,12 +17,12 @@
 #include "catalog/pg_user_mapping.h"
 #include "commands/defrem.h"
 #include "funcapi.h"
+#include "postgres_fdw.h"
 #include "libpq/libpq-be.h"
 #include "libpq/libpq-be-fe-helpers.h"
 #include "mb/pg_wchar.h"
 #include "miscadmin.h"
 #include "pgstat.h"
-#include "postgres_fdw.h"
 #include "storage/fd.h"
 #include "storage/latch.h"
 #include "utils/builtins.h"
@@ -1068,28 +1068,7 @@ pgfdw_xact_callback(XactEvent event, void *arg)
 							continue;
 					}
 					else
-<<<<<<< HEAD
-					{
-						entry->have_prep_stmt = false;
-						entry->have_error = false;
-
-						/*
-						 * If pendingAreq of the per-connection state is not
-						 * NULL, it means that an asynchronous fetch begun by
-						 * fetch_more_data_begin() was not done successfully
-						 * and thus the per-connection state was not reset in
-						 * fetch_more_data(); in that case reset the
-						 * per-connection state here.
-						 */
-						if (entry->state.pendingAreq)
-							memset(&entry->state, 0, sizeof(entry->state));
-					}
-
-					/* Disarm changing_xact_state if it all worked. */
-					entry->changing_xact_state = abort_cleanup_failure;
-=======
 						pgfdw_abort_cleanup(entry, true);
->>>>>>> REL_16_9
 					break;
 			}
 		}
@@ -1195,32 +1174,10 @@ pgfdw_subxact_callback(SubXactEvent event, SubTransactionId mySubid,
 			/* Rollback all remote subtransactions during abort */
 			if (entry->parallel_abort)
 			{
-<<<<<<< HEAD
-				/* Rollback all remote subtransactions during abort */
-				snprintf(sql, sizeof(sql),
-						 "ROLLBACK TO SAVEPOINT s%d; RELEASE SAVEPOINT s%d",
-						 curlevel, curlevel);
-				if (!pgfdw_exec_cleanup_query(entry->conn, sql, false))
-					abort_cleanup_failure = true;
-				else
-				{
-					/*
-					 * If pendingAreq of the per-connection state is not NULL,
-					 * it means that an asynchronous fetch begun by
-					 * fetch_more_data_begin() was not done successfully and
-					 * thus the per-connection state was not reset in
-					 * fetch_more_data(); in that case reset the
-					 * per-connection state here.
-					 */
-					if (entry->state.pendingAreq)
-						memset(&entry->state, 0, sizeof(entry->state));
-				}
-=======
 				if (pgfdw_abort_cleanup_begin(entry, false,
 											  &pending_entries,
 											  &cancel_requested))
 					continue;
->>>>>>> REL_16_9
 			}
 			else
 				pgfdw_abort_cleanup(entry, false);
