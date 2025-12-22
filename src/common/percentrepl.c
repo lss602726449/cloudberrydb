@@ -91,6 +91,10 @@ replace_percent_placeholders(const char *instr, const char *param_name, const ch
 			}
 			else if (sp[1] == 'c')
 			{
+#ifndef FRONTEND
+				/* GPDB_13_MERGE_FIXME: How to set GpIdentity for frontend?
+				 * Discussion: https://postgr.es/m/a3acff50-5a0d-9a2c-b3b2-ee36168955c1@postgrespro.ru
+				 */
 				char		contentid[12];
 
 				/* GPDB: %c: contentId of segment */
@@ -98,19 +102,29 @@ replace_percent_placeholders(const char *instr, const char *param_name, const ch
 				sp++;
 				pg_ltoa(GpIdentity.segindex, contentid);
 				appendStringInfoString(&result, contentid);
+#else
+				pg_log_error("contend id is not supported in frontend");
+				exit(1);
+#endif
 				break;
 			}
 			else if (sp[1] == 'R')
 			{
+#ifdef FRONTEND
+				pg_log_error("ssl_passphrase_command is not supported in frontend");
+				exit(1);
+#else
 				char fd_str[20];
 
 				if (terminal_fd == -1)
 					ereport(ERROR,
 							(errcode(ERRCODE_INTERNAL_ERROR),
 									errmsg("ssl_passphrase_command referenced %%R, but -R not specified")));
+
 				sp++;
 				snprintf(fd_str, sizeof(fd_str), "%d", terminal_fd);
 				appendStringInfoString(&result, fd_str);
+#endif
 				break;
 			}
 			else

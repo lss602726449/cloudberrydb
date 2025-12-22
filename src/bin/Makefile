@@ -44,6 +44,7 @@ SUBDIRS = \
 	pg_config \
 	pg_controldata \
 	pg_ctl \
+	pg_rewind \
 	psql \
 	scripts
 
