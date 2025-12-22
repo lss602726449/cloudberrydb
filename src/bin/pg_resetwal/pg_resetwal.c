@@ -75,12 +75,8 @@ static Oid	set_oid = 0;
 static Oid	set_relfilenode = 0;
 static MultiXactId set_mxid = 0;
 static MultiXactOffset set_mxoff = (MultiXactOffset) -1;
-<<<<<<< HEAD
 static int32 set_data_checksum_version = -1;
-static uint32 minXlogTli = 0;
-=======
 static TimeLineID minXlogTli = 0;
->>>>>>> REL_16_9
 static XLogSegNo minXlogSegNo = 0;
 static int	WalSegSz;
 static int	set_wal_segsize;
@@ -169,11 +165,7 @@ main(int argc, char *argv[])
 	}
 
 
-<<<<<<< HEAD
 	while ((c = getopt_long(argc, argv, "c:D:e:fl:m:no:r:O:u:x:k:", long_options, NULL)) != -1)
-=======
-	while ((c = getopt_long(argc, argv, "c:D:e:fl:m:no:O:u:x:", long_options, NULL)) != -1)
->>>>>>> REL_16_9
 	{
 		switch (c)
 		{
@@ -217,37 +209,13 @@ main(int argc, char *argv[])
 					pg_fatal("oldest transaction ID (-u) must be greater than or equal to %u", FirstNormalTransactionId);
 				break;
 
-			case 'u':
-				set_oldest_xid = strtoul(optarg, &endptr, 0);
-				if (endptr == optarg || *endptr != '\0')
-				{
-					pg_log_error("invalid argument for option %s", "-u");
-					fprintf(stderr, _("Try \"%s --help\" for more information.\n"), progname);
-					exit(1);
-				}
-				if (!TransactionIdIsNormal(set_oldest_xid))
-				{
-					pg_log_error("oldest transaction ID (-u) must be greater than or equal to %u", FirstNormalTransactionId);
-					exit(1);
-				}
-				break;
-
 			case 'x':
 				errno = 0;
 				set_xid = strtoul(optarg, &endptr, 0);
 				if (endptr == optarg || *endptr != '\0' || errno != 0)
 				{
 					pg_log_error("invalid argument for option %s", "-x");
-<<<<<<< HEAD
-					fprintf(stderr, _("Try \"%s --help\" for more information.\n"), progname);
-					exit(1);
-				}
-				if (!TransactionIdIsNormal(set_xid))
-				{
-					pg_log_error("transaction ID (-x) must be greater than or equal to %u", FirstNormalTransactionId);
-=======
 					pg_log_error_hint("Try \"%s --help\" for more information.", progname);
->>>>>>> REL_16_9
 					exit(1);
 				}
 				if (!TransactionIdIsNormal(set_xid))
@@ -849,13 +817,9 @@ GuessControlValues(void)
 	ControlFile.checkPointCopy.fullPageWrites = false;
 	ControlFile.checkPointCopy.nextXid =
 		FullTransactionIdFromEpochAndXid(0, FirstNormalTransactionId);
-<<<<<<< HEAD
 	ControlFile.checkPointCopy.nextGxid = FirstDistributedTransactionId;
-	ControlFile.checkPointCopy.nextOid = FirstBootstrapObjectId;
-	ControlFile.checkPointCopy.nextRelfilenode = FirstBootstrapObjectId;
-=======
 	ControlFile.checkPointCopy.nextOid = FirstGenbkiObjectId;
->>>>>>> REL_16_9
+	ControlFile.checkPointCopy.nextRelfilenode = FirstGenbkiObjectId;
 	ControlFile.checkPointCopy.nextMulti = FirstMultiXactId;
 	ControlFile.checkPointCopy.nextMultiOffset = 0;
 	ControlFile.checkPointCopy.oldestXid = FirstNormalTransactionId;
@@ -1480,27 +1444,18 @@ usage(void)
 	printf(_(" [-D, --pgdata=]DATADIR            data directory\n"));
 	printf(_("  -e, --epoch=XIDEPOCH             set next transaction ID epoch\n"));
 	printf(_("  -f, --force                      force update to be done\n"));
-<<<<<<< HEAD
 	printf(_("  -k data_checksum_version         set data_checksum_version\n"));
-=======
->>>>>>> REL_16_9
 	printf(_("  -l, --next-wal-file=WALFILE      set minimum starting location for new WAL\n"));
 	printf(_("  -m, --multixact-ids=MXID,MXID    set next and oldest multitransaction ID\n"));
 	printf(_("  -n, --dry-run                    no update, just show what would be done\n"));
 	printf(_("  -o, --next-oid=OID               set next OID\n"));
 	printf(_("  -O, --multixact-offset=OFFSET    set next multitransaction offset\n"));
-<<<<<<< HEAD
 	printf(_("  -r RELFILENODE                 set next RELFILENODE\n"));
 	printf(_("      --system-identifier=ID     set database system identifier\n"));
 	printf(_("  -u, --oldest-transaction-id=XID  set oldest transaction ID\n"));
 	printf(_("  -V, --version                    output version information, then exit\n"));
 	printf(_("  -x, --next-transaction-id=XID    set next transaction ID\n"));
 	printf(_("      --next-gxid=GXID           set next distributed transaction ID\n"));
-=======
-	printf(_("  -u, --oldest-transaction-id=XID  set oldest transaction ID\n"));
-	printf(_("  -V, --version                    output version information, then exit\n"));
-	printf(_("  -x, --next-transaction-id=XID    set next transaction ID\n"));
->>>>>>> REL_16_9
 	printf(_("      --wal-segsize=SIZE           size of WAL segments, in megabytes\n"));
 	printf(_("  -?, --help                       show this help, then exit\n"));
 	printf(_("\nReport bugs to <%s>.\n"), PACKAGE_BUGREPORT);
