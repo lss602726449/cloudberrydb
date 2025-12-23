@@ -85,11 +85,8 @@ AlterOpFamilyStmt
 AlterOperatorStmt
 AlterOwnerStmt
 AlterPolicyStmt
-<<<<<<< HEAD
 AlterProfileStmt
-=======
 AlterPublicationAction
->>>>>>> REL_16_9
 AlterPublicationStmt
 AlterRoleSetStmt
 AlterRoleStmt
