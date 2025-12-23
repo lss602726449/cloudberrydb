@@ -176,7 +176,6 @@ static bool found_existing_xlogdir = false;
 static bool made_tablespace_dirs = false;
 static bool found_tablespace_dirs = false;
 
-<<<<<<< HEAD
 static bool forceoverwrite = false;
 #define MAX_EXCLUDE 255
 static int	num_exclude = 0;
@@ -185,10 +184,7 @@ static int	num_exclude_from = 0;
 static char *excludefroms[MAX_EXCLUDE];
 static int target_gp_dbid = 0;
 
-/* Progress counters */
-=======
 /* Progress indicators */
->>>>>>> REL_16_9
 static uint64 totalsize_kb;
 static uint64 totaldone;
 static int	tablespacecount;
@@ -796,16 +792,10 @@ verify_dir_is_empty_or_create(char *dirname, bool *created, bool *found)
 			 * things that should not be deleted such as pg_log files if we
 			 * are doing segment recovery.
 			 */
-<<<<<<< HEAD
 			if (forceoverwrite)
 				return;
 
-			pg_log_error("directory \"%s\" exists but is not empty", dirname);
-			exit(1);
-			break;
-=======
 			pg_fatal("directory \"%s\" exists but is not empty", dirname);
->>>>>>> REL_16_9
 		case -1:
 
 			/*
