@@ -2135,6 +2135,8 @@ ExtendBufferedRelShared(BufferManagerRelation bmr,
 			buf_state |= BM_TAG_VALID | BUF_USAGECOUNT_ONE;
 			if (bmr.relpersistence == RELPERSISTENCE_PERMANENT || fork == INIT_FORKNUM)
 				buf_state |= BM_PERMANENT;
+			else if (bmr.relpersistence == RELPERSISTENCE_TEMP)
+				buf_state |= BM_TAG_VALID | BM_TEMP | BUF_USAGECOUNT_ONE;
 
 			UnlockBufHdr(victim_buf_hdr, buf_state);
 
@@ -5472,6 +5474,11 @@ AbortBufferIO(Buffer buffer)
 
 			path = relpathperm(BufTagGetRelFileLocator(&buf_hdr->tag),
 							   BufTagGetForkNum(&buf_hdr->tag));
+
+			path = relpathbackend(BufTagGetRelFileLocator(&buf_hdr->tag),
+								  (buf_state & BM_TEMP) ?
+								  TempRelBackendId : InvalidBackendId,
+								  BufTagGetForkNum(&buf_hdr->tag));
 			ereport(WARNING,
 					(errcode(ERRCODE_IO_ERROR),
 					 errmsg("could not write block %u of %s",
