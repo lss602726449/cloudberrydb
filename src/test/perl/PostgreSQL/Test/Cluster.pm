@@ -1,11 +1,3 @@
-
-<<<<<<< HEAD
-# Copyright (c) 2022, PostgreSQL Global Development Group
-
-# allow use of release 15+ perl namespace in older branches
-# just 'use' the older module name.
-# See PostgresNode.pm for function implementations
-=======
 # Copyright (c) 2021-2023, PostgreSQL Global Development Group
 
 =pod
@@ -51,11 +43,7 @@ PostgreSQL::Test::Cluster - class representing PostgreSQL server instance
   my ($stdout, $stderr, $timed_out);
   my $cmdret = $node->psql('postgres', 'SELECT pg_sleep(600)',
 	  stdout => \$stdout, stderr => \$stderr,
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-	  timeout => $TestLib::timeout_default,
-========
 	  timeout => $PostgreSQL::Test::Utils::timeout_default,
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 	  timed_out => \$timed_out,
 	  extra_params => ['--single-transaction'],
 	  on_error_die => 1)
@@ -104,16 +92,12 @@ point to the instance.
 The IPC::Run module is required.
 
 =cut
->>>>>>> REL_16_9
 
 package PostgreSQL::Test::Cluster;
 
 use strict;
 use warnings;
 
-<<<<<<< HEAD
-use PostgresNode;
-=======
 use Carp;
 use Config;
 use Fcntl qw(:mode :flock :seek :DEFAULT);
@@ -185,11 +169,8 @@ INIT
 	$ENV{PGDATABASE} = 'postgres';
 
 	# Tracking of last port value assigned to accelerate free port lookup.
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-	$last_port_assigned = int(rand() * 16384) + 49152;
-
 	$last_dbid			= 0
-========
+
 	my $num_ports = $port_upper_bound - $port_lower_bound;
 	$last_port_assigned = int(rand() * $num_ports) + $port_lower_bound;
 
@@ -206,7 +187,6 @@ INIT
 	$portdir =~ s!\\!/!g;
 	# Make sure the directory exists
 	mkpath($portdir) unless -d $portdir;
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 }
 
 =pod
@@ -215,49 +195,6 @@ INIT
 
 =over
 
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-=item PostgresNode::new($class, $name, $pghost, $pgport)
-
-Create a new PostgresNode instance. Does not initdb or start it.
-
-You should generally prefer to use get_new_node() instead since it takes care
-of finding port numbers, registering instances for cleanup, etc.
-
-=cut
-
-sub new
-{
-	my ($class, $name, $pghost, $pgport) = @_;
-	my $testname = basename($0);
-	$testname =~ s/\.[^.]+$//;
-
-	# GPDB needs unique dbid for each node for certain operations
-	$last_dbid = $last_dbid + 1;
-
-	my $self = {
-		_port    => $pgport,
-		_host    => $pghost,
-		_dbid    => $last_dbid,
-		_basedir => "$TestLib::tmp_check/t_${testname}_${name}_data",
-		_name    => $name,
-		_logfile_generation => 0,
-		_logfile_base       => "$TestLib::log_path/${testname}_${name}",
-		_logfile            => "$TestLib::log_path/${testname}_${name}.log"
-	};
-
-	bless $self, $class;
-	mkdir $self->{_basedir}
-	  or
-	  BAIL_OUT("could not create data directory \"$self->{_basedir}\": $!");
-	$self->dump_info;
-
-	return $self;
-}
-
-=pod
-
-========
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 =item $node->port()
 
 Get the port number assigned to the host. This won't necessarily be a TCP port
@@ -608,14 +545,10 @@ sub init
 	my ($self, %params) = @_;
 	my $port = $self->port;
 	my $pgdata = $self->data_dir;
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
 	my $host   = $self->host;
 	my $dbid   = $self->dbid;
 
 	print "####### HOST = $host\n";
-========
-	my $host = $self->host;
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 
 	local %ENV = $self->_get_env();
 
@@ -700,8 +633,7 @@ sub init
 	  or die("unable to set permissions for $pgdata/postgresql.conf");
 
 	$self->set_replication_conf if $params{allows_streaming};
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-	$self->enable_archiving     if $params{has_archiving};
+	$self->enable_archiving if $params{has_archiving};
 
 	# We have to specify the master's dbid explicitly because initdb
 	# only creates an empty file. gpconfigurenewseg is tasked with
@@ -714,9 +646,6 @@ sub init
 	chmod($self->group_access ? 0640 : 0600, "$pgdata/internal.auto.conf")
 	  or die("unable to set permissions for $pgdata/internal.auto.conf");
 
-========
-	$self->enable_archiving if $params{has_archiving};
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 	return;
 }
 
@@ -816,24 +745,14 @@ sub backup
 	local %ENV = $self->_get_env();
 
 	print "# Taking pg_basebackup $backup_name from node \"$name\"\n";
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
 
-
-	TestLib::system_or_bail(
-		'pg_basebackup', '-D',
-		$backup_path,    '-h',
-		$self->host,     '-p',
-		$self->port,     '--checkpoint',
-		'fast',          '--no-sync',
-		'--target-gp-dbid', 99,
-========
 	PostgreSQL::Test::Utils::system_or_bail(
 		'pg_basebackup', '-D',
 		$backup_path, '-h',
 		$self->host, '-p',
 		$self->port, '--checkpoint',
 		'fast', '--no-sync',
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
+		'--target-gp-dbid', 99,
 		@{ $params{backup_options} });
 
 	print "# Backup finished\n";
@@ -1007,7 +926,6 @@ sub start
 	print("### Starting node \"$name\"\n");
 
 
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
 	{
 		# Temporarily unset PGAPPNAME so that the server doesn't
 		# inherit it.  Otherwise this could affect libpqwalreceiver
@@ -1016,29 +934,17 @@ sub start
 
 		# Note: We set the cluster_name here, not in postgresql.conf (in
 		# sub init) so that it does not get copied to standbys.
-		$ret = TestLib::system_log('pg_ctl', '-D', $self->data_dir, '-l',
+		# -w is now the default but having it here does no harm and helps
+		# compatibility with older versions.
+		$ret = PostgreSQL::Test::Utils::system_log('pg_ctl', '-w', '-D', $self->data_dir, '-l',
 		$self->logfile, '-o', "--cluster-name=$name -c gp_role=utility --gp_dbid=$self->{_dbid} --gp_contentid=0 -c maintenance_mode=on",
 			'start');
 	}
-========
-	# Note: We set the cluster_name here, not in postgresql.conf (in
-	# sub init) so that it does not get copied to standbys.
-	# -w is now the default but having it here does no harm and helps
-	# compatibility with older versions.
-	$ret = PostgreSQL::Test::Utils::system_log(
-		'pg_ctl', '-w', '-D', $self->data_dir,
-		'-l', $self->logfile, '-o', "--cluster-name=$name",
-		'start');
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 
 	if ($ret != 0)
 	{
 		print "# pg_ctl start failed; logfile:\n";
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-		print TestLib::slurp_file($self->logfile);
-========
 		print PostgreSQL::Test::Utils::slurp_file($self->logfile);
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 
 		# pg_ctl could have timed out, so check to see if there's a pid file;
 		# otherwise our END block will fail to shut down the new postmaster.
@@ -1098,11 +1004,7 @@ sub stop
 {
 	my ($self, $mode, %params) = @_;
 	my $pgdata = $self->data_dir;
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-	my $name   = $self->name;
-========
 	my $name = $self->name;
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 	my $ret;
 
 	local %ENV = $self->_get_env();
@@ -1111,11 +1013,7 @@ sub stop
 	return 1 unless defined $self->{_pid};
 
 	print "### Stopping node \"$name\" using mode $mode\n";
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-	$ret = TestLib::system_log('pg_ctl', '-D', $pgdata,
-========
 	$ret = PostgreSQL::Test::Utils::system_log('pg_ctl', '-D', $pgdata,
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 		'-m', $mode, 'stop');
 
 	if ($ret != 0)
@@ -1323,13 +1221,8 @@ sub set_standby_mode
 sub enable_archiving
 {
 	my ($self) = @_;
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-	my $path   = $self->archive_dir;
-	my $name   = $self->name;
-========
 	my $path = $self->archive_dir;
 	my $name = $self->name;
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 
 	print "### Enabling WAL archiving for node \"$name\"\n";
 
@@ -1546,15 +1439,9 @@ sub _set_pg_version
 		$pg_config = "$inst/bin/pg_config";
 		BAIL_OUT("pg_config not found: $pg_config")
 		  unless -e $pg_config
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-		  or ($TestLib::windows_os and -e "$pg_config.exe");
-		BAIL_OUT("pg_config not executable: $pg_config")
-		  unless $TestLib::windows_os or -x $pg_config;
-========
 		  or ($PostgreSQL::Test::Utils::windows_os and -e "$pg_config.exe");
 		BAIL_OUT("pg_config not executable: $pg_config")
 		  unless $PostgreSQL::Test::Utils::windows_os or -x $pg_config;
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 
 		# Leave $pg_config install_path qualified, to be sure we get the right
 		# version information, below, or die trying
@@ -1980,11 +1867,7 @@ e.g.
 	my ($stdout, $stderr, $timed_out);
 	my $cmdret = $node->psql('postgres', 'SELECT pg_sleep(600)',
 		stdout => \$stdout, stderr => \$stderr,
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-		timeout => $TestLib::timeout_default,
-========
 		timeout => $PostgreSQL::Test::Utils::timeout_default,
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 		timed_out => \$timed_out,
 		extra_params => ['--single-transaction'])
 
@@ -2156,20 +2039,8 @@ sub psql
 
 =item $node->background_psql($dbname, %params) => PostgreSQL::Test::BackgroundPsql instance
 
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-Invoke B<psql> on B<$dbname> and return an IPC::Run harness object, which the
-caller may use to send input to B<psql>.  The process's stdin is sourced from
-the $stdin scalar reference, and its stdout and stderr go to the $stdout
-scalar reference.  This allows the caller to act on other parts of the system
-while idling this backend.
 
-The specified timer object is attached to the harness, as well.  It's caller's
-responsibility to set the timeout length (usually
-$TestLib::timeout_default), and to restart the timer after
-each command if the timeout is per-command.
-========
 Invoke B<psql> on B<$dbname> and return a BackgroundPsql object.
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 
 psql is invoked in tuples-only unaligned mode with reading of B<.psqlrc>
 disabled.  That may be overridden by passing extra psql parameters.
@@ -2250,14 +2121,7 @@ sub background_psql
 Invoke B<psql> on B<$dbname> and return a BackgroundPsql object, which the
 caller may use to send interactive input to B<psql>.
 
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-The specified timer object is attached to the harness, as well.  It's caller's
-responsibility to set the timeout length (usually
-$TestLib::timeout_default), and to restart the timer after
-each command if the timeout is per-command.
-========
 A timeout of $PostgreSQL::Test::Utils::timeout_default is set up.
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 
 psql is invoked in tuples-only unaligned mode with reading of B<.psqlrc>
 disabled.  That may be overridden by passing extra psql parameters.
@@ -2771,11 +2635,7 @@ sub connect_fails
 Run B<$query> repeatedly, until it returns the B<$expected> result
 ('t', or SQL boolean true, by default).
 Continues polling if B<psql> returns an error result.
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-Times out after $TestLib::timeout_default seconds.
-========
 Times out after $PostgreSQL::Test::Utils::timeout_default seconds.
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 Returns 1 if successful, 0 if timed out.
 
 =cut
@@ -2793,13 +2653,9 @@ sub poll_query_until
 		'-d', $self->connstr($dbname)
 	];
 	my ($stdout, $stderr);
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-	my $max_attempts = 10 * $TestLib::timeout_default;
-	my $attempts     = 0;
-========
+
 	my $max_attempts = 10 * $PostgreSQL::Test::Utils::timeout_default;
 	my $attempts = 0;
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 
 	while ($attempts < $max_attempts)
 	{
@@ -3334,12 +3190,6 @@ sub wait_for_catchup
 	  . "_lsn to pass "
 	  . $target_lsn . " on "
 	  . $self->name . "\n";
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-	my $query =
-	  qq[SELECT $lsn_expr <= ${mode}_lsn AND state = 'streaming' FROM pg_catalog.pg_stat_replication WHERE application_name = '$standby_name' or application_name = 'gp_walreceiver';];
-	$self->poll_query_until('postgres', $query)
-	  or croak "timed out waiting for catchup";
-========
 	# Before release 12 walreceiver just set the application name to
 	# "walreceiver"
 	my $query = qq[SELECT '$target_lsn' <= ${mode}_lsn AND state = 'streaming'
@@ -3362,7 +3212,6 @@ sub wait_for_catchup
 			croak "timed out waiting for catchup";
 		}
 	}
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 	print "done\n";
 	return;
 }
@@ -3435,8 +3284,6 @@ sub wait_for_slot_catchup
 
 =pod
 
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-========
 =item $node->wait_for_subscription_sync(publisher, subname, dbname)
 
 Wait for all tables in pg_subscription_rel to complete the initial
@@ -3481,16 +3328,11 @@ sub wait_for_subscription_sync
 
 =pod
 
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 =item $node->wait_for_log(regexp, offset)
 
 Waits for the contents of the server log file, starting at the given offset, to
 match the supplied regular expression.  Checks the entire log if no offset is
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-given.  Times out after $TestLib::timeout_default seconds.
-========
 given.  Times out after $PostgreSQL::Test::Utils::timeout_default seconds.
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 
 If successful, returns the length of the entire log file, in bytes.
 
@@ -3501,16 +3343,6 @@ sub wait_for_log
 	my ($self, $regexp, $offset) = @_;
 	$offset = 0 unless defined $offset;
 
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-	my $max_attempts = 10 * $TestLib::timeout_default;
-	my $attempts     = 0;
-
-	while ($attempts < $max_attempts)
-	{
-		my $log = TestLib::slurp_file($self->logfile, $offset);
-
-		return $offset+length($log) if ($log =~ m/$regexp/);
-========
 	my $max_attempts = 10 * $PostgreSQL::Test::Utils::timeout_default;
 	my $attempts = 0;
 
@@ -3520,7 +3352,6 @@ sub wait_for_log
 		  PostgreSQL::Test::Utils::slurp_file($self->logfile, $offset);
 
 		return $offset + length($log) if ($log =~ m/$regexp/);
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 
 		# Wait 0.1 second before retrying.
 		usleep(100_000);
@@ -3727,8 +3558,6 @@ sub corrupt_page_checksum
 	return;
 }
 
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-========
 #
 # Signal handlers
 #
@@ -3804,28 +3633,13 @@ sub create_logical_slot_on_standby
 	  or die "could not create slot" . $slot_name;
 }
 
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
 =pod
 
 =back
 
 =cut
 
-<<<<<<<< HEAD:src/test/perl/PostgresNode.pm
-# support release 15+ perl module namespace
 
-package PostgreSQL::Test::Cluster; ## no critic (ProhibitMultiplePackages)
-
-sub new
-{
-	shift; # remove class param from args
-	return PostgresNode->get_new_node(@_);
-}
-
-no warnings 'once';
-
-*get_free_port = *PostgresNode::get_free_port;
-========
 ##########################################################################
 
 package PostgreSQL::Test::Cluster::V_11
@@ -3864,7 +3678,4 @@ use parent -norequire, qw(PostgreSQL::Test::Cluster::V_11);
 # https://www.postgresql.org/docs/10/release-10.html
 
 ########################################################################
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Cluster.pm
->>>>>>> REL_16_9
-
 1;

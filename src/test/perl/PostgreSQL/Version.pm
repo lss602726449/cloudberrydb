@@ -4,11 +4,7 @@
 #
 # Module encapsulating Postgres Version numbers
 #
-<<<<<<< HEAD
-# Copyright (c) 2021-2022, PostgreSQL Global Development Group
-=======
 # Copyright (c) 2021-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
 #
 ############################################################################
 
@@ -56,11 +52,7 @@ use Scalar::Util qw(blessed);
 use overload
   '<=>' => \&_version_cmp,
   'cmp' => \&_version_cmp,
-<<<<<<< HEAD
-  '""'  => \&_stringify;
-=======
   '""' => \&_stringify;
->>>>>>> REL_16_9
 
 =pod
 
@@ -82,11 +74,7 @@ of a Postgres command like `psql --version` or `pg_config --version`;
 sub new
 {
 	my $class = shift;
-<<<<<<< HEAD
-	my $arg   = shift;
-=======
 	my $arg = shift;
->>>>>>> REL_16_9
 
 	chomp $arg;
 

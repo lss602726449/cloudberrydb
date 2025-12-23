@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-# Copyright (c) 2022, PostgreSQL Global Development Group
-
-# allow use of release 15+ perl namespace in older branches
-# just 'use' the older module name.
-# We export the same names as the v15 module.
-# See TestLib.pm for alias assignment that makes this all work.
-=======
-
 # Copyright (c) 2021-2023, PostgreSQL Global Development Group
 
 =pod
@@ -31,11 +22,7 @@ PostgreSQL::Test::Utils - helper module for writing PostgreSQL's C<prove> tests.
   command_ok('initdb', '-D', $tempdir);
 
   # Miscellanea
-<<<<<<<< HEAD:src/test/perl/TestLib.pm
-  print "on Windows" if $TestLib::windows_os;
-========
   print "on Windows" if $PostgreSQL::Test::Utils::windows_os;
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Utils.pm
   ok(check_mode_recursive($stream_dir, 0700, 0600),
     "check stream dir permissions");
   PostgreSQL::Test::Utils::system_log('pg_ctl', 'kill', 'QUIT', $slow_pid);
@@ -50,18 +37,12 @@ aimed at controlling command execution, logging and test functions.
 
 # This module should never depend on any other PostgreSQL regression test
 # modules.
->>>>>>> REL_16_9
 
 package PostgreSQL::Test::Utils;
 
 use strict;
 use warnings;
 
-<<<<<<< HEAD
-use Exporter 'import';
-
-use TestLib;
-=======
 use Carp;
 use Config;
 use Cwd;
@@ -78,25 +59,18 @@ use PostgreSQL::Test::SimpleTee;
 
 # We need a version of Test::More recent enough to support subtests
 use Test::More 0.98;
->>>>>>> REL_16_9
 
 our @EXPORT = qw(
   generate_ascii_string
   slurp_dir
   slurp_file
   append_to_file
-<<<<<<< HEAD
-=======
   string_replace_file
->>>>>>> REL_16_9
   check_mode_recursive
   chmod_recursive
   check_pg_config
   dir_symlink
-<<<<<<< HEAD
-=======
   scan_server_header
->>>>>>> REL_16_9
   system_or_bail
   system_log
   run_log
@@ -119,8 +93,6 @@ our @EXPORT = qw(
   $use_unix_sockets
 );
 
-<<<<<<< HEAD
-=======
 our ($windows_os, $is_msys2, $use_unix_sockets, $timeout_default,
 	$tmp_check, $log_path, $test_logfile);
 
@@ -174,25 +146,15 @@ BEGIN
 	# Must be set early
 	$windows_os = $Config{osname} eq 'MSWin32' || $Config{osname} eq 'msys';
 	# Check if this environment is MSYS2.
-<<<<<<<< HEAD:src/test/perl/TestLib.pm
-	$is_msys2 = $windows_os && -x '/usr/bin/uname'  &&
-	  `uname -or` =~ /^[2-9].*Msys/;
-========
 	$is_msys2 =
 		 $windows_os
 	  && -x '/usr/bin/uname'
 	  && `uname -or` =~ /^[2-9].*Msys/;
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Utils.pm
 
 	if ($windows_os)
 	{
 		require Win32API::File;
-<<<<<<<< HEAD:src/test/perl/TestLib.pm
-		Win32API::File->import(
-			qw(createFile OsFHandleOpen CloseHandle));
-========
 		Win32API::File->import(qw(createFile OsFHandleOpen CloseHandle));
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Utils.pm
 	}
 
 	# Specifies whether to use Unix sockets for test setups.  On
@@ -361,11 +323,7 @@ https://postgr.es/m/20220116210241.GC756210@rfd.leadboat.com for details.
 sub has_wal_read_bug
 {
 	return
-<<<<<<<< HEAD:src/test/perl/TestLib.pm
-	     $Config{osname} eq 'linux'
-========
 		 $Config{osname} eq 'linux'
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Utils.pm
 	  && $Config{archname} =~ /^sparc/
 	  && !run_log([ qw(df -x ext4), $tmp_check ], '>', '/dev/null', '2>&1');
 }
@@ -476,24 +434,16 @@ sub pump_until
 		last if $$stream =~ /$until/;
 		if ($timeout->is_expired)
 		{
-<<<<<<<< HEAD:src/test/perl/TestLib.pm
-			diag("pump_until: timeout expired when searching for \"$until\" with stream: \"$$stream\"");
-========
 			diag(
 				"pump_until: timeout expired when searching for \"$until\" with stream: \"$$stream\""
 			);
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Utils.pm
 			return 0;
 		}
 		if (not $proc->pumpable())
 		{
-<<<<<<<< HEAD:src/test/perl/TestLib.pm
-			diag("pump_until: process terminated unexpectedly when searching for \"$until\" with stream: \"$$stream\"");
-========
 			diag(
 				"pump_until: process terminated unexpectedly when searching for \"$until\" with stream: \"$$stream\""
 			);
->>>>>>>> REL_16_9:src/test/perl/PostgreSQL/Test/Utils.pm
 			return 0;
 		}
 		$proc->pump();
@@ -1162,5 +1112,4 @@ no warnings qw(once);
 *log_path = *TestLib::log_path;
 *test_logfile = *TestLib::test_log_file;
 
->>>>>>> REL_16_9
 1;
