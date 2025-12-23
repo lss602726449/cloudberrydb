@@ -169,7 +169,7 @@ INIT
 	$ENV{PGDATABASE} = 'postgres';
 
 	# Tracking of last port value assigned to accelerate free port lookup.
-	$last_dbid			= 0
+	$last_dbid			= 0;
 
 	my $num_ports = $port_upper_bound - $port_lower_bound;
 	$last_port_assigned = int(rand() * $num_ports) + $port_lower_bound;
@@ -2257,52 +2257,6 @@ Further raw options or arguments.
 =back
 
 =cut
-
-sub pgbench
-{
-	local $Test::Builder::Level = $Test::Builder::Level + 1;
-
-	my ($self, $opts, $stat, $out, $err, $name, $files, @args) = @_;
-	my @cmd = (
-		'pgbench',
-		split(/\s+/, $opts),
-		$self->_pgbench_make_files($files), @args);
-
-	$self->command_checks_all(\@cmd, $stat, $out, $err, $name);
-}
-
-# Common sub of pgbench-invoking interfaces.  Makes any requested script files
-# and returns pgbench command-line options causing use of those files.
-sub _pgbench_make_files
-{
-	my ($self, $files) = @_;
-	my @file_opts;
-
-	if (defined $files)
-	{
-
-		# note: files are ordered for determinism
-		for my $fn (sort keys %$files)
-		{
-			my $filename = $self->basedir . '/' . $fn;
-			push @file_opts, '-f', $filename;
-
-			# cleanup file weight
-			$filename =~ s/\@\d+$//;
-
-			#push @filenames, $filename;
-			# filenames are expected to be unique on a test
-			if (-e $filename)
-			{
-				ok(0, "$filename must not already exist");
-				unlink $filename or die "cannot unlink $filename: $!";
-			}
-			TestLib::append_to_file($filename, $$files{$fn});
-		}
-	}
-
-	return @file_opts;
-}
 
 # Test SQL in specific role
 sub role_psql

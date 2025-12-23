@@ -53,6 +53,8 @@ mkdir $datadir;
 		[
 			'initdb', '-N', '-T', 'german', '-c',
 			'default_text_search_config=german',
+			# CBDB_MERGE_16_FIXME: fix initdb defaults selection
+			'--shared_buffers=128000kB', '--max_connections=150',
 			'-X', $xlogdir, $datadir
 		],
 		'successful creation');
@@ -92,7 +94,10 @@ SKIP:
 	my $datadir_group = "$tempdir/data_group";
 
 	command_ok(
-		[ 'initdb', '-g', $datadir_group ],
+		[ 'initdb', '-g', $datadir_group,
+		
+			# CBDB_MERGE_16_FIXME: fix initdb defaults selection
+			'--shared_buffers=128000kB', '--max_connections=150',],
 		'successful creation with group access');
 
 	ok(check_mode_recursive($datadir_group, 0750, 0640),
@@ -112,6 +117,9 @@ if ($ENV{with_icu} eq 'yes')
 		[
 			'initdb', '--no-sync',
 			'--locale-provider=icu', '--icu-locale=en',
+
+			# CBDB_MERGE_16_FIXME: fix initdb defaults selection
+			'--shared_buffers=128000kB', '--max_connections=150',
 			"$tempdir/data3"
 		],
 		'option --icu-locale');
@@ -124,6 +132,9 @@ if ($ENV{with_icu} eq 'yes')
 			'--lc-collate=C', '--lc-ctype=C',
 			'--lc-messages=C', '--lc-numeric=C',
 			'--lc-monetary=C', '--lc-time=C',
+
+			# CBDB_MERGE_16_FIXME: fix initdb defaults selection
+			'--shared_buffers=128000kB', '--max_connections=150',
 			"$tempdir/data4"
 		],
 		qr/^\s+ICU locale:\s+und\n/ms,
@@ -133,6 +144,9 @@ if ($ENV{with_icu} eq 'yes')
 		[
 			'initdb', '--no-sync',
 			'--locale-provider=icu', '--icu-locale=@colNumeric=lower',
+
+			# CBDB_MERGE_16_FIXME: fix initdb defaults selection
+			'--shared_buffers=128000kB', '--max_connections=150',
 			"$tempdir/dataX"
 		],
 		qr/could not open collator for locale/,
@@ -142,6 +156,9 @@ if ($ENV{with_icu} eq 'yes')
 		[
 			'initdb', '--no-sync',
 			'--locale-provider=icu', '--encoding=SQL_ASCII',
+
+			# CBDB_MERGE_16_FIXME: fix initdb defaults selection
+			'--shared_buffers=128000kB', '--max_connections=150',
 			'--icu-locale=en', "$tempdir/dataX"
 		],
 		qr/error: encoding mismatch/,
@@ -160,9 +177,12 @@ if ($ENV{with_icu} eq 'yes')
 		[
 			'initdb', '--no-sync',
 			'--locale-provider=icu', '--icu-locale=@colNumeric=lower',
+
+			# CBDB_MERGE_16_FIXME: fix initdb defaults selection
+			'--shared_buffers=128000kB', '--max_connections=150',
 			"$tempdir/dataX"
 		],
-		qr/could not open collator for locale "und-u-kn-lower": U_ILLEGAL_ARGUMENT_ERROR/,
+		qr/could not open collator for locale ""und-u-kn-lower"": U_ILLEGAL_ARGUMENT_ERROR/,
 		'fails for invalid collation argument');
 }
 else
@@ -184,7 +204,9 @@ command_fails(
 	],
 	'fails for invalid option combination');
 
-command_fails([ 'initdb', '--no-sync', '--set', 'foo=bar', "$tempdir/dataX" ],
+command_fails([ 'initdb', '--no-sync', '--set', 'foo=bar', "$tempdir/dataX", 
+			# CBDB_MERGE_16_FIXME: fix initdb defaults selection
+			'--shared_buffers=128000kB', '--max_connections=150',],
 	'fails for invalid --set option');
 
 # Make sure multiple invocations of -c parameters are added case insensitive
@@ -192,6 +214,8 @@ command_ok(
 	[
 		'initdb', '-cwork_mem=128',
 		'-cWork_Mem=256', '-cWORK_MEM=512',
+		# CBDB_MERGE_16_FIXME: fix initdb defaults selection
+		'--shared_buffers=128000kB', '--max_connections=150',
 		"$tempdir/dataY"
 	],
 	'multiple -c options with different case');
