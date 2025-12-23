@@ -41,6 +41,7 @@ unittest-check:
 
 SUBDIRS = \
 	initdb \
+	pg_amcheck \
 	pg_config \
 	pg_controldata \
 	pg_ctl \

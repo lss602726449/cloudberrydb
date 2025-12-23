@@ -291,11 +291,7 @@ main(int argc, char *argv[])
 	handle_help_version_opts(argc, argv, progname, help);
 
 	/* process command-line options */
-<<<<<<< HEAD
-	while ((c = getopt_long(argc, argv, "ad:D:eh:Hi:I:j:p:Pr:R:s:S:t:T:U:wWv",
-=======
 	while ((c = getopt_long(argc, argv, "ad:D:eh:Hi:I:j:p:Pr:R:s:S:t:T:U:vwW",
->>>>>>> REL_16_9
 							long_options, &optindex)) != -1)
 	{
 		char	   *endptr;
@@ -406,42 +402,18 @@ main(int argc, char *argv[])
 				errno = 0;
 				optval = strtoul(optarg, &endptr, 10);
 				if (endptr == optarg || *endptr != '\0' || errno != 0)
-<<<<<<< HEAD
-				{
-					pg_log_error("invalid start block");
-					exit(1);
-				}
-				if (optval > MaxBlockNumber)
-				{
-					pg_log_error("start block out of bounds");
-					exit(1);
-				}
-=======
 					pg_fatal("invalid start block");
 				if (optval > MaxBlockNumber)
 					pg_fatal("start block out of bounds");
->>>>>>> REL_16_9
 				opts.startblock = optval;
 				break;
 			case 8:
 				errno = 0;
 				optval = strtoul(optarg, &endptr, 10);
 				if (endptr == optarg || *endptr != '\0' || errno != 0)
-<<<<<<< HEAD
-				{
-					pg_log_error("invalid end block");
-					exit(1);
-				}
-				if (optval > MaxBlockNumber)
-				{
-					pg_log_error("end block out of bounds");
-					exit(1);
-				}
-=======
 					pg_fatal("invalid end block");
 				if (optval > MaxBlockNumber)
 					pg_fatal("end block out of bounds");
->>>>>>> REL_16_9
 				opts.endblock = optval;
 				break;
 			case 9:
@@ -1111,17 +1083,10 @@ verify_btree_slot_handler(PGresult *res, PGconn *conn, void *context)
 			/*
 			 * We expect the btree checking functions to return one void row
 			 * each, or zero rows if the check was skipped due to the object
-<<<<<<< HEAD
-			 * being in the wrong state to be checked, so we should output some
-			 * sort of warning if we get anything more, not because it
-			 * indicates corruption, but because it suggests a mismatch between
-			 * amcheck and pg_amcheck versions.
-=======
 			 * being in the wrong state to be checked, so we should output
 			 * some sort of warning if we get anything more, not because it
 			 * indicates corruption, but because it suggests a mismatch
 			 * between amcheck and pg_amcheck versions.
->>>>>>> REL_16_9
 			 *
 			 * In conjunction with --progress, anything written to stderr at
 			 * this time would present strangely to the user without an extra
@@ -2007,17 +1972,6 @@ compile_relation_list_one_db(PGconn *conn, SimplePtrList *relations,
 		 * selected above, filtering by exclusion patterns (if any) that match
 		 * btree index names.
 		 */
-<<<<<<< HEAD
-		appendPQExpBuffer(&sql,
-						  ", index (oid, nspname, relname, relpages) AS ("
-						  "\nSELECT c.oid, r.nspname, c.relname, c.relpages "
-						  "FROM relation r"
-						  "\nINNER JOIN pg_catalog.pg_index i "
-						  "ON r.oid = i.indrelid "
-						  "INNER JOIN pg_catalog.pg_class c "
-						  "ON i.indexrelid = c.oid "
-						  "AND c.relpersistence != 't'");
-=======
 		appendPQExpBufferStr(&sql,
 							 ", index (oid, nspname, relname, relpages) AS ("
 							 "\nSELECT c.oid, r.nspname, c.relname, c.relpages "
@@ -2027,7 +1981,6 @@ compile_relation_list_one_db(PGconn *conn, SimplePtrList *relations,
 							 "INNER JOIN pg_catalog.pg_class c "
 							 "ON i.indexrelid = c.oid "
 							 "AND c.relpersistence != 't'");
->>>>>>> REL_16_9
 		if (opts.excludeidx || opts.excludensp)
 			appendPQExpBufferStr(&sql,
 								 "\nINNER JOIN pg_catalog.pg_namespace n "
@@ -2058,17 +2011,6 @@ compile_relation_list_one_db(PGconn *conn, SimplePtrList *relations,
 		 * primary heap tables selected above, filtering by exclusion patterns
 		 * (if any) that match the toast index names.
 		 */
-<<<<<<< HEAD
-		appendPQExpBuffer(&sql,
-						  ", toast_index (oid, nspname, relname, relpages) AS ("
-						  "\nSELECT c.oid, 'pg_toast', c.relname, c.relpages "
-						  "FROM toast t "
-						  "INNER JOIN pg_catalog.pg_index i "
-						  "ON t.oid = i.indrelid"
-						  "\nINNER JOIN pg_catalog.pg_class c "
-						  "ON i.indexrelid = c.oid "
-						  "AND c.relpersistence != 't'");
-=======
 		appendPQExpBufferStr(&sql,
 							 ", toast_index (oid, nspname, relname, relpages) AS ("
 							 "\nSELECT c.oid, 'pg_toast', c.relname, c.relpages "
@@ -2078,7 +2020,6 @@ compile_relation_list_one_db(PGconn *conn, SimplePtrList *relations,
 							 "\nINNER JOIN pg_catalog.pg_class c "
 							 "ON i.indexrelid = c.oid "
 							 "AND c.relpersistence != 't'");
->>>>>>> REL_16_9
 		if (opts.excludeidx)
 			appendPQExpBufferStr(&sql,
 								 "\nLEFT OUTER JOIN exclude_pat ep "
