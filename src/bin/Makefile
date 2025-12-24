@@ -41,10 +41,14 @@ unittest-check:
 
 SUBDIRS = \
 	initdb \
+	gpfts \
 	pg_amcheck \
+	pg_archivecleanup \
+	pg_checksums \
 	pg_config \
 	pg_controldata \
 	pg_ctl \
+	pg_resetwal \
 	pg_rewind \
 	psql \
 	scripts
