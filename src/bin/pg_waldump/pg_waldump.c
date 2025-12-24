@@ -258,19 +258,11 @@ search_directory(const char *directory, const char *fname)
 						 fname, WalSegSz);
 		}
 		else if (r < 0)
-<<<<<<< HEAD
-			fatal_error("could not read file \"%s\": %m",
-						fname);
-		else
-			fatal_error("could not read file \"%s\": read %d of %zu",
-						fname, r, (Size) XLOG_BLCKSZ);
-=======
 			pg_fatal("could not read file \"%s\": %m",
 					 fname);
 		else
 			pg_fatal("could not read file \"%s\": read %d of %d",
 					 fname, r, XLOG_BLCKSZ);
->>>>>>> REL_16_9
 		close(fd);
 		return true;
 	}
@@ -649,11 +641,7 @@ XLogDumpDisplayStats(XLogDumpConfig *config, XLogStats *stats)
 	 * calculate column totals.
 	 */
 
-<<<<<<< HEAD
-	for (ri = 0; ri < RM_MAX_ID; ri++)
-=======
 	for (ri = 0; ri <= RM_MAX_ID; ri++)
->>>>>>> REL_16_9
 	{
 		if (!RmgrIdIsValid(ri))
 			continue;
@@ -969,8 +957,6 @@ main(int argc, char **argv)
 							pg_log_error("custom resource manager \"%s\" does not exist",
 										 optarg);
 							goto bad_argument;
-<<<<<<< HEAD
-=======
 						}
 						config.filter_by_rmgr[rmid] = true;
 						config.filter_by_rmgr_enabled = true;
@@ -992,31 +978,8 @@ main(int argc, char **argv)
 							pg_log_error("resource manager \"%s\" does not exist",
 										 optarg);
 							goto bad_argument;
->>>>>>> REL_16_9
-						}
-						config.filter_by_rmgr = rmid;
-					}
-<<<<<<< HEAD
-					else
-					{
-						/* then look for builtin rmgrs */
-						for (rmid = 0; rmid <= RM_MAX_BUILTIN_ID; rmid++)
-						{
-							if (pg_strcasecmp(optarg, GetRmgrDesc(rmid)->rm_name) == 0)
-							{
-								config.filter_by_rmgr = rmid;
-								break;
-							}
-						}
-						if (rmid > RM_MAX_BUILTIN_ID)
-						{
-							pg_log_error("resource manager \"%s\" does not exist",
-										 optarg);
-							goto bad_argument;
 						}
 					}
-=======
->>>>>>> REL_16_9
 				}
 				break;
 			case 'R':
