@@ -622,11 +622,7 @@ flagInhAttrs(DumpOptions *dopt, TableInfo *tblinfo, int numTables)
 			{
 				AttrDefInfo *attrDef;
 
-<<<<<<< HEAD
-				attrDef = (AttrDefInfo *) malloc(sizeof(AttrDefInfo));
-=======
 				attrDef = pg_malloc_object(AttrDefInfo);
->>>>>>> REL_16_9
 				attrDef->dobj.objType = DO_ATTRDEF;
 				attrDef->dobj.catId.tableoid = 0;
 				attrDef->dobj.catId.oid = 0;
