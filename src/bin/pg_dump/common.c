@@ -76,11 +76,6 @@ typedef struct _catalogIdMapEntry
 #include "lib/simplehash.h"
 
 #define CATALOGIDHASH_INITIAL_SIZE	10000
-<<<<<<< HEAD
-
-static catalogid_hash *catalogIdHash = NULL;
-=======
->>>>>>> REL_16_9
 
 static catalogid_hash *catalogIdHash = NULL;
 
@@ -88,11 +83,6 @@ static void flagInhTables(Archive *fout, TableInfo *tblinfo, int numTables,
 						  InhInfo *inhinfo, int numInherits);
 static void flagInhIndexes(Archive *fout, TableInfo *tblinfo, int numTables);
 static void flagInhAttrs(DumpOptions *dopt, TableInfo *tblinfo, int numTables);
-<<<<<<< HEAD
-static void findParentsByOid(TableInfo *self,
-							 InhInfo *inhinfo, int numInherits);
-=======
->>>>>>> REL_16_9
 static int	strInArray(const char *pattern, char **arr, int arr_size);
 static IndxInfo *findIndexByOid(Oid oid);
 
@@ -195,12 +185,9 @@ getSchemaData(Archive *fout, int *numTablesPtr)
 
 	pg_log_info("reading user-defined operators");
 	(void) getOperators(fout, &numOperators);
-<<<<<<< HEAD
 
 	pg_log_info("reading user-defined external protocols");
 	getExtProtocols(fout, &numExtProtocols);
-=======
->>>>>>> REL_16_9
 
 	pg_log_info("reading user-defined access methods");
 	getAccessMethods(fout, &numAccessMethods);
@@ -380,46 +367,6 @@ flagInhTables(Archive *fout, TableInfo *tblinfo, int numTables,
 	 */
 	for (i = 0; i < numTables; i++)
 	{
-<<<<<<< HEAD
-		bool		find_parents = true;
-		bool		mark_parents = true;
-
-		/* Some kinds never have parents */
-		if (tblinfo[i].relkind == RELKIND_SEQUENCE ||
-			tblinfo[i].relkind == RELKIND_VIEW ||
-			tblinfo[i].relkind == RELKIND_MATVIEW)
-			continue;
-
-		/*
-		 * FIXME: In PostgreSQL, foreign tables can be inherited. But
-		 * pg_dump chokes on external tables, if an external table is
-		 * used as a partition, and a column has attislocal=false.
-		 */
-		if (tblinfo[i].relstorage == 'x' /* RELSTORAGE_EXTERNAL */)
-			continue;
-
-		/*
-		 * Normally, we don't bother computing anything for non-target tables,
-		 * but if load-via-partition-root is specified, we gather information
-		 * on every partition in the system so that getRootTableInfo can trace
-		 * from any given to leaf partition all the way up to the root.  (We
-		 * don't need to mark them as interesting for getTableAttrs, though.)
-		 */
-		if (!tblinfo[i].dobj.dump)
-		{
-			mark_parents = false;
-
-			if (!dopt->load_via_partition_root ||
-				!tblinfo[i].ispartition)
-				find_parents = false;
-		}
-
-		/* If needed, find all the immediate parent tables. */
-		if (find_parents)
-			findParentsByOid(&tblinfo[i], inhinfo, numInherits);
-
-=======
->>>>>>> REL_16_9
 		/*
 		 * If needed, mark the parents as interesting for getTableAttrs and
 		 * getIndexes.  We only need this for direct parents of dumpable
@@ -1110,59 +1057,6 @@ findOwningExtension(CatalogId catalogId)
 	return entry->ext;
 }
 
-<<<<<<< HEAD
-
-/*
- * findParentsByOid
- *	  find a table's parents in tblinfo[]
- */
-static void
-findParentsByOid(TableInfo *self,
-				 InhInfo *inhinfo, int numInherits)
-{
-	Oid			oid = self->dobj.catId.oid;
-	int			i,
-				j;
-	int			numParents;
-
-	numParents = 0;
-	for (i = 0; i < numInherits; i++)
-	{
-		if (inhinfo[i].inhrelid == oid)
-			numParents++;
-	}
-
-	self->numParents = numParents;
-
-	if (numParents > 0)
-	{
-		self->parents = (TableInfo **)
-			pg_malloc(sizeof(TableInfo *) * numParents);
-		j = 0;
-		for (i = 0; i < numInherits; i++)
-		{
-			if (inhinfo[i].inhrelid == oid)
-			{
-				TableInfo  *parent;
-
-				parent = findTableByOid(inhinfo[i].inhparent);
-				if (parent == NULL)
-				{
-					pg_log_error("failed sanity check, parent OID %u of table \"%s\" (OID %u) not found",
-								 inhinfo[i].inhparent,
-								 self->dobj.name,
-								 oid);
-					exit_nicely(1);
-				}
-				self->parents[j++] = parent;
-			}
-		}
-	}
-	else
-		self->parents = NULL;
-}
-=======
->>>>>>> REL_16_9
 
 /*
  * parseOidArray
