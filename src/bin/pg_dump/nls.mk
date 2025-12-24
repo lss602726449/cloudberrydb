@@ -1,9 +1,5 @@
 # src/bin/pg_dump/nls.mk
 CATALOG_NAME     = pg_dump
-<<<<<<< HEAD
-AVAIL_LANGUAGES  = cs de el es fr ja ko ru sv tr uk zh_CN
-=======
->>>>>>> REL_16_9
 GETTEXT_FILES    = $(FRONTEND_COMMON_GETTEXT_FILES) \
                    pg_backup_archiver.c \
                    pg_backup_db.c \
