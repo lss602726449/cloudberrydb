@@ -90,27 +90,9 @@ typedef struct XLogDumpConfig
 static void
 sigint_handler(SIGNAL_ARGS)
 {
-<<<<<<< HEAD
-	uint64		count;
-	uint64		rec_len;
-	uint64		fpi_len;
-} Stats;
-
-#define MAX_XLINFO_TYPES 16
-
-typedef struct XLogDumpStats
-{
-	uint64		count;
-	Stats		rmgr_stats[RM_MAX_ID + 1];
-	Stats		record_stats[RM_MAX_ID + 1][MAX_XLINFO_TYPES];
-} XLogDumpStats;
-
-#define fatal_error(...) do { pg_log_fatal(__VA_ARGS__); exit(EXIT_FAILURE); } while(0)
-=======
 	time_to_stop = true;
 }
 #endif
->>>>>>> REL_16_9
 
 static void
 print_rmgr_list(void)
