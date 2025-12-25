@@ -186,7 +186,10 @@ external_beginscan(Relation relation, uint32 scancounter,
 		{
 			v = list_nth(uriList, idx);
 
-			uri = strVal(v);
+			if (strlen(v->sval) == 0)
+				uri = NULL;
+			else
+				uri = strVal(v);
 		}
 	}
 	/*
@@ -202,7 +205,10 @@ external_beginscan(Relation relation, uint32 scancounter,
 		{
 			String 	   *v = list_nth(uriList, 0);
 
-			uri = strVal(v);
+			if (strlen(v->sval) == 0)
+				uri = NULL;
+			else
+				uri = strVal(v);
 		}
 	}
 
