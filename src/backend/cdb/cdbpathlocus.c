@@ -1058,21 +1058,21 @@ cdbpathlocus_is_hashed_on_tlist(CdbPathLocus locus, List *tlist,
 				if (ignore_constants && CdbEquivClassIsConstant(dk_eclass))
 					continue;
 
-				if (dk_eclass->ec_sortref != 0)
-				{
-					foreach(i, tlist)
-					{
-						TargetEntry *tle = (TargetEntry *) lfirst(i);
-
-						if (tle->ressortgroupref == dk_eclass->ec_sortref)
-						{
-							found = true;
-							break;
-						}
-					}
-				}
-				else
-				{
+//				if (dk_eclass->ec_sortref != 0)
+//				{
+//					foreach(i, tlist)
+//					{
+//						TargetEntry *tle = (TargetEntry *) lfirst(i);
+//
+//						if (tle->ressortgroupref == dk_eclass->ec_sortref)
+//						{
+//							found = true;
+//							break;
+//						}
+//					}
+//				}
+//				else
+//				{
 					foreach(i, dk_eclass->ec_members)
 					{
 						EquivalenceMember *em = (EquivalenceMember *) lfirst(i);
@@ -1091,7 +1091,7 @@ cdbpathlocus_is_hashed_on_tlist(CdbPathLocus locus, List *tlist,
 						if (found)
 							break;
 					}
-				}
+//				}
 				if (!found)
 					return false;
 			}

@@ -9380,7 +9380,8 @@ apply_scanjoin_target_to_paths(PlannerInfo *root,
 			int			nappinfos;
 			List	   *child_scanjoin_targets = NIL;
 
-			Assert(child_rel != NULL);
+			if (child_rel == NULL)
+				continue;
 
 			/* Dummy children can be ignored. */
 			if (IS_DUMMY_REL(child_rel))
