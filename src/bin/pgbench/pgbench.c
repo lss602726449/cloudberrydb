@@ -462,14 +462,6 @@ typedef struct StatsData
 /*
  * For displaying Unix epoch timestamps, as some time functions may have
  * another reference.
-<<<<<<< HEAD
- */
-pg_time_usec_t epoch_shift;
-
-/*
- * Struct to keep random state.
-=======
->>>>>>> REL_16_9
  */
 pg_time_usec_t epoch_shift;
 
@@ -4043,17 +4035,7 @@ advanceConnectionState(TState *thread, CState *st, StatsData *agg)
 				 */
 			case CSTATE_ERROR:
 				{
-<<<<<<< HEAD
-					pg_time_usec_t start = now;
-
-					pg_time_now_lazy(&start);
-					finishCon(st);
-					now = pg_time_now();
-					thread->conn_duration += now - start;
-				}
-=======
 					TStatus		tstatus;
->>>>>>> REL_16_9
 
 					Assert(st->estatus != ESTATUS_NO_ERROR);
 
@@ -6672,13 +6654,10 @@ main(int argc, char **argv)
 		{"show-script", required_argument, NULL, 10},
 		{"partitions", required_argument, NULL, 11},
 		{"partition-method", required_argument, NULL, 12},
-<<<<<<< HEAD
 		{"use-unique-keys", no_argument, &use_unique_key, 1},
-=======
 		{"failures-detailed", no_argument, NULL, 13},
 		{"max-tries", required_argument, NULL, 14},
 		{"verbose-errors", no_argument, NULL, 15},
->>>>>>> REL_16_9
 		{NULL, 0, NULL, 0}
 	};
 
@@ -7517,11 +7496,7 @@ main(int argc, char **argv)
 
 	/*
 	 * All connections should be already closed in threadRun(), so this
-<<<<<<< HEAD
-	 * disconnect_all() will be a no-op, but clean up the connecions just to
-=======
 	 * disconnect_all() will be a no-op, but clean up the connections just to
->>>>>>> REL_16_9
 	 * be sure. We don't need to measure the disconnection delays here.
 	 */
 	disconnect_all(state, nclients);
