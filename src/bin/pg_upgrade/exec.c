@@ -56,13 +56,8 @@ get_bin_version(ClusterInfo *cluster)
 		pg_fatal("could not get pg_ctl version data using %s: %s",
 				 cmd, wait_result_to_str(rc));
 
-<<<<<<< HEAD
 	if (sscanf(cmd_output, "%*s (%s Database) %d.%d", dbstring, &v1, &v2) < 1)
-		pg_fatal("could not get pg_ctl version output from %s\n", cmd);
-=======
-	if (sscanf(cmd_output, "%*s %*s %d.%d", &v1, &v2) < 1)
 		pg_fatal("could not get pg_ctl version output from %s", cmd);
->>>>>>> REL_16_9
 
 	if (strcmp("Greenplum", dbstring) && strcmp("Cloudberry", dbstring))
 		pg_fatal("could not upgrade from non Greenplum/Cloudberry version: %s\n", dbstring);
@@ -444,19 +439,12 @@ check_bin_dir(ClusterInfo *cluster, bool check_versions)
 static void
 check_exec(const char *dir, const char *program, bool check_version)
 {
-<<<<<<< HEAD
-	char	path[MAXPGPATH];
-	char	line[MAXPGPATH];
-	char	cmd[MAXPGPATH];
-	char	versionstr[128];
-	char	gp_versionstr[128];
-	int		ret;
-=======
 	char		path[MAXPGPATH];
 	char		line[MAXPGPATH];
 	char		cmd[MAXPGPATH];
 	char		versionstr[128];
->>>>>>> REL_16_9
+	char		gp_versionstr[128];
+	int			ret;
 
 	snprintf(path, sizeof(path), "%s/%s", dir, program);
 
@@ -476,14 +464,8 @@ check_exec(const char *dir, const char *program, bool check_version)
 		snprintf(versionstr, sizeof(versionstr), "%s (PostgreSQL) " PG_VERSION, program);
 		snprintf(gp_versionstr, sizeof(versionstr), "%s (Apache Cloudberry) " PG_VERSION, program);
 
-<<<<<<< HEAD
 		if (strcmp(line, versionstr) != 0 && strcmp(line, gp_versionstr) != 0)
-			pg_fatal("check for \"%s\" failed: incorrect version: found \"%s\", expected \"%s\" or \"%s\"\n",
+			pg_fatal("check for \"%s\" failed: incorrect version: found \"%s\", expected \"%s\" or \"%s\"",
 					 path, line, versionstr, gp_versionstr);
-=======
-		if (strcmp(line, versionstr) != 0)
-			pg_fatal("check for \"%s\" failed: incorrect version: found \"%s\", expected \"%s\"",
-					 path, line, versionstr);
->>>>>>> REL_16_9
 	}
 }

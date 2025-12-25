@@ -54,31 +54,21 @@ uninstall:
 clean distclean maintainer-clean:
 	rm -f pg_upgrade$(X) $(OBJS)
 	rm -rf delete_old_cluster.sh log/ tmp_check/ \
-<<<<<<< HEAD
 		   reindex_hash.sql \
 		   clusterConfigPostgresAddonsFile clusterConfigFile gpdemo-env.sh \
 		   hostfile regression.diffs aomd_filehandler.c
 
 greenplum/aomd_filehandler.c: $(top_srcdir)/src/backend/access/appendonly/aomd_filehandler.c
 	rm -f $@ && cd greenplum && $(LN_S) ../$< aomd_filehandler.c
-=======
-	       reindex_hash.sql
->>>>>>> REL_16_9
 
 export with_icu
 
 check:
-<<<<<<< HEAD
+#	$(prove_check)
 	# ignore pg_upgarde to make CI happy, issue: https://github.com/apache/cloudberry/issues/262
-
-#check: test_gpdb.sh all
-#	bash $< -C -r -s -o $(top_builddir)/gpAux/gpdemo/datadirs/ -b $(DESTDIR)$(bindir)
 
 perfcheck: test_gpdb.sh all
 	bash $< -p -r -o $(top_builddir)/gpAux/gpdemo/datadirs/ -b $(DESTDIR)$(bindir)
-=======
-	$(prove_check)
->>>>>>> REL_16_9
 
 installcheck:
 	$(prove_installcheck)

@@ -11,10 +11,7 @@
 
 #include "catalog/pg_authid_d.h"
 #include "catalog/pg_collation.h"
-<<<<<<< HEAD
 #include "common/kmgr_utils.h"
-=======
->>>>>>> REL_16_9
 #include "fe_utils/string_utils.h"
 #include "mb/pg_wchar.h"
 #include "pg_upgrade.h"
