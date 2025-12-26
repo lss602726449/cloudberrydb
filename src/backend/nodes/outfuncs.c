@@ -1066,6 +1066,8 @@ _outWindowAgg(StringInfo str, const WindowAgg *node)
 	WRITE_INT_FIELD(frameOptions);
 	WRITE_NODE_FIELD(startOffset);
 	WRITE_NODE_FIELD(endOffset);
+	WRITE_NODE_FIELD(runCondition);
+	WRITE_NODE_FIELD(runConditionOrig);
 	WRITE_OID_FIELD(startInRangeFunc);
 	WRITE_OID_FIELD(endInRangeFunc);
 	WRITE_OID_FIELD(inRangeColl);
