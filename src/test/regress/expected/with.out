@@ -2953,7 +2953,6 @@ SELECT q1 FROM
   SELECT q1, (SELECT q2 FROM t_cte WHERE t_cte.q1 = i8.q1) AS t_sub
   FROM int8_tbl i8
 ) ss;
-<<<<<<< HEAD
                  QUERY PLAN
 --------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -2963,17 +2962,6 @@ SELECT q1 FROM
          ->  Seq Scan on public.int8_tbl i8
                Output: i8.q1, NULL::bigint
  Optimizer: Postgres query optimizer
-=======
-                 QUERY PLAN                  
----------------------------------------------
- Subquery Scan on ss
-   Output: ss.q1
-   ->  Seq Scan on public.int8_tbl i8
-         Output: i8.q1, NULL::bigint
-         CTE t_cte
-           ->  Seq Scan on public.int8_tbl t
-                 Output: t.q1, t.q2
->>>>>>> REL_16_9
 (7 rows)
 
 SELECT q1 FROM
@@ -3576,50 +3564,10 @@ SELECT * FROM parent;
 -- check EXPLAIN VERBOSE for a wCTE with RETURNING
 EXPLAIN (VERBOSE, COSTS OFF)
 WITH wcte AS ( INSERT INTO int8_tbl VALUES ( 42, 47 ) RETURNING q2 )
-<<<<<<< HEAD
 DELETE FROM a USING wcte WHERE aa = q2;
 ERROR:  writable CTE queries cannot be themselves writable
 DETAIL:  Apache Cloudberry currently only support CTEs with one writable clause, called in a non-writable context.
 HINT:  Rewrite the query to only include one writable clause.
-=======
-DELETE FROM a_star USING wcte WHERE aa = q2;
-                                QUERY PLAN                                 
----------------------------------------------------------------------------
- Delete on public.a_star
-   Delete on public.a_star a_star_1
-   Delete on public.b_star a_star_2
-   Delete on public.c_star a_star_3
-   Delete on public.d_star a_star_4
-   Delete on public.e_star a_star_5
-   Delete on public.f_star a_star_6
-   CTE wcte
-     ->  Insert on public.int8_tbl
-           Output: int8_tbl.q2
-           ->  Result
-                 Output: '42'::bigint, '47'::bigint
-   ->  Hash Join
-         Output: wcte.*, a_star.tableoid, a_star.ctid
-         Hash Cond: (a_star.aa = wcte.q2)
-         ->  Append
-               ->  Seq Scan on public.a_star a_star_1
-                     Output: a_star_1.aa, a_star_1.tableoid, a_star_1.ctid
-               ->  Seq Scan on public.b_star a_star_2
-                     Output: a_star_2.aa, a_star_2.tableoid, a_star_2.ctid
-               ->  Seq Scan on public.c_star a_star_3
-                     Output: a_star_3.aa, a_star_3.tableoid, a_star_3.ctid
-               ->  Seq Scan on public.d_star a_star_4
-                     Output: a_star_4.aa, a_star_4.tableoid, a_star_4.ctid
-               ->  Seq Scan on public.e_star a_star_5
-                     Output: a_star_5.aa, a_star_5.tableoid, a_star_5.ctid
-               ->  Seq Scan on public.f_star a_star_6
-                     Output: a_star_6.aa, a_star_6.tableoid, a_star_6.ctid
-         ->  Hash
-               Output: wcte.*, wcte.q2
-               ->  CTE Scan on wcte
-                     Output: wcte.*, wcte.q2
-(32 rows)
-
->>>>>>> REL_16_9
 -- error cases
 -- data-modifying WITH tries to use its own output
 WITH RECURSIVE t AS (
