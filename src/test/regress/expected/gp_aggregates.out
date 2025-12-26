@@ -379,7 +379,7 @@ select count(distinct j), count(distinct k), count(distinct m) from (select j,k,
    ->  GroupAggregate
          Group Key: multiagg_with_subquery.j
          ->  Sort
-               Sort Key: multiagg_with_subquery.j, multiagg_with_subquery.k
+               Sort Key: multiagg_with_subquery.j
                ->  Redistribute Motion 3:3  (slice2; segments: 3)
                      Hash Key: multiagg_with_subquery.j
                      ->  HashAggregate

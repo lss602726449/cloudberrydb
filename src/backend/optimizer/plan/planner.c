@@ -3950,21 +3950,21 @@ reorder_grouping_sets(List *groupingSets, List *sortclause)
  *		Returns true if any PathKey in 'keys' has an EquivalenceClass
  *		containing a volatile function.  Otherwise returns false.
  */
-static bool
-has_volatile_pathkey(List *keys)
-{
-	ListCell   *lc;
-
-	foreach(lc, keys)
-	{
-		PathKey    *pathkey = lfirst_node(PathKey, lc);
-
-		if (pathkey->pk_eclass->ec_has_volatile)
-			return true;
-	}
-
-	return false;
-}
+//static bool
+//has_volatile_pathkey(List *keys)
+//{
+//	ListCell   *lc;
+//
+//	foreach(lc, keys)
+//	{
+//		PathKey    *pathkey = lfirst_node(PathKey, lc);
+//
+//		if (pathkey->pk_eclass->ec_has_volatile)
+//			return true;
+//	}
+//
+//	return false;
+//}
 
 /*
  * adjust_group_pathkeys_for_groupagg
@@ -3995,226 +3995,226 @@ has_volatile_pathkey(List *keys)
  * query contains, we always force Aggrefs with volatile functions to perform
  * their own sorts.
  */
-static void
-adjust_group_pathkeys_for_groupagg(PlannerInfo *root)
-{
-	List	   *grouppathkeys = root->group_pathkeys;
-	List	   *bestpathkeys;
-	Bitmapset  *bestaggs;
-	Bitmapset  *unprocessed_aggs;
-	ListCell   *lc;
-	int			i;
-
-	/* Shouldn't be here if there are grouping sets */
-	Assert(root->parse->groupingSets == NIL);
-	/* Shouldn't be here unless there are some ordered aggregates */
-	Assert(root->numOrderedAggs > 0);
-
-	/* Do nothing if disabled */
-	if (!enable_presorted_aggregate)
-		return;
-
-	/*
-	 * Make a first pass over all AggInfos to collect a Bitmapset containing
-	 * the indexes of all AggInfos to be processed below.
-	 */
-	unprocessed_aggs = NULL;
-	foreach(lc, root->agginfos)
-	{
-		AggInfo    *agginfo = lfirst_node(AggInfo, lc);
-		Aggref	   *aggref = linitial_node(Aggref, agginfo->aggrefs);
-
-		if (AGGKIND_IS_ORDERED_SET(aggref->aggkind))
-			continue;
-
-		/* Skip unless there's a DISTINCT or ORDER BY clause */
-		if (aggref->aggdistinct == NIL && aggref->aggorder == NIL)
-			continue;
-
-		/* Additional safety checks are needed if there's a FILTER clause */
-		if (aggref->aggfilter != NULL)
-		{
-			ListCell   *lc2;
-			bool		allow_presort = true;
-
-			/*
-			 * When the Aggref has a FILTER clause, it's possible that the
-			 * filter removes rows that cannot be sorted because the
-			 * expression to sort by results in an error during its
-			 * evaluation.  This is a problem for presorting as that happens
-			 * before the FILTER, whereas without presorting, the Aggregate
-			 * node will apply the FILTER *before* sorting.  So that we never
-			 * try to sort anything that might error, here we aim to skip over
-			 * any Aggrefs with arguments with expressions which, when
-			 * evaluated, could cause an ERROR.  Vars and Consts are ok. There
-			 * may be more cases that should be allowed, but more thought
-			 * needs to be given.  Err on the side of caution.
-			 */
-			foreach(lc2, aggref->args)
-			{
-				TargetEntry *tle = (TargetEntry *) lfirst(lc2);
-				Expr	   *expr = tle->expr;
-
-				while (IsA(expr, RelabelType))
-					expr = (Expr *) (castNode(RelabelType, expr))->arg;
-
-				/* Common case, Vars and Consts are ok */
-				if (IsA(expr, Var) || IsA(expr, Const))
-					continue;
-
-				/* Unsupported.  Don't try to presort for this Aggref */
-				allow_presort = false;
-				break;
-			}
-
-			/* Skip unsupported Aggrefs */
-			if (!allow_presort)
-				continue;
-		}
-
-		unprocessed_aggs = bms_add_member(unprocessed_aggs,
-										  foreach_current_index(lc));
-	}
-
-	/*
-	 * Now process all the unprocessed_aggs to find the best set of pathkeys
-	 * for the given set of aggregates.
-	 *
-	 * On the first outer loop here 'bestaggs' will be empty.   We'll populate
-	 * this during the first loop using the pathkeys for the very first
-	 * AggInfo then taking any stronger pathkeys from any other AggInfos with
-	 * a more strict set of compatible pathkeys.  Once the outer loop is
-	 * complete, we mark off all the aggregates with compatible pathkeys then
-	 * remove those from the unprocessed_aggs and repeat the process to try to
-	 * find another set of pathkeys that are suitable for a larger number of
-	 * aggregates.  The outer loop will stop when there are not enough
-	 * unprocessed aggregates for it to be possible to find a set of pathkeys
-	 * to suit a larger number of aggregates.
-	 */
-	bestpathkeys = NIL;
-	bestaggs = NULL;
-	while (bms_num_members(unprocessed_aggs) > bms_num_members(bestaggs))
-	{
-		Bitmapset  *aggindexes = NULL;
-		List	   *currpathkeys = NIL;
-
-		i = -1;
-		while ((i = bms_next_member(unprocessed_aggs, i)) >= 0)
-		{
-			AggInfo    *agginfo = list_nth_node(AggInfo, root->agginfos, i);
-			Aggref	   *aggref = linitial_node(Aggref, agginfo->aggrefs);
-			List	   *sortlist;
-			List	   *pathkeys;
-
-			if (aggref->aggdistinct != NIL)
-				sortlist = aggref->aggdistinct;
-			else
-				sortlist = aggref->aggorder;
-
-			pathkeys = make_pathkeys_for_sortclauses(root, sortlist,
-													 aggref->args);
-
-			/*
-			 * Ignore Aggrefs which have volatile functions in their ORDER BY
-			 * or DISTINCT clause.
-			 */
-			if (has_volatile_pathkey(pathkeys))
-			{
-				unprocessed_aggs = bms_del_member(unprocessed_aggs, i);
-				continue;
-			}
-
-			/*
-			 * When not set yet, take the pathkeys from the first unprocessed
-			 * aggregate.
-			 */
-			if (currpathkeys == NIL)
-			{
-				currpathkeys = pathkeys;
-
-				/* include the GROUP BY pathkeys, if they exist */
-				if (grouppathkeys != NIL)
-					currpathkeys = append_pathkeys(list_copy(grouppathkeys),
-												   currpathkeys);
-
-				/* record that we found pathkeys for this aggregate */
-				aggindexes = bms_add_member(aggindexes, i);
-			}
-			else
-			{
-				/* now look for a stronger set of matching pathkeys */
-
-				/* include the GROUP BY pathkeys, if they exist */
-				if (grouppathkeys != NIL)
-					pathkeys = append_pathkeys(list_copy(grouppathkeys),
-											   pathkeys);
-
-				/* are 'pathkeys' compatible or better than 'currpathkeys'? */
-				switch (compare_pathkeys(currpathkeys, pathkeys))
-				{
-					case PATHKEYS_BETTER2:
-						/* 'pathkeys' are stronger, use these ones instead */
-						currpathkeys = pathkeys;
-						/* FALLTHROUGH */
-
-					case PATHKEYS_BETTER1:
-						/* 'pathkeys' are less strict */
-						/* FALLTHROUGH */
-
-					case PATHKEYS_EQUAL:
-						/* mark this aggregate as covered by 'currpathkeys' */
-						aggindexes = bms_add_member(aggindexes, i);
-						break;
-
-					case PATHKEYS_DIFFERENT:
-						break;
-				}
-			}
-		}
-
-		/* remove the aggregates that we've just processed */
-		unprocessed_aggs = bms_del_members(unprocessed_aggs, aggindexes);
-
-		/*
-		 * If this pass included more aggregates than the previous best then
-		 * use these ones as the best set.
-		 */
-		if (bms_num_members(aggindexes) > bms_num_members(bestaggs))
-		{
-			bestaggs = aggindexes;
-			bestpathkeys = currpathkeys;
-		}
-	}
-
-	/*
-	 * If we found any ordered aggregates, update root->group_pathkeys to add
-	 * the best set of aggregate pathkeys.  Note that bestpathkeys includes
-	 * the original GROUP BY pathkeys already.
-	 */
-	if (bestpathkeys != NIL)
-		root->group_pathkeys = bestpathkeys;
-
-	/*
-	 * Now that we've found the best set of aggregates we can set the
-	 * presorted flag to indicate to the executor that it needn't bother
-	 * performing a sort for these Aggrefs.  We're able to do this now as
-	 * there's no chance of a Hash Aggregate plan as create_grouping_paths
-	 * will not mark the GROUP BY as GROUPING_CAN_USE_HASH due to the presence
-	 * of ordered aggregates.
-	 */
-	i = -1;
-	while ((i = bms_next_member(bestaggs, i)) >= 0)
-	{
-		AggInfo    *agginfo = list_nth_node(AggInfo, root->agginfos, i);
-
-		foreach(lc, agginfo->aggrefs)
-		{
-			Aggref	   *aggref = lfirst_node(Aggref, lc);
-
-			aggref->aggpresorted = true;
-		}
-	}
-}
+//static void
+//adjust_group_pathkeys_for_groupagg(PlannerInfo *root)
+//{
+//	List	   *grouppathkeys = root->group_pathkeys;
+//	List	   *bestpathkeys;
+//	Bitmapset  *bestaggs;
+//	Bitmapset  *unprocessed_aggs;
+//	ListCell   *lc;
+//	int			i;
+//
+//	/* Shouldn't be here if there are grouping sets */
+//	Assert(root->parse->groupingSets == NIL);
+//	/* Shouldn't be here unless there are some ordered aggregates */
+//	Assert(root->numOrderedAggs > 0);
+//
+//	/* Do nothing if disabled */
+//	if (!enable_presorted_aggregate)
+//		return;
+//
+//	/*
+//	 * Make a first pass over all AggInfos to collect a Bitmapset containing
+//	 * the indexes of all AggInfos to be processed below.
+//	 */
+//	unprocessed_aggs = NULL;
+//	foreach(lc, root->agginfos)
+//	{
+//		AggInfo    *agginfo = lfirst_node(AggInfo, lc);
+//		Aggref	   *aggref = linitial_node(Aggref, agginfo->aggrefs);
+//
+//		if (AGGKIND_IS_ORDERED_SET(aggref->aggkind))
+//			continue;
+//
+//		/* Skip unless there's a DISTINCT or ORDER BY clause */
+//		if (aggref->aggdistinct == NIL && aggref->aggorder == NIL)
+//			continue;
+//
+//		/* Additional safety checks are needed if there's a FILTER clause */
+//		if (aggref->aggfilter != NULL)
+//		{
+//			ListCell   *lc2;
+//			bool		allow_presort = true;
+//
+//			/*
+//			 * When the Aggref has a FILTER clause, it's possible that the
+//			 * filter removes rows that cannot be sorted because the
+//			 * expression to sort by results in an error during its
+//			 * evaluation.  This is a problem for presorting as that happens
+//			 * before the FILTER, whereas without presorting, the Aggregate
+//			 * node will apply the FILTER *before* sorting.  So that we never
+//			 * try to sort anything that might error, here we aim to skip over
+//			 * any Aggrefs with arguments with expressions which, when
+//			 * evaluated, could cause an ERROR.  Vars and Consts are ok. There
+//			 * may be more cases that should be allowed, but more thought
+//			 * needs to be given.  Err on the side of caution.
+//			 */
+//			foreach(lc2, aggref->args)
+//			{
+//				TargetEntry *tle = (TargetEntry *) lfirst(lc2);
+//				Expr	   *expr = tle->expr;
+//
+//				while (IsA(expr, RelabelType))
+//					expr = (Expr *) (castNode(RelabelType, expr))->arg;
+//
+//				/* Common case, Vars and Consts are ok */
+//				if (IsA(expr, Var) || IsA(expr, Const))
+//					continue;
+//
+//				/* Unsupported.  Don't try to presort for this Aggref */
+//				allow_presort = false;
+//				break;
+//			}
+//
+//			/* Skip unsupported Aggrefs */
+//			if (!allow_presort)
+//				continue;
+//		}
+//
+//		unprocessed_aggs = bms_add_member(unprocessed_aggs,
+//										  foreach_current_index(lc));
+//	}
+//
+//	/*
+//	 * Now process all the unprocessed_aggs to find the best set of pathkeys
+//	 * for the given set of aggregates.
+//	 *
+//	 * On the first outer loop here 'bestaggs' will be empty.   We'll populate
+//	 * this during the first loop using the pathkeys for the very first
+//	 * AggInfo then taking any stronger pathkeys from any other AggInfos with
+//	 * a more strict set of compatible pathkeys.  Once the outer loop is
+//	 * complete, we mark off all the aggregates with compatible pathkeys then
+//	 * remove those from the unprocessed_aggs and repeat the process to try to
+//	 * find another set of pathkeys that are suitable for a larger number of
+//	 * aggregates.  The outer loop will stop when there are not enough
+//	 * unprocessed aggregates for it to be possible to find a set of pathkeys
+//	 * to suit a larger number of aggregates.
+//	 */
+//	bestpathkeys = NIL;
+//	bestaggs = NULL;
+//	while (bms_num_members(unprocessed_aggs) > bms_num_members(bestaggs))
+//	{
+//		Bitmapset  *aggindexes = NULL;
+//		List	   *currpathkeys = NIL;
+//
+//		i = -1;
+//		while ((i = bms_next_member(unprocessed_aggs, i)) >= 0)
+//		{
+//			AggInfo    *agginfo = list_nth_node(AggInfo, root->agginfos, i);
+//			Aggref	   *aggref = linitial_node(Aggref, agginfo->aggrefs);
+//			List	   *sortlist;
+//			List	   *pathkeys;
+//
+//			if (aggref->aggdistinct != NIL)
+//				sortlist = aggref->aggdistinct;
+//			else
+//				sortlist = aggref->aggorder;
+//
+//			pathkeys = make_pathkeys_for_sortclauses(root, sortlist,
+//													 aggref->args);
+//
+//			/*
+//			 * Ignore Aggrefs which have volatile functions in their ORDER BY
+//			 * or DISTINCT clause.
+//			 */
+//			if (has_volatile_pathkey(pathkeys))
+//			{
+//				unprocessed_aggs = bms_del_member(unprocessed_aggs, i);
+//				continue;
+//			}
+//
+//			/*
+//			 * When not set yet, take the pathkeys from the first unprocessed
+//			 * aggregate.
+//			 */
+//			if (currpathkeys == NIL)
+//			{
+//				currpathkeys = pathkeys;
+//
+//				/* include the GROUP BY pathkeys, if they exist */
+//				if (grouppathkeys != NIL)
+//					currpathkeys = append_pathkeys(list_copy(grouppathkeys),
+//												   currpathkeys);
+//
+//				/* record that we found pathkeys for this aggregate */
+//				aggindexes = bms_add_member(aggindexes, i);
+//			}
+//			else
+//			{
+//				/* now look for a stronger set of matching pathkeys */
+//
+//				/* include the GROUP BY pathkeys, if they exist */
+//				if (grouppathkeys != NIL)
+//					pathkeys = append_pathkeys(list_copy(grouppathkeys),
+//											   pathkeys);
+//
+//				/* are 'pathkeys' compatible or better than 'currpathkeys'? */
+//				switch (compare_pathkeys(currpathkeys, pathkeys))
+//				{
+//					case PATHKEYS_BETTER2:
+//						/* 'pathkeys' are stronger, use these ones instead */
+//						currpathkeys = pathkeys;
+//						/* FALLTHROUGH */
+//
+//					case PATHKEYS_BETTER1:
+//						/* 'pathkeys' are less strict */
+//						/* FALLTHROUGH */
+//
+//					case PATHKEYS_EQUAL:
+//						/* mark this aggregate as covered by 'currpathkeys' */
+//						aggindexes = bms_add_member(aggindexes, i);
+//						break;
+//
+//					case PATHKEYS_DIFFERENT:
+//						break;
+//				}
+//			}
+//		}
+//
+//		/* remove the aggregates that we've just processed */
+//		unprocessed_aggs = bms_del_members(unprocessed_aggs, aggindexes);
+//
+//		/*
+//		 * If this pass included more aggregates than the previous best then
+//		 * use these ones as the best set.
+//		 */
+//		if (bms_num_members(aggindexes) > bms_num_members(bestaggs))
+//		{
+//			bestaggs = aggindexes;
+//			bestpathkeys = currpathkeys;
+//		}
+//	}
+//
+//	/*
+//	 * If we found any ordered aggregates, update root->group_pathkeys to add
+//	 * the best set of aggregate pathkeys.  Note that bestpathkeys includes
+//	 * the original GROUP BY pathkeys already.
+//	 */
+//	if (bestpathkeys != NIL)
+//		root->group_pathkeys = bestpathkeys;
+//
+//	/*
+//	 * Now that we've found the best set of aggregates we can set the
+//	 * presorted flag to indicate to the executor that it needn't bother
+//	 * performing a sort for these Aggrefs.  We're able to do this now as
+//	 * there's no chance of a Hash Aggregate plan as create_grouping_paths
+//	 * will not mark the GROUP BY as GROUPING_CAN_USE_HASH due to the presence
+//	 * of ordered aggregates.
+//	 */
+//	i = -1;
+//	while ((i = bms_next_member(bestaggs, i)) >= 0)
+//	{
+//		AggInfo    *agginfo = list_nth_node(AggInfo, root->agginfos, i);
+//
+//		foreach(lc, agginfo->aggrefs)
+//		{
+//			Aggref	   *aggref = lfirst_node(Aggref, lc);
+//
+//			aggref->aggpresorted = true;
+//		}
+//	}
+//}
 
 /*
  * Compute query_pathkeys and other pathkeys during plan generation
@@ -4289,8 +4289,8 @@ standard_qp_callback(PlannerInfo *root, void *extra)
 		{
 			root->num_groupby_pathkeys = list_length(root->group_pathkeys);
 			/* If we have ordered aggs, consider adding onto group_pathkeys */
-			if (root->numOrderedAggs > 0)
-				adjust_group_pathkeys_for_groupagg(root);
+//			if (root->numOrderedAggs > 0)
+//				adjust_group_pathkeys_for_groupagg(root);
 		}
 	}
 	else

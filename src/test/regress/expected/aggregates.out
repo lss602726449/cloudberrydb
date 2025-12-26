@@ -1597,7 +1597,7 @@ group by ten;
    ->  GroupAggregate
          Group Key: ten
          ->  Sort
-               Sort Key: ten, two, four
+               Sort Key: ten
                ->  Redistribute Motion 3:3  (slice2; segments: 3)
                      Hash Key: ten
                      ->  Seq Scan on tenk1
@@ -1620,7 +1620,7 @@ group by ten;
    ->  GroupAggregate
          Group Key: ten
          ->  Sort
-               Sort Key: ten, four, two
+               Sort Key: ten
                ->  Redistribute Motion 3:3  (slice2; segments: 3)
                      Hash Key: ten
                      ->  Seq Scan on tenk1
