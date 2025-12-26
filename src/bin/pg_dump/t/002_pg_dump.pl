@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-# Copyright (c) 2021, PostgreSQL Global Development Group
-=======
 
 # Copyright (c) 2021-2023, PostgreSQL Global Development Group
->>>>>>> REL_16_9
 
 use strict;
 use warnings;
