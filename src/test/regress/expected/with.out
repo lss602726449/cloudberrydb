@@ -2910,7 +2910,6 @@ SELECT q1 FROM
   SELECT q1, (SELECT q2 FROM t_cte WHERE t_cte.q1 = i8.q1) AS t_sub
   FROM int8_tbl i8
 ) ss;
-<<<<<<< HEAD
                  QUERY PLAN
 --------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -2921,15 +2920,6 @@ SELECT q1 FROM
                Output: i8.q1, NULL::bigint
  Optimizer: Postgres query optimizer
 (7 rows)
-=======
-              QUERY PLAN              
---------------------------------------
- Subquery Scan on ss
-   Output: ss.q1
-   ->  Seq Scan on public.int8_tbl i8
-         Output: i8.q1, NULL::bigint
-(4 rows)
->>>>>>> REL_16_9
 
 SELECT q1 FROM
 (
