@@ -1058,40 +1058,24 @@ cdbpathlocus_is_hashed_on_tlist(CdbPathLocus locus, List *tlist,
 				if (ignore_constants && CdbEquivClassIsConstant(dk_eclass))
 					continue;
 
-//				if (dk_eclass->ec_sortref != 0)
-//				{
-//					foreach(i, tlist)
-//					{
-//						TargetEntry *tle = (TargetEntry *) lfirst(i);
-//
-//						if (tle->ressortgroupref == dk_eclass->ec_sortref)
-//						{
-//							found = true;
-//							break;
-//						}
-//					}
-//				}
-//				else
-//				{
-					foreach(i, dk_eclass->ec_members)
+				foreach(i, dk_eclass->ec_members)
+				{
+					EquivalenceMember *em = (EquivalenceMember *) lfirst(i);
+					ListCell *ltl;
+
+					foreach(ltl, tlist)
 					{
-						EquivalenceMember *em = (EquivalenceMember *) lfirst(i);
-						ListCell *ltl;
+						TargetEntry *tle = (TargetEntry *) lfirst(ltl);
 
-						foreach(ltl, tlist)
+						if (equal(tle->expr, em->em_expr))
 						{
-							TargetEntry *tle = (TargetEntry *) lfirst(ltl);
-
-							if (equal(tle->expr, em->em_expr))
-							{
-								found = true;
-								break;
-							}
-						}
-						if (found)
+							found = true;
 							break;
+						}
 					}
-//				}
+					if (found)
+						break;
+				}
 				if (!found)
 					return false;
 			}
