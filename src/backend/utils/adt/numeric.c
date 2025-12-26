@@ -7059,7 +7059,7 @@ zero_numeric_var(NumericVar *var)
  * Returns true on success, false on failure (if escontext points to an
  * ErrorSaveContext; otherwise errors are thrown).
  */
-const bool
+bool
 init_var_from_str(const char *str, const char *cp, NumericVar *dest, const char **endptr,
 				  Node *escontext)
 {
