@@ -574,7 +574,7 @@ int32 CdbHashConstList(List *constants, int num_segments, Oid *hashfuncs);
 unsigned int CdbHashRandomSeg(int num_segments);
 
 // check permissions on range table
-void CheckRTPermissions(List *rtable);
+void CheckRTPermissions(List *rtable, List *rteperminfos);
 
 // throw an error if table has update triggers.
 bool HasUpdateTriggers(Oid relid);
@@ -682,6 +682,9 @@ char *GetRelAmName(Oid reloid);
 IndexAmRoutine *GetIndexAmRoutineFromAmHandler(Oid am_handler);
 
 bool TestexprIsHashable(Node *testexpr, List *param_ids);
+
+RTEPermissionInfo *
+GetRTEPermissionInfo(List *rteperminfos, const RangeTblEntry *rte);
 
 gpos::BOOL WalkQueryTree(Query *query, bool (*walker)(), void *context,
 						 int flags);

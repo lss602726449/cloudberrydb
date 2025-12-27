@@ -244,6 +244,7 @@ CTranslatorDXLToPlStmt::GetPlannedStmtFromDXL(const CDXLNode *dxlnode,
 	planned_stmt->planGen = PLANGEN_OPTIMIZER;
 
 	planned_stmt->rtable = m_dxl_to_plstmt_context->GetRTableEntriesList();
+	planned_stmt->permInfos = m_dxl_to_plstmt_context->GetPermInfosList();
 	planned_stmt->subplans = m_dxl_to_plstmt_context->GetSubplanEntriesList();
 	planned_stmt->planTree = plan;
 
@@ -668,8 +669,8 @@ CTranslatorDXLToPlStmt::TranslateDXLTblScan(
 	else
 	{
 		SeqScan *seq_scan = MakeNode(SeqScan);
-		seq_scan->scanrelid = index;
-		plan = &(seq_scan->plan);
+		seq_scan->scan.scanrelid = index;
+		plan = &(seq_scan->scan.plan);
 		plan_return = (Plan *) seq_scan;
 
 		plan->targetlist = targetlist;
@@ -1846,6 +1847,7 @@ CTranslatorDXLToPlStmt::TranslateDXLTvfToRangeTblEntry(
 	rte->functions = ListMake1(rtfunc);
 
 	rte->inFromCl = true;
+	rte->perminfoindex = 0;
 
 	rte->eref = alias;
 	return rte;
@@ -1868,8 +1870,8 @@ CTranslatorDXLToPlStmt::TranslateDXLValueScanToRangeTblEntry(
 	rte->rtekind = RTE_VALUES;
 	rte->inh = false; /* never true for values RTEs */
 	rte->inFromCl = true;
-	rte->requiredPerms = 0;
-	rte->checkAsUser = InvalidOid;
+	/* No permission checks */
+	rte->perminfoindex = 0;
 
 	Alias *alias = MakeNode(Alias);
 	alias->colnames = NIL;
@@ -4271,7 +4273,7 @@ CTranslatorDXLToPlStmt::TranslateDXLDynTblScan(
 	// create dynamic scan node
 	DynamicSeqScan *dyn_seq_scan = MakeNode(DynamicSeqScan);
 
-	dyn_seq_scan->seqscan.scanrelid = index;
+	dyn_seq_scan->seqscan.scan.scanrelid = index;
 
 	const CDXLTableDescr *dxl_table_descr =
 		dyn_tbl_scan_dxlop->GetDXLTableDescr();
@@ -4293,7 +4295,7 @@ CTranslatorDXLToPlStmt::TranslateDXLDynTblScan(
 		TranslateJoinPruneParamids(dyn_tbl_scan_dxlop->GetSelectorIds(),
 								   oid_type, m_dxl_to_plstmt_context);
 
-	Plan *plan = &(dyn_seq_scan->seqscan.plan);
+	Plan *plan = &(dyn_seq_scan->seqscan.scan.plan);
 	plan->plan_node_id = m_dxl_to_plstmt_context->GetNextPlanId();
 	//plan->nMotionNodes = 0;
 
@@ -4510,7 +4512,7 @@ RemapAttrsFromTupDesc(TupleDesc fromDesc, TupleDesc toDesc, Index index,
 					  List *qual, List *targetlist)
 {
 	AttrMap *attMap;
-	attMap = build_attrmap_by_name_if_req(toDesc, fromDesc);
+	attMap = build_attrmap_by_name_if_req(toDesc, fromDesc, false);
 
 	/* If attribute remapping is not necessary, then do not change the varattno */
 	if (attMap)
@@ -5266,16 +5268,24 @@ CTranslatorDXLToPlStmt::ProcessDXLTblDescr(
 	{
 		RangeTblEntry *rte = m_dxl_to_plstmt_context->GetRTEByIndex(index);
 		GPOS_ASSERT(nullptr != rte);
-		rte->requiredPerms |= required_perms;
+
+		if (rte->perminfoindex != 0)
+		{
+			RTEPermissionInfo *pi = m_dxl_to_plstmt_context->GetPermInfoByIndex(rte->perminfoindex);
+			pi->requiredPerms |= required_perms;
+		}
+
 		return index;
 	}
 
 	// create a new RTE (and it's alias) and store it at context rtable list
 	RangeTblEntry *rte = MakeNode(RangeTblEntry);
+	// A perm info entry corresponding this rte.
+	RTEPermissionInfo *pi = MakeNode(RTEPermissionInfo);
 	rte->rtekind = RTE_RELATION;
 	rte->relid = oid;
-	rte->checkAsUser = table_descr->GetExecuteAsUserId();
-	rte->requiredPerms |= required_perms;
+	pi->checkAsUser = table_descr->GetExecuteAsUserId();
+	pi->requiredPerms |= required_perms;
 	rte->rellockmode = table_descr->LockMode();
 
 	Alias *alias = MakeNode(Alias);
@@ -5324,6 +5334,12 @@ CTranslatorDXLToPlStmt::ProcessDXLTblDescr(
 
 	rte->eref = alias;
 	rte->alias = alias;
+
+	m_dxl_to_plstmt_context->AddPerfmInfo(pi);
+
+	// set up rte <> perm info link.
+	rte->perminfoindex = gpdb::ListLength(
+					m_dxl_to_plstmt_context->GetPermInfosList());
 
 	// A new RTE is added to the range table entries list if it's not found in the look
 	// up table. However, it is only added to the look up table if it's a result relation

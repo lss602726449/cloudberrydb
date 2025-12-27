@@ -608,7 +608,7 @@ CTranslatorQueryToDXL::TranslateSelectQueryToDXL()
 	// In Orca, we only keep range table entries for the base tables in the planned statement, but not for the view itself.
 	// Since permissions are only checked during ExecutorStart, we lose track of the permissions required for the view and the select goes through successfully.
 	// We therefore need to check permissions before we go into optimization for all RTEs, including the ones not explicitly referred in the query, e.g. views.
-	CTranslatorUtils::CheckRTEPermissions(m_query->rtable);
+	CTranslatorUtils::CheckRTEPermissions(m_query->rtable, m_query->rteperminfos);
 
 	if (m_query->hasForUpdate)
 	{
@@ -861,8 +861,11 @@ CTranslatorQueryToDXL::TranslateInsertQueryToDXL()
 		GPOS_RAISE(gpdxl::ExmaDXL, gpdxl::ExmiQuery2DXLUnsupportedFeature,
 				   GPOS_WSZ_LIT("Inserts with foreign tables"));
 	}
+	const RTEPermissionInfo *perminfo = gpdb::GetRTEPermissionInfo(
+		m_query->rtable, rte);
+
 	CDXLTableDescr *table_descr = CTranslatorUtils::GetTableDescr(
-		m_mp, m_md_accessor, m_context->m_colid_counter, rte, m_query_id,
+		m_mp, m_md_accessor, m_context->m_colid_counter, rte, perminfo, m_query_id,
 		&m_context->m_has_distributed_tables);
 
 	const IMDRelation *md_rel = m_md_accessor->RetrieveRel(table_descr->MDId());
@@ -1184,8 +1187,11 @@ CTranslatorQueryToDXL::TranslateDeleteQueryToDXL()
 		GPOS_RAISE(gpdxl::ExmaDXL, gpdxl::ExmiQuery2DXLUnsupportedFeature,
 				   GPOS_WSZ_LIT("Deletes with foreign tables"));
 	}
+	const RTEPermissionInfo *perminfo = gpdb::GetRTEPermissionInfo(
+		m_query->rtable, rte);
+
 	CDXLTableDescr *table_descr = CTranslatorUtils::GetTableDescr(
-		m_mp, m_md_accessor, m_context->m_colid_counter, rte, m_query_id,
+		m_mp, m_md_accessor, m_context->m_colid_counter, rte, perminfo, m_query_id,
 		&m_context->m_has_distributed_tables);
 
 	const IMDRelation *md_rel = m_md_accessor->RetrieveRel(table_descr->MDId());
@@ -1261,14 +1267,16 @@ CTranslatorQueryToDXL::TranslateUpdateQueryToDXL()
 	CDXLNode *query_dxlnode = TranslateSelectQueryToDXL();
 	const RangeTblEntry *rte = (RangeTblEntry *) gpdb::ListNth(
 		m_query->rtable, m_query->resultRelation - 1);
-
 	if (rte->relkind == 'f')
 	{
 		GPOS_RAISE(gpdxl::ExmaDXL, gpdxl::ExmiQuery2DXLUnsupportedFeature,
 				   GPOS_WSZ_LIT("Updates with foreign tables"));
 	}
+	const RTEPermissionInfo *perminfo = gpdb::GetRTEPermissionInfo(
+		m_query->rtable, rte);
+
 	CDXLTableDescr *table_descr = CTranslatorUtils::GetTableDescr(
-		m_mp, m_md_accessor, m_context->m_colid_counter, rte, m_query_id,
+		m_mp, m_md_accessor, m_context->m_colid_counter, rte, perminfo, m_query_id,
 		&m_context->m_has_distributed_tables);
 
 	const IMDRelation *md_rel = m_md_accessor->RetrieveRel(table_descr->MDId());
@@ -3258,6 +3266,9 @@ CTranslatorQueryToDXL::TranslateFromClauseToDXL(Node *node)
 					   GPOS_WSZ_LIT("WITH ORDINALITY"));
 		}
 
+		const RTEPermissionInfo *perminfo = gpdb::GetRTEPermissionInfo(m_query->rtable,
+																		 rte);
+
 		switch (rte->rtekind)
 		{
 			default:
@@ -3268,7 +3279,7 @@ CTranslatorQueryToDXL::TranslateFromClauseToDXL(Node *node)
 			}
 			case RTE_RELATION:
 			{
-				return TranslateRTEToDXLLogicalGet(rte, rt_index,
+				return TranslateRTEToDXLLogicalGet(rte, perminfo, rt_index,
 												   m_query_level);
 			}
 			case RTE_VALUES:
@@ -3356,6 +3367,7 @@ CTranslatorQueryToDXL::UnsupportedRTEKind(RTEKind rtekind)
 //---------------------------------------------------------------------------
 CDXLNode *
 CTranslatorQueryToDXL::TranslateRTEToDXLLogicalGet(const RangeTblEntry *rte,
+												   const RTEPermissionInfo *perminfo,
 												   ULONG rt_index,
 												   ULONG  //current_query_level
 )
@@ -3384,7 +3396,7 @@ CTranslatorQueryToDXL::TranslateRTEToDXLLogicalGet(const RangeTblEntry *rte,
 
 	// construct table descriptor for the scan node from the range table entry
 	CDXLTableDescr *dxl_table_descr = CTranslatorUtils::GetTableDescr(
-		m_mp, m_md_accessor, m_context->m_colid_counter, rte,
+		m_mp, m_md_accessor, m_context->m_colid_counter, rte, perminfo,
 		query_id_for_target_rel, &m_context->m_has_distributed_tables);
 
 	CDXLLogicalGet *dxl_op = nullptr;

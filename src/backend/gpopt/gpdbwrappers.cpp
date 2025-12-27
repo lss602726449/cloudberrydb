@@ -2157,11 +2157,11 @@ gpdb::CdbHashRandomSeg(int num_segments)
 
 // check permissions on range table
 void
-gpdb::CheckRTPermissions(List *rtable)
+gpdb::CheckRTPermissions(List *rtable, List *rteperminfos)
 {
 	GP_WRAP_START;
 	{
-		ExecCheckRTPerms(rtable, true);
+		ExecCheckPermissions(rtable, rteperminfos, true);
 		return;
 	}
 	GP_WRAP_END;
@@ -2814,6 +2814,17 @@ gpdb::TestexprIsHashable(Node *testexpr, List *param_ids)
 	}
 	GP_WRAP_END;
 	return false;
+}
+
+RTEPermissionInfo *
+gpdb::GetRTEPermissionInfo(List *rteperminfos,
+											   const RangeTblEntry *rte)
+{
+	GP_WRAP_START;
+	{
+		return getRTEPermissionInfo(rteperminfos, (RangeTblEntry *) rte);
+	}
+	GP_WRAP_END;
 }
 
 // EOF

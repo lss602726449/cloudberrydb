@@ -114,6 +114,7 @@ CDXLTableDescr *
 CTranslatorUtils::GetTableDescr(CMemoryPool *mp, CMDAccessor *md_accessor,
 								CIdGenerator *id_generator,
 								const RangeTblEntry *rte,
+								const RTEPermissionInfo *perminfo,
 								ULONG assigned_query_id_for_target_rel,
 								BOOL *is_distributed_table	// output
 )
@@ -131,9 +132,9 @@ CTranslatorUtils::GetTableDescr(CMemoryPool *mp, CMDAccessor *md_accessor,
 				  GPOS_NEW(mp) CWStringConst(mp, rte->alias->aliasname), true)
 			: GPOS_NEW(mp) CMDName(mp, rel->Mdname().GetMDName());
 
-	ULONG required_perms = static_cast<ULONG>(rte->requiredPerms);
+	ULONG required_perms = static_cast<ULONG>(perminfo->requiredPerms);
 	CDXLTableDescr *table_descr = GPOS_NEW(mp) CDXLTableDescr(
-		mp, mdid, table_mdname, rte->checkAsUser, rte->rellockmode,
+		mp, mdid, table_mdname, perminfo->checkAsUser, rte->rellockmode,
 		required_perms, assigned_query_id_for_target_rel);
 
 	const ULONG len = rel->ColumnCount();
@@ -2173,9 +2174,9 @@ CTranslatorUtils::CreateDXLProjElemConstNULL(CMemoryPool *mp,
 //
 //---------------------------------------------------------------------------
 void
-CTranslatorUtils::CheckRTEPermissions(List *range_table_list)
+CTranslatorUtils::CheckRTEPermissions(List *range_table_list, List *rteperminfos)
 {
-	gpdb::CheckRTPermissions(range_table_list);
+	gpdb::CheckRTPermissions(range_table_list, rteperminfos);
 }
 
 
