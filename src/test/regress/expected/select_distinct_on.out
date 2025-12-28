@@ -105,50 +105,38 @@ SELECT DISTINCT ON (four) four,two
 EXPLAIN (COSTS OFF)
 SELECT DISTINCT ON (four) four,two
    FROM tenk1 WHERE four = 0 ORDER BY 1,2;
-                               QUERY PLAN                               
-------------------------------------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)
-   Merge Key: two
-   ->  Sort
-         Sort Key: two
+                   QUERY PLAN                   
+------------------------------------------------
+ GroupAggregate
+   Group Key: four
+   ->  Gather Motion 3:1  (slice1; segments: 3)
+         Merge Key: two
          ->  GroupAggregate
                Group Key: four
                ->  Sort
                      Sort Key: two
-                     ->  Redistribute Motion 3:3  (slice2; segments: 3)
-                           Hash Key: four
-                           ->  GroupAggregate
-                                 Group Key: four
-                                 ->  Sort
-                                       Sort Key: two
-                                       ->  Seq Scan on tenk1
-                                             Filter: (four = 0)
+                     ->  Seq Scan on tenk1
+                           Filter: (four = 0)
  Optimizer: Postgres query optimizer
-(17 rows)
+(11 rows)
 
 -- Same again but use a column that is indexed so that we get an index scan
 -- then a limit
 EXPLAIN (COSTS OFF)
 SELECT DISTINCT ON (four) four,hundred
    FROM tenk1 WHERE four = 0 ORDER BY 1,2;
-                               QUERY PLAN                               
-------------------------------------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)
-   Merge Key: hundred
-   ->  Sort
-         Sort Key: hundred
+                   QUERY PLAN                   
+------------------------------------------------
+ GroupAggregate
+   Group Key: four
+   ->  Gather Motion 3:1  (slice1; segments: 3)
+         Merge Key: hundred
          ->  GroupAggregate
                Group Key: four
                ->  Sort
                      Sort Key: hundred
-                     ->  Redistribute Motion 3:3  (slice2; segments: 3)
-                           Hash Key: four
-                           ->  GroupAggregate
-                                 Group Key: four
-                                 ->  Sort
-                                       Sort Key: hundred
-                                       ->  Seq Scan on tenk1
-                                             Filter: (four = 0)
+                     ->  Seq Scan on tenk1
+                           Filter: (four = 0)
  Optimizer: Postgres query optimizer
-(17 rows)
+(11 rows)
 

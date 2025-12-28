@@ -188,22 +188,20 @@ SET enable_seqscan = 0;
 -- Check to see we get an incremental sort plan
 EXPLAIN (costs off)
 SELECT DISTINCT hundred, two FROM tenk1;
-                               QUERY PLAN                               
-------------------------------------------------------------------------
+                            QUERY PLAN                            
+------------------------------------------------------------------
  GroupAggregate
    Group Key: hundred, two
    ->  Gather Motion 3:1  (slice1; segments: 3)
          Merge Key: hundred, two
-         ->  Sort
-               Sort Key: hundred, two
-               ->  GroupAggregate
-                     Group Key: hundred, two
-                     ->  Sort
-                           Sort Key: hundred, two
-                           ->  Bitmap Heap Scan on tenk1
-                                 ->  Bitmap Index Scan on tenk1_hundred
+         ->  GroupAggregate
+               Group Key: hundred, two
+               ->  Sort
+                     Sort Key: hundred, two
+                     ->  Bitmap Heap Scan on tenk1
+                           ->  Bitmap Index Scan on tenk1_hundred
  Optimizer: Postgres query optimizer
-(13 rows)
+(11 rows)
 
 RESET enable_seqscan;
 SET enable_hashagg=TRUE;
