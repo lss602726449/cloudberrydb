@@ -432,15 +432,21 @@ cdb_create_multistage_grouping_paths(PlannerInfo *root,
 		 * GROUPINGSET_ID() column.
 		 */
 		ctx.final_needed_pathkeys = make_pathkeys_for_sortclauses(root, gcls, tlist);
+		ctx.final_sort_pathkeys = ctx.final_needed_pathkeys;
 	}
 	else
 	{
 		ctx.partial_grouping_target = partial_grouping_target;
 		ctx.final_groupClause = root->processed_groupClause;
-		ctx.final_needed_pathkeys = root->group_pathkeys;
+		if (list_length(root->group_pathkeys) > root->num_groupby_pathkeys)
+			ctx.final_needed_pathkeys = list_copy_head(root->group_pathkeys,
+													   root->num_groupby_pathkeys);
+		else
+			ctx.final_needed_pathkeys = root->group_pathkeys;    /* preserves order */
 		ctx.gsetid_sortref = 0;
+		ctx.final_sort_pathkeys = root->group_pathkeys;
+
 	}
-	ctx.final_sort_pathkeys = ctx.final_needed_pathkeys;
 	ctx.final_group_tles = get_common_group_tles(ctx.partial_grouping_target,
 												 ctx.final_groupClause,
 												 NIL);

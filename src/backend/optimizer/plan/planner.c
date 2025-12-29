@@ -3950,7 +3950,6 @@ reorder_grouping_sets(List *groupingSets, List *sortclause)
  *		Returns true if any PathKey in 'keys' has an EquivalenceClass
  *		containing a volatile function.  Otherwise returns false.
  */
-#if 0
 static bool
 has_volatile_pathkey(List *keys)
 {
@@ -3966,7 +3965,6 @@ has_volatile_pathkey(List *keys)
 
 	return false;
 }
-#endif
 
 /*
  * adjust_group_pathkeys_for_groupagg
@@ -3997,7 +3995,6 @@ has_volatile_pathkey(List *keys)
  * query contains, we always force Aggrefs with volatile functions to perform
  * their own sorts.
  */
-#if 0
 static void
 adjust_group_pathkeys_for_groupagg(PlannerInfo *root)
 {
@@ -4218,7 +4215,6 @@ adjust_group_pathkeys_for_groupagg(PlannerInfo *root)
 		}
 	}
 }
-#endif
 
 /*
  * Compute query_pathkeys and other pathkeys during plan generation
@@ -4297,10 +4293,8 @@ standard_qp_callback(PlannerInfo *root, void *extra)
 			 * adjust_group_pathkeys_for_groupagg add distinct key to group path key,
 			 * It should cause error for muti-stage aggregate.
 			 */
-#if 0
 			if (root->numOrderedAggs > 0)
 				adjust_group_pathkeys_for_groupagg(root);
-#endif
 		}
 	}
 	else

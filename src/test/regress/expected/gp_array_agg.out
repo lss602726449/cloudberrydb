@@ -210,7 +210,7 @@ explain (costs off) select * from v_pagg_test order by y;
    ->  GroupAggregate
          Group Key: pagg_test.y
          ->  Sort
-               Sort Key: pagg_test.y
+               Sort Key: pagg_test.y, (((unnest(regexp_split_to_array((string_agg((pagg_test.x)::text, ','::text)), ','::text))))::integer)
                ->  Result
                      ->  ProjectSet
                            ->  Finalize HashAggregate
