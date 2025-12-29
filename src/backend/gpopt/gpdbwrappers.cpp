@@ -1960,7 +1960,8 @@ gpdb::GetMVNDistinct(Oid stat_oid)
 {
 	GP_WRAP_START;
 	{
-		return statext_ndistinct_load(stat_oid);
+		/* CBDB_16_MERGE: xxx: do we need ihn = true in any case? */
+		return statext_ndistinct_load(stat_oid, false);
 	}
 	GP_WRAP_END;
 }
