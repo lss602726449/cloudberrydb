@@ -159,6 +159,16 @@ Int8GetDatum(int8 X)
 }
 
 /*
+ * DatumGetInt8
+ *		Returns 8-bit signed integer value of a datum.
+ */
+static inline int8
+DatumGetInt8(Datum X)
+{
+	return (int8) X;
+}
+
+/*
  * DatumGetUInt8
  *		Returns 8-bit unsigned integer value of a datum.
  */
