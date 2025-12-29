@@ -4130,8 +4130,7 @@ CTranslatorQueryToDXL::TranslateJoinExprInFromToDXL(JoinExpr *join_expr)
 		GPOS_ASSERT(IsA(join_alias_node, Var) ||
 					IsA(join_alias_node, FuncExpr) ||
 					IsA(join_alias_node, CoalesceExpr));
-		Value *value = (Value *) lfirst(lc_col_name);
-		CHAR *col_name_char_array = strVal(value);
+		CHAR *col_name_char_array = strVal(lfirst(lc_col_name));
 
 		// create the DXL node holding the target list entry and add it to proj list
 		CDXLNode *project_elem_dxlnode = TranslateExprToDXLProject(

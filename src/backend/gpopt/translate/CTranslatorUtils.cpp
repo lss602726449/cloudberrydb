@@ -485,11 +485,10 @@ CTranslatorUtils::GetColumnDescriptorsFromRecord(CMemoryPool *mp,
 	ForThree(col_name, col_names, col_type, col_types, col_type_modifier,
 			 col_type_modifiers)
 	{
-		Value *value = (Value *) lfirst(col_name);
 		Oid coltype = lfirst_oid(col_type);
 		INT type_modifier = lfirst_int(col_type_modifier);
 
-		CHAR *col_name_char_array = strVal(value);
+		CHAR *col_name_char_array = strVal(lfirst(col_name));
 		CWStringDynamic *column_name =
 			CDXLUtils::CreateDynamicStringFromCharArray(mp,
 														col_name_char_array);
@@ -531,9 +530,7 @@ CTranslatorUtils::GetColumnDescriptorsFromRecord(CMemoryPool *mp,
 
 	ForEach(col_name, col_names)
 	{
-		Value *value = (Value *) lfirst(col_name);
-
-		CHAR *col_name_char_array = strVal(value);
+		CHAR *col_name_char_array = strVal(lfirst(col_name));
 		CWStringDynamic *column_name =
 			CDXLUtils::CreateDynamicStringFromCharArray(mp,
 														col_name_char_array);

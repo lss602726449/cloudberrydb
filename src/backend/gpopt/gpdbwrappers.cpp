@@ -1483,7 +1483,7 @@ gpdb::LookupTypeCache(Oid type_id, int flags)
 	return nullptr;
 }
 
-Value *
+String *
 gpdb::MakeStringValue(char *str)
 {
 	GP_WRAP_START;
@@ -1494,7 +1494,7 @@ gpdb::MakeStringValue(char *str)
 	return nullptr;
 }
 
-Value *
+Integer *
 gpdb::MakeIntegerValue(long i)
 {
 	GP_WRAP_START;
