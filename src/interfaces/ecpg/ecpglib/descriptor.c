@@ -15,6 +15,8 @@
 #include "sql3types.h"
 #include "sqlca.h"
 #include "sqlda.h"
+#include "common/mdb_locale.h"
+
 
 static void descriptor_free(struct descriptor *desc);
 
@@ -210,7 +212,7 @@ get_char_item(int lineno, void *var, enum ECPGttype vartype, char *value, int va
 		case ECPGt_varchar:
 			{
 				struct ECPGgeneric_varchar *variable =
-				(struct ECPGgeneric_varchar *) var;
+					(struct ECPGgeneric_varchar *) var;
 
 				if (varcharsize == 0)
 					memcpy(variable->arr, value, strlen(value));
@@ -500,8 +502,8 @@ ECPGget_desc(int lineno, const char *desc_name, int index,...)
 #ifdef HAVE__CONFIGTHREADLOCALE
 		stmt.oldthreadlocale = _configthreadlocale(_ENABLE_PER_THREAD_LOCALE);
 #endif
-		stmt.oldlocale = ecpg_strdup(setlocale(LC_NUMERIC, NULL), lineno);
-		setlocale(LC_NUMERIC, "C");
+		stmt.oldlocale = ecpg_strdup(SETLOCALE(LC_NUMERIC, NULL), lineno);
+		SETLOCALE(LC_NUMERIC, "C");
 #endif
 
 		/* desperate try to guess something sensible */
@@ -514,7 +516,7 @@ ECPGget_desc(int lineno, const char *desc_name, int index,...)
 #else
 		if (stmt.oldlocale)
 		{
-			setlocale(LC_NUMERIC, stmt.oldlocale);
+			SETLOCALE(LC_NUMERIC, stmt.oldlocale);
 			ecpg_free(stmt.oldlocale);
 		}
 #ifdef HAVE__CONFIGTHREADLOCALE
@@ -597,7 +599,7 @@ set_desc_attr(struct descriptor_item *desc_item, struct variable *var,
 	else
 	{
 		struct ECPGgeneric_bytea *variable =
-		(struct ECPGgeneric_bytea *) (var->value);
+			(struct ECPGgeneric_bytea *) (var->value);
 
 		desc_item->is_binary = true;
 		desc_item->data_len = variable->len;
@@ -923,8 +925,7 @@ ECPGdescribe(int line, int compat, bool input, const char *connection_name, cons
 					if (!ecpg_check_PQresult(res, line, con->connection, compat))
 						break;
 
-					if (desc->result != NULL)
-						PQclear(desc->result);
+					PQclear(desc->result);
 
 					desc->result = res;
 					ret = true;

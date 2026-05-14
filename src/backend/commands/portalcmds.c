@@ -11,7 +11,7 @@
  *
  * Portions Copyright (c) 2006-2008, Greenplum inc
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
- * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  *
@@ -35,6 +35,7 @@
 #include "tcop/pquery.h"
 #include "tcop/tcopprot.h"
 #include "utils/memutils.h"
+#include "utils/metrics_utils.h"
 #include "utils/snapmgr.h"
 
 #include "cdb/cdbendpoint.h"
@@ -335,8 +336,8 @@ PortalCleanup(Portal portal)
 	/*
 	 * sanity checks
 	 */
-	AssertArg(PortalIsValid(portal));
-	AssertArg(portal->cleanup == PortalCleanup);
+	Assert(PortalIsValid(portal));
+	Assert(portal->cleanup == PortalCleanup);
 
 	/*
 	 * Shut down executor, if still running.  We skip this during error abort,
@@ -373,6 +374,22 @@ PortalCleanup(Portal portal)
 			FreeQueryDesc(queryDesc);
 
 			CurrentResourceOwner = saveResourceOwner;
+		}
+		else
+		{
+			/* GPDB hook for collecting query info */
+			if (queryDesc->gpsc_query_key && query_info_collect_hook)
+			{
+				PG_TRY();
+				{
+					(*query_info_collect_hook)(METRICS_QUERY_ERROR, queryDesc);
+				}
+				PG_CATCH();
+				{
+					FlushErrorState();
+				}
+				PG_END_TRY();
+			}
 		}
 	}
 
@@ -514,7 +531,7 @@ PersistHoldablePortal(Portal portal)
 										NULL);
 
 		/* Fetch the result set into the tuplestore */
-		ExecutorRun(queryDesc, direction, 0L, false);
+		ExecutorRun(queryDesc, direction, 0, false);
 
 		queryDesc->dest->rDestroy(queryDesc->dest);
 		queryDesc->dest = NULL;

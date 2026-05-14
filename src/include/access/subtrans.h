@@ -3,7 +3,7 @@
  *
  * PostgreSQL subtransaction-log manager
  *
- * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/access/subtrans.h
@@ -12,7 +12,7 @@
 #define SUBTRANS_H
 
 /* Number of SLRU buffers to use for subtrans */
-#define NUM_SUBTRANS_BUFFERS	32
+#define NUM_SUBTRANS_BUFFERS	64
 
 typedef struct SubTransData
 {

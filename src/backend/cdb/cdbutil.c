@@ -28,6 +28,7 @@
 #endif
 
 #include <sys/param.h>			/* for MAXHOSTNAMELEN */
+#include <sys/resource.h>
 
 #include "access/genam.h"
 #include "common/ip.h"
@@ -593,8 +594,13 @@ getCdbComponentInfo(void)
 			continue;
 
 		hsEntry = (HostPrimaryCountEntry *) hash_search(hostPrimaryCountHash, cdbInfo->config->hostname, HASH_FIND, &found);
-		Assert(found);
-		cdbInfo->hostPrimaryCount = hsEntry->segmentCount;
+		Assert(found || IS_HOT_STANDBY_QD());
+		/*
+		 * Standby and mirror entries can legitimately live on hosts that do not
+		 * own any primary segments. In that case the lookup is absent and the
+		 * count should be treated as zero instead of dereferencing a NULL entry.
+		 */
+		cdbInfo->hostPrimaryCount = found ? hsEntry->segmentCount : 0;
 	}
 
 	for (i = 0; i < component_databases->total_entry_dbs; i++)
@@ -605,8 +611,13 @@ getCdbComponentInfo(void)
 			continue;
 
 		hsEntry = (HostPrimaryCountEntry *) hash_search(hostPrimaryCountHash, cdbInfo->config->hostname, HASH_FIND, &found);
-		Assert(found);
-		cdbInfo->hostPrimaryCount = hsEntry->segmentCount;
+		Assert(found || IS_HOT_STANDBY_QD());
+		/*
+		 * Standby and mirror entries can legitimately live on hosts that do not
+		 * own any primary segments. In that case the lookup is absent and the
+		 * count should be treated as zero instead of dereferencing a NULL entry.
+		 */
+		cdbInfo->hostPrimaryCount = found ? hsEntry->segmentCount : 0;
 	}
 
 	hash_destroy(hostPrimaryCountHash);
@@ -1980,8 +1991,9 @@ IsOnConflictUpdate(PlannedStmt *ps)
 void
 AvoidCorefileGeneration()
 {
-#if defined(HAVE_GETRLIMIT) && defined(RLIMIT_CORE)
+#if defined(HAVE_GETRLIMIT)
 	struct rlimit lim;
+
 	getrlimit(RLIMIT_CORE, &lim);
 	lim.rlim_cur = 0;
 	if (setrlimit(RLIMIT_CORE, &lim) != 0)
@@ -4195,7 +4207,7 @@ IsOnConflictUpdate(PlannedStmt *ps)
 void
 AvoidCorefileGeneration()
 {
-#if defined(HAVE_GETRLIMIT) && defined(RLIMIT_CORE)
+#if defined(HAVE_GETRLIMIT)
 	struct rlimit lim;
 	getrlimit(RLIMIT_CORE, &lim);
 	lim.rlim_cur = 0;

@@ -2351,6 +2351,7 @@ select t <-> 'q0987wertyu0988', t from test_trgm order by t <-> 'q0987wertyu0988
          ->  Limit
                ->  Index Scan using trgm_idx on test_trgm
                      Order By: (t <-> 'q0987wertyu0988'::text)
+ Optimizer: Postgres query optimizer
 (7 rows)
 
 select t <-> 'q0987wertyu0988', t from test_trgm order by t <-> 'q0987wertyu0988' limit 2;
@@ -2375,6 +2376,9 @@ ERROR:  value 8169 out of bounds for option "siglen"
 DETAIL:  Valid values are between "1" and "8168".
 create index trgm_idx on test_trgm using gist (t gist_trgm_ops(siglen=8168));
 set enable_seqscan=off;
+-- check index compatibility handling when opclass option is specified
+alter table test_trgm alter column t type varchar(768);
+alter table test_trgm alter column t type text;
 select t,similarity(t,'qwertyu0988') as sml from test_trgm where t % 'qwertyu0988' order by sml desc, t;
       t      |   sml    
 -------------+----------
@@ -4665,17 +4669,16 @@ select count(*) from test_trgm where t ~ '[qwerty]{2}-?[qwerty]{2}';
 -- check handling of indexquals that generate no searchable conditions
 explain (costs off)
 select count(*) from test_trgm where t like '%99%' and t like '%qwerty%';
-                                       QUERY PLAN                                        
------------------------------------------------------------------------------------------
- Finalize Aggregate
+                                    QUERY PLAN                                     
+-----------------------------------------------------------------------------------
+ Aggregate
    ->  Gather Motion 3:1  (slice1; segments: 3)
-         ->  Partial Aggregate
-               ->  Bitmap Heap Scan on test_trgm
-                     Recheck Cond: ((t ~~ '%99%'::text) AND (t ~~ '%qwerty%'::text))
-                     ->  Bitmap Index Scan on trgm_idx
-                           Index Cond: ((t ~~ '%99%'::text) AND (t ~~ '%qwerty%'::text))
- Optimizer: Postgres query optimizer
-(8 rows)
+         ->  Bitmap Heap Scan on test_trgm
+               Recheck Cond: ((t ~~ '%99%'::text) AND (t ~~ '%qwerty%'::text))
+               ->  Bitmap Index Scan on trgm_idx
+                     Index Cond: ((t ~~ '%99%'::text) AND (t ~~ '%qwerty%'::text))
+ Optimizer: GPORCA
+(7 rows)
 
 select count(*) from test_trgm where t like '%99%' and t like '%qwerty%';
  count 
@@ -4685,17 +4688,16 @@ select count(*) from test_trgm where t like '%99%' and t like '%qwerty%';
 
 explain (costs off)
 select count(*) from test_trgm where t like '%99%' and t like '%qw%';
-                                     QUERY PLAN                                      
--------------------------------------------------------------------------------------
- Finalize Aggregate
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Aggregate
    ->  Gather Motion 3:1  (slice1; segments: 3)
-         ->  Partial Aggregate
-               ->  Bitmap Heap Scan on test_trgm
-                     Recheck Cond: ((t ~~ '%99%'::text) AND (t ~~ '%qw%'::text))
-                     ->  Bitmap Index Scan on trgm_idx
-                           Index Cond: ((t ~~ '%99%'::text) AND (t ~~ '%qw%'::text))
- Optimizer: Postgres query optimizer
-(8 rows)
+         ->  Bitmap Heap Scan on test_trgm
+               Recheck Cond: ((t ~~ '%99%'::text) AND (t ~~ '%qw%'::text))
+               ->  Bitmap Index Scan on trgm_idx
+                     Index Cond: ((t ~~ '%99%'::text) AND (t ~~ '%qw%'::text))
+ Optimizer: GPORCA
+(7 rows)
 
 select count(*) from test_trgm where t like '%99%' and t like '%qw%';
  count 
@@ -5003,8 +5005,8 @@ select * from test2 where t ~ '/\d+/-\d';
 -- test = operator
 explain (costs off)
   select * from test2 where t = 'abcdef';
-                QUERY PLAN                
-------------------------------------------
+                   QUERY PLAN                   
+------------------------------------------------
  Gather Motion 1:1  (slice1; segments: 1)
    ->  Bitmap Heap Scan on test2
          Recheck Cond: (t = 'abcdef'::text)
@@ -5020,8 +5022,8 @@ select * from test2 where t = 'abcdef';
 
 explain (costs off)
   select * from test2 where t = '%line%';
-                QUERY PLAN                
-------------------------------------------
+                   QUERY PLAN                   
+------------------------------------------------
  Gather Motion 1:1  (slice1; segments: 1)
    ->  Bitmap Heap Scan on test2
          Recheck Cond: (t = '%line%'::text)
@@ -5311,14 +5313,15 @@ select * from test2 where t ~ '/\d+/-\d';
 -- test = operator
 explain (costs off)
   select * from test2 where t = 'abcdef';
-                QUERY PLAN                
-------------------------------------------
+                   QUERY PLAN                    
+-------------------------------------------------
  Gather Motion 1:1  (slice1; segments: 1)
    ->  Bitmap Heap Scan on test2
          Recheck Cond: (t = 'abcdef'::text)
          ->  Bitmap Index Scan on test2_idx_gist
                Index Cond: (t = 'abcdef'::text)
-(2 rows)
+ Optimizer: Postgres query optimizer
+(6 rows)
 
 select * from test2 where t = 'abcdef';
    t    
@@ -5328,13 +5331,14 @@ select * from test2 where t = 'abcdef';
 
 explain (costs off)
   select * from test2 where t = '%line%';
-                QUERY PLAN                
-------------------------------------------
+                   QUERY PLAN                    
+-------------------------------------------------
  Gather Motion 1:1  (slice1; segments: 1)
    ->  Bitmap Heap Scan on test2
          Recheck Cond: (t = '%line%'::text)
          ->  Bitmap Index Scan on test2_idx_gist
                Index Cond: (t = '%line%'::text)
+ Optimizer: Postgres query optimizer
 (6 rows)
 
 select * from test2 where t = '%line%';
@@ -5423,7 +5427,7 @@ SELECT DISTINCT city, similarity(city, 'Warsaw'), show_limit()
                ->  Index Scan using restaurants_city_idx on restaurants
                      Index Cond: (city % 'Warsaw'::text)
                      Filter: (city % 'Warsaw'::text)
- Optimizer: Pivotal Optimizer (GPORCA)
+ Optimizer: GPORCA
 (9 rows)
 
 SELECT set_limit(0.3);

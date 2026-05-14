@@ -7,7 +7,7 @@
  *
  * Portions Copyright (c) 2005-2009, Greenplum inc
  * Portions Copyright (c) 2012-Present VMware, Inc. or its affiliates.
- * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/executor/execdesc.h
@@ -22,6 +22,14 @@
 
 struct CdbExplain_ShowStatCtx;  /* private, in "cdb/cdbexplain.c" */
 
+typedef struct GpscQueryKey
+{
+	int tmid; /* transaction time */
+	int ssid; /* session id */
+	int ccnt; /* command count */
+	int nesting_level;
+	uintptr_t query_desc_addr;
+} GpscQueryKey;
 
 /*
  * SerializedParams is used to serialize external query parameters
@@ -315,7 +323,7 @@ typedef struct QueryDesc
 	EState	   *estate;			/* executor's query-wide state */
 	PlanState  *planstate;		/* tree of per-plan-node state */
 
-	/* This field is set by ExecutorRun */
+	/* This field is set by ExecutePlan */
 	bool		already_executed;	/* true if previously executed */
 
 	/* This field is set by ExecutorEnd after collecting cdbdisp results */
@@ -330,6 +338,9 @@ typedef struct QueryDesc
 
 	/* This is always set NULL by the core system, but plugins can change it */
 	struct Instrumentation *totaltime;	/* total time spent in ExecutorRun */
+
+	/* GP Stats Collector */
+	GpscQueryKey *gpsc_query_key;
 } QueryDesc;
 
 /* in pquery.c */

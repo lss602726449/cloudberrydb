@@ -31,6 +31,7 @@
 #include "sqlca.h"
 #include "sqlda-compat.h"
 #include "sqlda-native.h"
+#include "common/mdb_locale.h"
 
 /*
  *	This function returns a newly malloced string that has ' and \
@@ -367,10 +368,10 @@ ecpg_store_result(const PGresult *results, int act_field,
 						/* check strlen for each tuple */
 						for (act_tuple = 0; act_tuple < ntuples; act_tuple++)
 						{
-							int			len = strlen(PQgetvalue(results, act_tuple, act_field)) + 1;
+							int			slen = strlen(PQgetvalue(results, act_tuple, act_field)) + 1;
 
-							if (len > var->varcharsize)
-								var->varcharsize = len;
+							if (slen > var->varcharsize)
+								var->varcharsize = slen;
 						}
 						var->offset *= var->varcharsize;
 						len = var->offset * ntuples;
@@ -820,7 +821,7 @@ ecpg_store_input(const int lineno, const bool force_indicator, const struct vari
 			case ECPGt_bytea:
 				{
 					struct ECPGgeneric_bytea *variable =
-					(struct ECPGgeneric_bytea *) (var->value);
+						(struct ECPGgeneric_bytea *) (var->value);
 
 					if (!(mallocedval = (char *) ecpg_alloc(variable->len, lineno)))
 						return false;
@@ -833,7 +834,7 @@ ecpg_store_input(const int lineno, const bool force_indicator, const struct vari
 			case ECPGt_varchar:
 				{
 					struct ECPGgeneric_varchar *variable =
-					(struct ECPGgeneric_varchar *) (var->value);
+						(struct ECPGgeneric_varchar *) (var->value);
 
 					if (!(newcopy = (char *) ecpg_alloc(variable->len + 1, lineno)))
 						return false;
@@ -1389,7 +1390,6 @@ ecpg_build_params(struct statement *stmt)
 				if (sqlda->sqln == desc_counter)
 					desc_counter = 0;
 			}
-
 		}
 		else
 		{
@@ -1715,8 +1715,7 @@ ecpg_process_output(struct statement *stmt, bool clear_result)
 					status = false;
 				else
 				{
-					if (desc->result)
-						PQclear(desc->result);
+					PQclear(desc->result);
 					desc->result = stmt->results;
 					clear_result = false;
 					ecpg_log("ecpg_process_output on line %d: putting result (%d tuples) into descriptor %s\n",
@@ -2002,13 +2001,13 @@ ecpg_do_prologue(int lineno, const int compat, const int force_indicator,
 #ifdef HAVE__CONFIGTHREADLOCALE
 	stmt->oldthreadlocale = _configthreadlocale(_ENABLE_PER_THREAD_LOCALE);
 #endif
-	stmt->oldlocale = ecpg_strdup(setlocale(LC_NUMERIC, NULL), lineno);
+	stmt->oldlocale = ecpg_strdup(SETLOCALE(LC_NUMERIC, NULL), lineno);
 	if (stmt->oldlocale == NULL)
 	{
 		ecpg_do_epilogue(stmt);
 		return false;
 	}
-	setlocale(LC_NUMERIC, "C");
+	SETLOCALE(LC_NUMERIC, "C");
 #endif
 
 	/*
@@ -2222,7 +2221,7 @@ ecpg_do_epilogue(struct statement *stmt)
 		uselocale(stmt->oldlocale);
 #else
 	if (stmt->oldlocale)
-		setlocale(LC_NUMERIC, stmt->oldlocale);
+		SETLOCALE(LC_NUMERIC, stmt->oldlocale);
 #ifdef HAVE__CONFIGTHREADLOCALE
 
 	/*

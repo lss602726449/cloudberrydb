@@ -74,9 +74,9 @@ name: Apache Cloudberry Debian Build
 
 on:
   push:
-    branches: [main, REL_2_STABLE]
+    branches: [main, cbdb-postgres-merge]
   pull_request:
-    branches: [main, REL_2_STABLE]
+    branches: [main, cbdb-postgres-merge]
     types: [opened, synchronize, reopened, edited]
   workflow_dispatch:  # Manual trigger
     inputs:
@@ -252,6 +252,10 @@ jobs:
                                "gpcontrib/gp_sparse_vector:installcheck",
                                "gpcontrib/gp_toolkit:installcheck"]
               },
+              {"test":"gpcontrib-gp-stats-collector",
+               "make_configs":["gpcontrib/gp_stats_collector:installcheck"],
+               "extension":"gp_stats_collector"
+              },
               {"test":"ic-cbdb-parallel",
                "make_configs":["src/test/regress:installcheck-cbdb-parallel"]
               }
@@ -399,6 +403,32 @@ jobs:
         with:
           fetch-depth: 1
           submodules: true
+
+      - name: Checkout DevOps Scripts from Main Branch
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: main
+          sparse-checkout: |
+            devops/
+          sparse-checkout-cone-mode: false
+          path: main-devops
+
+      - name: Setup DevOps Scripts
+        run: |
+          # Copy devops directory from main branch checkout
+          if [ -d "main-devops/devops" ]; then
+            cp -r main-devops/devops ./
+            chmod +x devops/build/automation/cloudberry/scripts/*.sh
+            chmod +x devops/build/packaging/rpm/*.sh
+            chmod +x devops/build/packaging/deb/*.sh
+            echo "DevOps scripts copied from main branch"
+          else
+            echo "::error::DevOps directory not found in main branch"
+            exit 1
+          fi
+          # Clean up temporary directory
+          rm -rf main-devops
 
       - name: Cloudberry Environment Initialization
         shell: bash
@@ -554,8 +584,15 @@ jobs:
               exit 1
             fi
 
-            ARCH="amd64"
-            CBDB_PKG_VERSION=${CBDB_VERSION}-${BUILD_NUMBER}-$(git --git-dir=.git rev-list HEAD --count).$(git --git-dir=.git rev-parse --short HEAD)
+            ARCH=$(dpkg --print-architecture)
+            # Detect OS distribution (e.g., ubuntu22.04, debian12)
+            if [ -f /etc/os-release ]; then
+              . /etc/os-release
+              OS_DISTRO=$(echo "${ID}${VERSION_ID}" | tr '[:upper:]' '[:lower:]')
+            else
+              OS_DISTRO="unknown"
+            fi
+            CBDB_PKG_VERSION=${CBDB_VERSION}-${BUILD_NUMBER}-${OS_DISTRO}
 
             echo "Produced artifacts"
             ls -l ../
@@ -1315,7 +1352,15 @@ jobs:
 
           {
             chmod +x "${SRC_DIR}"/devops/build/automation/cloudberry/scripts/create-cloudberry-demo-cluster.sh
-            if ! time su - gpadmin -c "cd ${SRC_DIR} && NUM_PRIMARY_MIRROR_PAIRS='${{ matrix.num_primary_mirror_pairs }}' SRC_DIR=${SRC_DIR} ${SRC_DIR}/devops/build/automation/cloudberry/scripts/create-cloudberry-demo-cluster.sh"; then
+
+            # Build BLDWRAP_POSTGRES_CONF_ADDONS for shared_preload_libraries if specified
+            EXTRA_CONF=""
+            if [[ -n "${{ matrix.shared_preload_libraries }}" ]]; then
+              EXTRA_CONF="shared_preload_libraries='${{ matrix.shared_preload_libraries }}'"
+              echo "Adding shared_preload_libraries: ${{ matrix.shared_preload_libraries }}"
+            fi
+
+            if ! time su - gpadmin -c "cd ${SRC_DIR} && NUM_PRIMARY_MIRROR_PAIRS='${{ matrix.num_primary_mirror_pairs }}' BLDWRAP_POSTGRES_CONF_ADDONS=\"${EXTRA_CONF}\" SRC_DIR=${SRC_DIR} ${SRC_DIR}/devops/build/automation/cloudberry/scripts/create-cloudberry-demo-cluster.sh"; then
               echo "::error::Demo cluster creation failed"
               exit 1
             fi
@@ -1326,6 +1371,7 @@ jobs:
         if: success() && needs.check-skip.outputs.should_skip != 'true'
         env:
           SRC_DIR: ${{ github.workspace }}
+          BUILD_DESTINATION: ${{ github.workspace }}/debian/build
         shell: bash {0}
         run: |
           set -o pipefail
@@ -1349,6 +1395,30 @@ jobs:
           # 2. Follow the same pattern as optimizer
           # 3. Update matrix entries to include the new setting
 
+
+          # Create extension if required
+          if [[ "${{ matrix.extension != '' }}" == "true" ]]; then
+            case "${{ matrix.extension }}" in
+              gp_stats_collector)
+                if ! su - gpadmin -c "source ${BUILD_DESTINATION}/cloudberry-env.sh && \
+                  source ${SRC_DIR}/gpAux/gpdemo/gpdemo-env.sh && \
+                  gpconfig -c shared_preload_libraries -v 'gp_stats_collector' && \
+                  gpstop -ra && \
+                  echo 'CREATE EXTENSION IF NOT EXISTS gp_stats_collector; \
+                        SHOW shared_preload_libraries; \
+                        TABLE pg_extension;' | \
+                    psql postgres"
+                then
+                    echo "Error creating gp_stats_collector extension"
+                    exit 1
+                fi
+                ;;
+              *)
+                echo "Unknown extension: ${{ matrix.extension }}"
+                exit 1
+                ;;
+            esac
+          fi
 
           # Set PostgreSQL options if defined
           PG_OPTS=""
@@ -1574,6 +1644,7 @@ jobs:
 
       - name: Check and Display Regression Diffs
         if: always()
+        shell: bash {0}
         run: |
           # Search for regression.diffs recursively
           found_file=$(find . -type f -name "regression.diffs" | head -n 1)

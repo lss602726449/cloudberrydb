@@ -119,6 +119,11 @@ cdbpathlocus_equal(CdbPathLocus a, CdbPathLocus b)
 		list_length(a.distkey) != list_length(b.distkey))
 		return false;
 
+	/*
+	 * CBDB_PARALLEL: What if both a and b are HashedOJ with parallel workers > 0 ?
+	 * Are they equal in practice?
+	 */
+
 	if ((CdbPathLocus_IsHashed(a) || CdbPathLocus_IsHashedOJ(a)) &&
 		(CdbPathLocus_IsHashed(b) || CdbPathLocus_IsHashedOJ(b)))
 		return cdbpath_distkey_equal(a.distkey, b.distkey);
@@ -180,7 +185,6 @@ cdb_build_distribution_keys(PlannerInfo *root, Index rti, GpPolicy *policy)
 		mergeopfamilies = get_mergejoin_opfamilies(eqopoid);
 
 		eclass = get_eclass_for_sort_expr(root, (Expr *) expr,
-										  NULL, /* nullable_relids */ /* GPDB_94_MERGE_FIXME: is NULL ok here? */
 										  mergeopfamilies,
 										  opcintype,
 										  exprCollation((Node *) expr),
@@ -283,7 +287,6 @@ cdbpathlocus_for_insert(PlannerInfo *root, GpPolicy *policy,
 		mergeopfamilies = get_mergejoin_opfamilies(eqopoid);
 
 		eclass = get_eclass_for_sort_expr(root, (Expr *) expr,
-										  NULL, /* nullable_relids */ /* GPDB_94_MERGE_FIXME: is NULL ok here? */
 										  mergeopfamilies,
 										  opcintype,
 										  exprCollation((Node *) expr),
@@ -544,7 +547,7 @@ cdbpathlocus_from_subquery(struct PlannerInfo *root,
 		else
 		{
 			Assert(CdbPathLocus_IsHashedOJ(subpath->locus));
-			CdbPathLocus_MakeHashedOJ(&locus, distkeys, numsegments);
+			CdbPathLocus_MakeHashedOJ(&locus, distkeys, numsegments, subpath->locus.parallel_workers);
 		}
 	}
 	else
@@ -711,7 +714,7 @@ cdbpathlocus_pull_above_projection(struct PlannerInfo *root,
 			CdbPathLocus_MakeHashedWorkers(&newlocus, newdistkeys, numsegments, locus.parallel_workers);
 		}
 		else
-			CdbPathLocus_MakeHashedOJ(&newlocus, newdistkeys, numsegments);
+			CdbPathLocus_MakeHashedOJ(&newlocus, newdistkeys, numsegments, locus.parallel_workers);
 		return newlocus;
 	}
 	else
@@ -842,7 +845,8 @@ cdbpathlocus_join(JoinType jointype, CdbPathLocus a, CdbPathLocus b)
 	{
 		resultlocus = a;
 	}
-	else if (jointype == JOIN_RIGHT)
+	else if (jointype == JOIN_RIGHT ||
+			 jointype == JOIN_RIGHT_ANTI)
 	{
 		resultlocus = b;
 	}
@@ -880,7 +884,7 @@ cdbpathlocus_join(JoinType jointype, CdbPathLocus a, CdbPathLocus b)
 
 			newdistkeys = lappend(newdistkeys, newdistkey);
 		}
-		CdbPathLocus_MakeHashedOJ(&resultlocus, newdistkeys, numsegments);
+		CdbPathLocus_MakeHashedOJ(&resultlocus, newdistkeys, numsegments, 0 /* Both are 0 parallel here*/);
 	}
 	Assert(cdbpathlocus_is_valid(resultlocus));
 	return resultlocus;
@@ -1061,39 +1065,23 @@ cdbpathlocus_is_hashed_on_tlist(CdbPathLocus locus, List *tlist,
 				if (ignore_constants && CdbEquivClassIsConstant(dk_eclass))
 					continue;
 
-				if (dk_eclass->ec_sortref != 0)
+				foreach(i, dk_eclass->ec_members)
 				{
-					foreach(i, tlist)
-					{
-						TargetEntry *tle = (TargetEntry *) lfirst(i);
+					EquivalenceMember *em = (EquivalenceMember *) lfirst(i);
+					ListCell *ltl;
 
-						if (tle->ressortgroupref == dk_eclass->ec_sortref)
+					foreach(ltl, tlist)
+					{
+						TargetEntry *tle = (TargetEntry *) lfirst(ltl);
+
+						if (equal(tle->expr, em->em_expr))
 						{
 							found = true;
 							break;
 						}
 					}
-				}
-				else
-				{
-					foreach(i, dk_eclass->ec_members)
-					{
-						EquivalenceMember *em = (EquivalenceMember *) lfirst(i);
-						ListCell *ltl;
-
-						foreach(ltl, tlist)
-						{
-							TargetEntry *tle = (TargetEntry *) lfirst(ltl);
-
-							if (equal(tle->expr, em->em_expr))
-							{
-								found = true;
-								break;
-							}
-						}
-						if (found)
-							break;
-					}
+					if (found)
+						break;
 				}
 				if (!found)
 					return false;
@@ -1236,8 +1224,14 @@ cdbpathlocus_parallel_join(JoinType jointype, CdbPathLocus a, CdbPathLocus b, bo
 	Assert(cdbpathlocus_is_valid(a));
 	Assert(cdbpathlocus_is_valid(b));
 
-	/* Do both input rels have same locus? */
-	if (cdbpathlocus_equal(a, b))
+	/*
+	 * Do both input rels have same locus? 
+	 * CBDB_PARALLEL: for FULL JOIN, it could be different even both
+	 * are same loucs. Because the NULL values could be on any segments
+	 * after join.
+	 */
+
+	if (jointype != JOIN_FULL && cdbpathlocus_equal(a, b))
 		return a;
 
 	/*
@@ -1412,8 +1406,9 @@ cdbpathlocus_parallel_join(JoinType jointype, CdbPathLocus a, CdbPathLocus b, bo
 	 * If inner is hashed workers, and outer is hashed. Join locus will be hashed.
 	 * If outer is hashed workers, and inner is hashed. Join locus will be hashed workers.
 	 * Seems we should just return outer locus anyway.
+	 * Things changed since we have parallel full join now.
 	 */
-	if (parallel_aware)
+	if (parallel_aware && jointype != JOIN_FULL)
 		return a;
 
 	numsegments = CdbPathLocus_NumSegments(a);
@@ -1430,7 +1425,8 @@ cdbpathlocus_parallel_join(JoinType jointype, CdbPathLocus a, CdbPathLocus b, bo
 	{
 		resultlocus = a;
 	}
-	else if (jointype == JOIN_RIGHT)
+	else if (jointype == JOIN_RIGHT ||
+			 jointype == JOIN_RIGHT_ANTI)
 	{
 		resultlocus = b;
 	}
@@ -1469,7 +1465,9 @@ cdbpathlocus_parallel_join(JoinType jointype, CdbPathLocus a, CdbPathLocus b, bo
 			newdistkeys = lappend(newdistkeys, newdistkey);
 		}
 
-		CdbPathLocus_MakeHashedOJ(&resultlocus, newdistkeys, numsegments);
+		Assert(CdbPathLocus_NumParallelWorkers(a) == CdbPathLocus_NumParallelWorkers(b));
+
+		CdbPathLocus_MakeHashedOJ(&resultlocus, newdistkeys, numsegments, CdbPathLocus_NumParallelWorkers(a));
 	}
 	Assert(cdbpathlocus_is_valid(resultlocus));
 	return resultlocus;

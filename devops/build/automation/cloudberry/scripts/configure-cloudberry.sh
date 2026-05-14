@@ -62,6 +62,12 @@
 #                   --enable-cassert
 #                   --enable-debug-extensions
 #
+#   ENABLE_MDBLOCALES - Enable custom locales (true/false, defaults to
+#                       false)
+#
+#                 When true, add option:
+#                   --with-mdblocales
+#
 # Prerequisites:
 #   - System dependencies must be installed:
 #     * xerces-c development files
@@ -115,7 +121,7 @@ log_section "Initial Setup"
 execute_cmd sudo rm -rf ${BUILD_DESTINATION} || exit 2
 execute_cmd sudo chmod a+w /usr/local || exit 2
 execute_cmd sudo mkdir -p ${BUILD_DESTINATION}/lib || exit 2
-if [[ "$OS_ID" == "rocky" && "$OS_VERSION" =~ ^(8|9) ]]; then
+if [[ "$OS_ID" == "rocky" && "$OS_VERSION" =~ ^(8|9|10) ]]; then
     execute_cmd sudo cp /usr/local/xerces-c/lib/libxerces-c.so \
                 /usr/local/xerces-c/lib/libxerces-c-3.3.so \
                 ${BUILD_DESTINATION}/lib || exit 3
@@ -125,7 +131,7 @@ log_section_end "Initial Setup"
 
 # Set environment
 log_section "Environment Setup"
-export LD_LIBRARY_PATH=${BUILD_DESTINATION}/lib:LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=${BUILD_DESTINATION}/lib:${LD_LIBRARY_PATH:-""}
 log_section_end "Environment Setup"
 
 # Add debug options if ENABLE_DEBUG is set to "true"
@@ -136,6 +142,11 @@ if [ "${ENABLE_DEBUG:-false}" = "true" ]; then
                           --enable-profiling \
                           --enable-cassert \
                           --enable-debug-extensions"
+fi
+
+CONFIGURE_MDBLOCALES_OPTS="--without-mdblocales"
+if [ "${ENABLE_MDBLOCALES:-false}" = "true" ]; then
+    CONFIGURE_MDBLOCALES_OPTS="--with-mdblocales"
 fi
 
 # Configure build
@@ -151,10 +162,13 @@ execute_cmd ./configure --prefix=${BUILD_DESTINATION} \
             --disable-pxf \
             --enable-tap-tests \
             ${CONFIGURE_DEBUG_OPTS} \
+            --with-diskquota \
+            --with-gp-stats-collector \
             --with-gssapi \
             --with-ldap \
             --with-libxml \
             --with-lz4 \
+            --with-zstd \
             --with-openssl \
             --with-pam \
             --with-perl \
@@ -164,6 +178,7 @@ execute_cmd ./configure --prefix=${BUILD_DESTINATION} \
             --with-ssl=openssl \
             --with-openssl \
             --with-uuid=e2fs \
+            ${CONFIGURE_MDBLOCALES_OPTS} \
             --with-includes=/usr/local/xerces-c/include \
             --with-libraries=${BUILD_DESTINATION}/lib || exit 4
 log_section_end "Configure"

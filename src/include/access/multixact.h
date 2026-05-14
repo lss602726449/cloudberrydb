@@ -3,7 +3,7 @@
  *
  * PostgreSQL multi-transaction-log manager
  *
- * Portions Copyright (c) 1996-2021, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2023, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
  * src/include/access/multixact.h
@@ -30,8 +30,8 @@
 #define MaxMultiXactOffset	((MultiXactOffset) 0xFFFFFFFF)
 
 /* Number of SLRU buffers to use for multixact */
-#define NUM_MULTIXACTOFFSET_BUFFERS		8
-#define NUM_MULTIXACTMEMBER_BUFFERS		16
+#define NUM_MULTIXACTOFFSET_BUFFERS		32
+#define NUM_MULTIXACTMEMBER_BUFFERS		64
 
 /*
  * Possible multixact lock modes ("status").  The first four modes are for
@@ -112,8 +112,8 @@ extern MultiXactId ReadNextMultiXactId(void);
 extern void ReadMultiXactIdRange(MultiXactId *oldest, MultiXactId *next);
 extern bool MultiXactIdIsRunning(MultiXactId multi, bool isLockOnly);
 extern void MultiXactIdSetOldestMember(void);
-extern int	GetMultiXactIdMembers(MultiXactId multi, MultiXactMember **xids,
-								  bool allow_old, bool isLockOnly);
+extern int	GetMultiXactIdMembers(MultiXactId multi, MultiXactMember **members,
+								  bool from_pgupgrade, bool isLockOnly);
 extern bool MultiXactIdPrecedes(MultiXactId multi1, MultiXactId multi2);
 extern bool MultiXactIdPrecedesOrEquals(MultiXactId multi1,
 										MultiXactId multi2);
@@ -140,7 +140,8 @@ extern void MultiXactGetCheckptMulti(bool is_shutdown,
 									 Oid *oldestMultiDB);
 extern void CheckPointMultiXact(void);
 extern MultiXactId GetOldestMultiXactId(void);
-extern void TruncateMultiXact(MultiXactId oldestMulti, Oid oldestMultiDB);
+extern void TruncateMultiXact(MultiXactId newOldestMulti,
+							  Oid newOldestMultiDB);
 extern void MultiXactSetNextMXact(MultiXactId nextMulti,
 								  MultiXactOffset nextMultiOffset);
 extern void MultiXactAdvanceNextMXact(MultiXactId minMulti,
